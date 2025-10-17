@@ -21,5 +21,11 @@ class DatabaseSeeder extends Seeder
             'name' => 'Test User',
             'email' => 'test@example.com',
         ]);
+
+        // Seed tags with translations
+        $this->call([
+            TagSeeder::class,
+            TranslationSeeder::class,
+        ]);
     }
 }
