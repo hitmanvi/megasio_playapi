@@ -17,13 +17,6 @@ return new class extends Migration
             $table->string('type')->comment('theme, category');
             $table->timestamps();
         });
-        Schema::create('tag_translations', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('tag_id');
-            $table->string('locale')->index()->default('en');
-            $table->string('name')->nullable();
-            $table->timestamps();
-        });
     }
 
     /**
@@ -32,6 +25,5 @@ return new class extends Migration
     public function down(): void
     {
         Schema::dropIfExists('tags');
-        Schema::dropIfExists('tag_translations');
     }
 };
