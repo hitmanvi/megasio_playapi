@@ -17,7 +17,7 @@ class Tag extends Model
         'name',
         'type',
         'icon',
-        'status',
+        'enabled',
     ];
 
     /**
@@ -26,82 +26,39 @@ class Tag extends Model
      * @var array<string, string>
      */
     protected $casts = [
-        'status' => 'string',
+        'enabled' => 'boolean',
     ];
 
     /**
-     * Status constants
+     * Scope to filter by enabled status
      */
-    const STATUS_ACTIVE = 'active';
-    const STATUS_INACTIVE = 'inactive';
-    const STATUS_PENDING = 'pending';
-
-    /**
-     * Get all available statuses
-     */
-    public static function getStatuses(): array
+    public function scopeEnabled($query)
     {
-        return [
-            self::STATUS_ACTIVE => 'Active',
-            self::STATUS_INACTIVE => 'Inactive',
-            self::STATUS_PENDING => 'Pending',
-        ];
+        return $query->where('enabled', true);
     }
 
     /**
-     * Scope to filter by status
+     * Scope to filter disabled tags
      */
-    public function scopeByStatus($query, $status)
+    public function scopeDisabled($query)
     {
-        return $query->where('status', $status);
+        return $query->where('enabled', false);
     }
 
     /**
-     * Scope to filter active tags
+     * Check if tag is enabled
      */
-    public function scopeActive($query)
+    public function isEnabled(): bool
     {
-        return $query->where('status', self::STATUS_ACTIVE);
+        return $this->enabled;
     }
 
     /**
-     * Scope to filter inactive tags
+     * Check if tag is disabled
      */
-    public function scopeInactive($query)
+    public function isDisabled(): bool
     {
-        return $query->where('status', self::STATUS_INACTIVE);
-    }
-
-    /**
-     * Scope to filter pending tags
-     */
-    public function scopePending($query)
-    {
-        return $query->where('status', self::STATUS_PENDING);
-    }
-
-    /**
-     * Check if tag is active
-     */
-    public function isActive(): bool
-    {
-        return $this->status === self::STATUS_ACTIVE;
-    }
-
-    /**
-     * Check if tag is inactive
-     */
-    public function isInactive(): bool
-    {
-        return $this->status === self::STATUS_INACTIVE;
-    }
-
-    /**
-     * Check if tag is pending
-     */
-    public function isPending(): bool
-    {
-        return $this->status === self::STATUS_PENDING;
+        return !$this->enabled;
     }
 
     /**
