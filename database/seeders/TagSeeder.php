@@ -18,6 +18,7 @@ class TagSeeder extends Seeder
                 'name' => 'action',
                 'type' => 'theme',
                 'icon' => 'fas fa-fist-raised',
+                'status' => 'active',
                 'translations' => [
                     'en' => 'Action',
                     'zh-CN' => '动作',
@@ -29,6 +30,7 @@ class TagSeeder extends Seeder
                 'name' => 'adventure',
                 'type' => 'theme',
                 'icon' => 'fas fa-map-marked-alt',
+                'status' => 'active',
                 'translations' => [
                     'en' => 'Adventure',
                     'zh-CN' => '冒险',
@@ -40,6 +42,7 @@ class TagSeeder extends Seeder
                 'name' => 'comedy',
                 'type' => 'theme',
                 'icon' => 'fas fa-laugh',
+                'status' => 'active',
                 'translations' => [
                     'en' => 'Comedy',
                     'zh-CN' => '喜剧',
@@ -51,6 +54,7 @@ class TagSeeder extends Seeder
                 'name' => 'drama',
                 'type' => 'theme',
                 'icon' => 'fas fa-theater-masks',
+                'status' => 'active',
                 'translations' => [
                     'en' => 'Drama',
                     'zh-CN' => '剧情',
@@ -62,6 +66,7 @@ class TagSeeder extends Seeder
                 'name' => 'horror',
                 'type' => 'theme',
                 'icon' => 'fas fa-ghost',
+                'status' => 'active',
                 'translations' => [
                     'en' => 'Horror',
                     'zh-CN' => '恐怖',
@@ -73,6 +78,7 @@ class TagSeeder extends Seeder
                 'name' => 'romance',
                 'type' => 'theme',
                 'icon' => 'fas fa-heart',
+                'status' => 'active',
                 'translations' => [
                     'en' => 'Romance',
                     'zh-CN' => '爱情',
@@ -84,6 +90,7 @@ class TagSeeder extends Seeder
                 'name' => 'sci-fi',
                 'type' => 'theme',
                 'icon' => 'fas fa-rocket',
+                'status' => 'active',
                 'translations' => [
                     'en' => 'Science Fiction',
                     'zh-CN' => '科幻',
@@ -95,6 +102,7 @@ class TagSeeder extends Seeder
                 'name' => 'thriller',
                 'type' => 'theme',
                 'icon' => 'fas fa-exclamation-triangle',
+                'status' => 'active',
                 'translations' => [
                     'en' => 'Thriller',
                     'zh-CN' => '惊悚',
@@ -108,6 +116,7 @@ class TagSeeder extends Seeder
                 'name' => 'movie',
                 'type' => 'category',
                 'icon' => 'fas fa-film',
+                'status' => 'active',
                 'translations' => [
                     'en' => 'Movie',
                     'zh-CN' => '电影',
@@ -119,6 +128,7 @@ class TagSeeder extends Seeder
                 'name' => 'tv-series',
                 'type' => 'category',
                 'icon' => 'fas fa-tv',
+                'status' => 'active',
                 'translations' => [
                     'en' => 'TV Series',
                     'zh-CN' => '电视剧',
@@ -130,6 +140,7 @@ class TagSeeder extends Seeder
                 'name' => 'anime',
                 'type' => 'category',
                 'icon' => 'fas fa-user-ninja',
+                'status' => 'active',
                 'translations' => [
                     'en' => 'Anime',
                     'zh-CN' => '动漫',
@@ -141,6 +152,7 @@ class TagSeeder extends Seeder
                 'name' => 'documentary',
                 'type' => 'category',
                 'icon' => 'fas fa-book-open',
+                'status' => 'active',
                 'translations' => [
                     'en' => 'Documentary',
                     'zh-CN' => '纪录片',
@@ -152,6 +164,7 @@ class TagSeeder extends Seeder
                 'name' => 'short-film',
                 'type' => 'category',
                 'icon' => 'fas fa-clock',
+                'status' => 'active',
                 'translations' => [
                     'en' => 'Short Film',
                     'zh-CN' => '短片',
@@ -163,6 +176,7 @@ class TagSeeder extends Seeder
                 'name' => 'web-series',
                 'type' => 'category',
                 'icon' => 'fas fa-globe',
+                'status' => 'active',
                 'translations' => [
                     'en' => 'Web Series',
                     'zh-CN' => '网络剧',
