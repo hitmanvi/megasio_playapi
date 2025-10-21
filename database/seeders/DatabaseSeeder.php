@@ -26,6 +26,8 @@ class DatabaseSeeder extends Seeder
         $this->call([
             TagSeeder::class,
             TranslationSeeder::class,
+            BrandSeeder::class,
+            GameSeeder::class,
         ]);
     }
 }
