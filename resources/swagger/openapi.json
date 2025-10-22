@@ -1,0 +1,616 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "PlayAPI - Authentication API",
+    "description": "用户认证系统API文档",
+    "version": "1.0.0",
+    "contact": {
+      "name": "API Support",
+      "email": "support@example.com"
+    }
+  },
+  "servers": [
+    {
+      "url": "http://localhost:8000/api",
+      "description": "开发环境"
+    }
+  ],
+  "tags": [
+    {
+      "name": "Authentication",
+      "description": "用户认证相关接口"
+    }
+  ],
+  "paths": {
+    "/auth/register": {
+      "post": {
+        "tags": ["Authentication"],
+        "summary": "用户注册",
+        "description": "创建新用户账户",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RegisterRequest"
+              },
+              "example": {
+                "name": "张三",
+                "phone": "13800138000",
+                "email": "zhangsan@example.com",
+                "password": "password123",
+                "password_confirmation": "password123"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "注册成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthResponse"
+                },
+                "example": {
+                  "code": 0,
+                  "errmsg": "Success",
+                  "data": {
+                    "user": {
+                      "id": 1,
+                      "name": "张三",
+                      "phone": "13800138000",
+                      "email": "zhangsan@example.com",
+                      "status": "active",
+                      "created_at": "2024-01-01T00:00:00.000000Z",
+                      "updated_at": "2024-01-01T00:00:00.000000Z"
+                    },
+                    "token": "1|abcdef123456789",
+                    "token_type": "Bearer"
+                  }
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "验证失败",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "examples": {
+                  "phone_exists": {
+                    "summary": "手机号已存在",
+                    "value": {
+                      "code": 3003,
+                      "errmsg": "This phone number has already been registered",
+                      "data": null
+                    }
+                  },
+                  "email_exists": {
+                    "summary": "邮箱已存在",
+                    "value": {
+                      "code": 3004,
+                      "errmsg": "This email has already been registered",
+                      "data": null
+                    }
+                  },
+                  "phone_email_required": {
+                    "summary": "手机号和邮箱不能都为空",
+                    "value": {
+                      "code": 3005,
+                      "errmsg": "Please provide either phone number or email",
+                      "data": {
+                        "phone": ["Phone number and email cannot both be empty"],
+                        "email": ["Phone number and email cannot both be empty"]
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/auth/login": {
+      "post": {
+        "tags": ["Authentication"],
+        "summary": "用户登录",
+        "description": "使用手机号或邮箱登录",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LoginRequest"
+              },
+              "examples": {
+                "phone_login": {
+                  "summary": "手机号登录",
+                  "value": {
+                    "login": "13800138000",
+                    "password": "password123"
+                  }
+                },
+                "email_login": {
+                  "summary": "邮箱登录",
+                  "value": {
+                    "login": "zhangsan@example.com",
+                    "password": "password123"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "登录成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthResponse"
+                },
+                "example": {
+                  "code": 0,
+                  "errmsg": "Success",
+                  "data": {
+                    "user": {
+                      "id": 1,
+                      "name": "张三",
+                      "phone": "13800138000",
+                      "email": "zhangsan@example.com",
+                      "status": "active",
+                      "created_at": "2024-01-01T00:00:00.000000Z",
+                      "updated_at": "2024-01-01T00:00:00.000000Z"
+                    },
+                    "token": "1|abcdef123456789",
+                    "token_type": "Bearer"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "认证失败",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "examples": {
+                  "invalid_credentials": {
+                    "summary": "用户名或密码错误",
+                    "value": {
+                      "code": 2001,
+                      "errmsg": "The provided credentials are incorrect",
+                      "data": null
+                    }
+                  },
+                  "account_disabled": {
+                    "summary": "账户被禁用",
+                    "value": {
+                      "code": 2002,
+                      "errmsg": "Account has been disabled. Please contact administrator",
+                      "data": null
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/auth/logout": {
+      "post": {
+        "tags": ["Authentication"],
+        "summary": "用户登出",
+        "description": "注销当前用户的访问令牌",
+        "security": [{"bearerAuth": []}],
+        "responses": {
+          "200": {
+            "description": "登出成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessResponse"
+                },
+                "example": {
+                  "code": 0,
+                  "errmsg": "Success",
+                  "data": null
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "未授权",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "code": 1002,
+                  "errmsg": "Unauthorized access",
+                  "data": null
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/auth/mine": {
+      "get": {
+        "tags": ["Authentication"],
+        "summary": "获取当前用户信息",
+        "description": "获取当前登录用户的详细信息",
+        "security": [{"bearerAuth": []}],
+        "responses": {
+          "200": {
+            "description": "获取用户信息成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserResponse"
+                },
+                "example": {
+                  "code": 0,
+                  "errmsg": "Success",
+                  "data": {
+                    "user": {
+                      "id": 1,
+                      "name": "张三",
+                      "phone": "13800138000",
+                      "email": "zhangsan@example.com",
+                      "status": "active",
+                      "created_at": "2024-01-01T00:00:00.000000Z",
+                      "updated_at": "2024-01-01T00:00:00.000000Z"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "未授权",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "code": 1002,
+                  "errmsg": "Unauthorized access",
+                  "data": null
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/auth/refresh": {
+      "post": {
+        "tags": ["Authentication"],
+        "summary": "刷新访问令牌",
+        "description": "刷新当前用户的访问令牌",
+        "security": [{"bearerAuth": []}],
+        "responses": {
+          "200": {
+            "description": "刷新令牌成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TokenResponse"
+                },
+                "example": {
+                  "code": 0,
+                  "errmsg": "Success",
+                  "data": {
+                    "token": "2|xyz789abcdef",
+                    "token_type": "Bearer"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "未授权",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "code": 1002,
+                  "errmsg": "Unauthorized access",
+                  "data": null
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/auth/change-password": {
+      "post": {
+        "tags": ["Authentication"],
+        "summary": "修改密码",
+        "description": "修改当前用户的密码",
+        "security": [{"bearerAuth": []}],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ChangePasswordRequest"
+              },
+              "example": {
+                "current_password": "oldpassword123",
+                "password": "newpassword123",
+                "password_confirmation": "newpassword123"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "修改密码成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessResponse"
+                },
+                "example": {
+                  "code": 0,
+                  "errmsg": "Success",
+                  "data": null
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "未授权",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "code": 1002,
+                  "errmsg": "Unauthorized access",
+                  "data": null
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "验证失败",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "examples": {
+                  "current_password_incorrect": {
+                    "summary": "当前密码错误",
+                    "value": {
+                      "code": 2007,
+                      "errmsg": "The current password is incorrect",
+                      "data": null
+                    }
+                  },
+                  "password_confirmation_mismatch": {
+                    "summary": "密码确认不匹配",
+                    "value": {
+                      "code": 1001,
+                      "errmsg": "Validation failed",
+                      "data": {
+                        "password": ["The password confirmation does not match."]
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT",
+        "description": "使用Bearer Token进行认证"
+      }
+    },
+    "schemas": {
+      "RegisterRequest": {
+        "type": "object",
+        "required": ["name", "password"],
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 255,
+            "description": "用户姓名"
+          },
+          "phone": {
+            "type": "string",
+            "nullable": true,
+            "description": "手机号码（与邮箱至少提供一个）"
+          },
+          "email": {
+            "type": "string",
+            "format": "email",
+            "maxLength": 255,
+            "nullable": true,
+            "description": "邮箱地址（与手机号至少提供一个）"
+          },
+          "password": {
+            "type": "string",
+            "minLength": 8,
+            "description": "密码（至少8位）"
+          },
+          "password_confirmation": {
+            "type": "string",
+            "description": "密码确认"
+          }
+        }
+      },
+      "LoginRequest": {
+        "type": "object",
+        "required": ["login", "password"],
+        "properties": {
+          "login": {
+            "type": "string",
+            "description": "登录凭据（手机号或邮箱）"
+          },
+          "password": {
+            "type": "string",
+            "description": "密码"
+          }
+        }
+      },
+      "ChangePasswordRequest": {
+        "type": "object",
+        "required": ["current_password", "password"],
+        "properties": {
+          "current_password": {
+            "type": "string",
+            "description": "当前密码"
+          },
+          "password": {
+            "type": "string",
+            "minLength": 8,
+            "description": "新密码（至少8位）"
+          },
+          "password_confirmation": {
+            "type": "string",
+            "description": "新密码确认"
+          }
+        }
+      },
+      "User": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "description": "用户ID"
+          },
+          "name": {
+            "type": "string",
+            "description": "用户姓名"
+          },
+          "phone": {
+            "type": "string",
+            "nullable": true,
+            "description": "手机号码"
+          },
+          "email": {
+            "type": "string",
+            "nullable": true,
+            "description": "邮箱地址"
+          },
+          "status": {
+            "type": "string",
+            "enum": ["active", "inactive"],
+            "description": "用户状态"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "创建时间"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "更新时间"
+          }
+        }
+      },
+      "AuthResponse": {
+        "type": "object",
+        "properties": {
+          "user": {
+            "$ref": "#/components/schemas/User"
+          },
+          "token": {
+            "type": "string",
+            "description": "访问令牌"
+          },
+          "token_type": {
+            "type": "string",
+            "enum": ["Bearer"],
+            "description": "令牌类型"
+          }
+        }
+      },
+      "UserResponse": {
+        "type": "object",
+        "properties": {
+          "user": {
+            "$ref": "#/components/schemas/User"
+          }
+        }
+      },
+      "TokenResponse": {
+        "type": "object",
+        "properties": {
+          "token": {
+            "type": "string",
+            "description": "新的访问令牌"
+          },
+          "token_type": {
+            "type": "string",
+            "enum": ["Bearer"],
+            "description": "令牌类型"
+          }
+        }
+      },
+      "SuccessResponse": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "integer",
+            "description": "响应码，0表示成功"
+          },
+          "errmsg": {
+            "type": "string",
+            "description": "响应消息"
+          },
+          "data": {
+            "type": "object",
+            "nullable": true,
+            "description": "响应数据"
+          }
+        }
+      },
+      "ErrorResponse": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "integer",
+            "description": "错误码"
+          },
+          "errmsg": {
+            "type": "string",
+            "description": "错误消息"
+          },
+          "data": {
+            "type": "object",
+            "nullable": true,
+            "description": "错误详情"
+          }
+        }
+      }
+    }
+  }
+}

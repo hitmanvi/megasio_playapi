@@ -1,8 +1,24 @@
 <?php
 
+use App\Http\Controllers\AuthController;
 use App\Http\Controllers\TranslationExampleController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+
+// 认证相关路由
+Route::prefix('auth')->group(function () {
+    // 公开路由
+    Route::post('/register', [AuthController::class, 'register']);
+    Route::post('/login', [AuthController::class, 'login']);
+    
+    // 需要认证的路由
+    Route::middleware('auth:sanctum')->group(function () {
+        Route::post('/logout', [AuthController::class, 'logout']);
+        Route::get('/mine', [AuthController::class, 'mine']);
+        Route::post('/refresh', [AuthController::class, 'refresh']);
+        Route::post('/change-password', [AuthController::class, 'changePassword']);
+    });
+});
 
 Route::get('/user', function (Request $request) {
     return $request->user();
