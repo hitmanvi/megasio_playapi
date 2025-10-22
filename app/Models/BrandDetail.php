@@ -18,6 +18,7 @@ class BrandDetail extends Model
         'support',
         'configured',
         'game_count',
+        'rate',
         'enabled',
     ];
 
@@ -31,6 +32,7 @@ class BrandDetail extends Model
         'configured' => 'boolean',
         'enabled' => 'boolean',
         'game_count' => 'integer',
+        'rate' => 'decimal:4',
     ];
 
     /**
