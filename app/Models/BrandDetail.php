@@ -19,6 +19,7 @@ class BrandDetail extends Model
         'configured',
         'game_count',
         'rate',
+        'provider',
         'enabled',
     ];
 
