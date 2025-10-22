@@ -57,13 +57,10 @@
                   "errmsg": "Success",
                   "data": {
                     "user": {
-                      "id": 1,
+                      "uid": "01ARZ3NDEKTSV4RRFFQ69G5FAV",
                       "name": "张三",
                       "phone": "13800138000",
-                      "email": "zhangsan@example.com",
-                      "status": "active",
-                      "created_at": "2024-01-01T00:00:00.000000Z",
-                      "updated_at": "2024-01-01T00:00:00.000000Z"
+                      "email": "zhangsan@example.com"
                     },
                     "token": "1|abcdef123456789",
                     "token_type": "Bearer"
@@ -158,13 +155,10 @@
                   "errmsg": "Success",
                   "data": {
                     "user": {
-                      "id": 1,
+                      "uid": "01ARZ3NDEKTSV4RRFFQ69G5FAV",
                       "name": "张三",
                       "phone": "13800138000",
-                      "email": "zhangsan@example.com",
-                      "status": "active",
-                      "created_at": "2024-01-01T00:00:00.000000Z",
-                      "updated_at": "2024-01-01T00:00:00.000000Z"
+                      "email": "zhangsan@example.com"
                     },
                     "token": "1|abcdef123456789",
                     "token_type": "Bearer"
@@ -264,6 +258,7 @@
                   "data": {
                     "user": {
                       "id": 1,
+                      "uid": "01ARZ3NDEKTSV4RRFFQ69G5FAV",
                       "name": "张三",
                       "phone": "13800138000",
                       "email": "zhangsan@example.com",
@@ -501,9 +496,9 @@
       "User": {
         "type": "object",
         "properties": {
-          "id": {
-            "type": "integer",
-            "description": "用户ID"
+          "uid": {
+            "type": "string",
+            "description": "用户唯一标识(ULID)"
           },
           "name": {
             "type": "string",
@@ -518,21 +513,6 @@
             "type": "string",
             "nullable": true,
             "description": "邮箱地址"
-          },
-          "status": {
-            "type": "string",
-            "enum": ["active", "inactive"],
-            "description": "用户状态"
-          },
-          "created_at": {
-            "type": "string",
-            "format": "date-time",
-            "description": "创建时间"
-          },
-          "updated_at": {
-            "type": "string",
-            "format": "date-time",
-            "description": "更新时间"
           }
         }
       },
