@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('brand_details', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('brand_id')->constrained('brands')->onDelete('cascade');
+            $table->foreignId('brand_id');
             $table->string('coin')->nullable()->comment('货币类型');
             $table->boolean('support')->default(false)->comment('是否支持');
             $table->boolean('configured')->default(false)->comment('是否已配置');
