@@ -507,7 +507,6 @@
                         "currency": "USD",
                         "available": 1000.50000000,
                         "frozen": 200.00000000,
-                        "total": 1200.50000000,
                         "version": 1
                       }
                     ],
@@ -561,7 +560,6 @@
                   "data": {
                     "available": 1000.50000000,
                     "frozen": 200.00000000,
-                    "total": 1200.50000000,
                     "currency": "USD"
                   }
                 }
@@ -948,10 +946,6 @@
                 "type": "number",
                 "description": "冻结余额"
               },
-              "total": {
-                "type": "number",
-                "description": "总余额"
-              },
               "currency": {
                 "type": "string",
                 "description": "货币类型"
@@ -982,10 +976,6 @@
           "frozen": {
             "type": "number",
             "description": "冻结余额"
-          },
-          "total": {
-            "type": "number",
-            "description": "总余额"
           },
           "version": {
             "type": "integer",

@@ -41,7 +41,6 @@ class BalanceController extends Controller
             return $this->responseItem([
                 'available' => 0,
                 'frozen' => 0,
-                'total' => 0,
                 'currency' => $currency,
             ]);
         }
@@ -49,7 +48,6 @@ class BalanceController extends Controller
         return $this->responseItem([
             'available' => $balance->available,
             'frozen' => $balance->frozen,
-            'total' => $balance->total_balance,
             'currency' => $balance->currency,
         ]);
     }
