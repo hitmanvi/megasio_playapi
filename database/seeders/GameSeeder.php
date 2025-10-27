@@ -30,6 +30,7 @@ class GameSeeder extends Seeder
                 'sort_id' => 1,
                 'enabled' => true,
                 'memo' => 'Classic sci-fi action movie',
+                'languages' => ['en', 'zh-CN', 'ja', 'ko'],
             ],
             [
                 'brand_id' => $brands['netflix']->id,
@@ -41,6 +42,7 @@ class GameSeeder extends Seeder
                 'sort_id' => 2,
                 'enabled' => true,
                 'memo' => 'Hilarious comedy about a bachelor party gone wrong',
+                'languages' => ['en', 'zh-CN', 'ko'],
             ],
             [
                 'brand_id' => $brands['disney']->id,
@@ -52,6 +54,7 @@ class GameSeeder extends Seeder
                 'sort_id' => 3,
                 'enabled' => true,
                 'memo' => 'Epic adventure on the high seas',
+                'languages' => ['en', 'zh-CN', 'ja', 'ko', 'fr'],
             ],
             [
                 'brand_id' => $brands['disney']->id,
@@ -63,6 +66,7 @@ class GameSeeder extends Seeder
                 'sort_id' => 4,
                 'enabled' => true,
                 'memo' => 'Beautiful anime romance story',
+                'languages' => ['en', 'zh-CN', 'ja'],
             ],
             [
                 'brand_id' => $brands['amazon']->id,
@@ -74,6 +78,7 @@ class GameSeeder extends Seeder
                 'sort_id' => 5,
                 'enabled' => true,
                 'memo' => 'Dark superhero drama series',
+                'languages' => ['en', 'zh-CN', 'ja', 'ko'],
             ],
             [
                 'brand_id' => $brands['hbo']->id,
@@ -85,6 +90,7 @@ class GameSeeder extends Seeder
                 'sort_id' => 6,
                 'enabled' => true,
                 'memo' => 'Epic fantasy thriller series',
+                'languages' => ['en', 'zh-CN', 'ja', 'ko', 'es'],
             ],
             [
                 'brand_id' => $brands['apple']->id,
@@ -96,6 +102,7 @@ class GameSeeder extends Seeder
                 'sort_id' => 7,
                 'enabled' => true,
                 'memo' => 'Epic sci-fi series based on Asimov novels',
+                'languages' => ['en', 'zh-CN', 'ja'],
             ],
             [
                 'brand_id' => $brands['youtube']->id,
@@ -107,6 +114,7 @@ class GameSeeder extends Seeder
                 'sort_id' => 8,
                 'enabled' => true,
                 'memo' => 'Incredible documentary about free solo climbing',
+                'languages' => ['en', 'zh-CN'],
             ],
             [
                 'brand_id' => $brands['netflix']->id,
@@ -118,6 +126,7 @@ class GameSeeder extends Seeder
                 'sort_id' => 9,
                 'enabled' => true,
                 'memo' => 'Supernatural horror series',
+                'languages' => ['en', 'zh-CN', 'ja', 'ko', 'es', 'fr'],
             ],
             [
                 'brand_id' => $brands['disney']->id,
@@ -129,6 +138,7 @@ class GameSeeder extends Seeder
                 'sort_id' => 10,
                 'enabled' => true,
                 'memo' => 'Charming animated short film',
+                'languages' => ['en'],
             ],
             [
                 'brand_id' => $brands['amazon']->id,
@@ -140,6 +150,7 @@ class GameSeeder extends Seeder
                 'sort_id' => 11,
                 'enabled' => false,
                 'memo' => 'Romantic comedy temporarily disabled',
+                'languages' => ['en', 'zh-CN'],
             ],
             [
                 'brand_id' => $brands['hbo']->id,
@@ -151,6 +162,7 @@ class GameSeeder extends Seeder
                 'sort_id' => 12,
                 'enabled' => true,
                 'memo' => 'Corporate drama series',
+                'languages' => ['en', 'zh-CN', 'ja', 'ko'],
             ],
         ];
 
