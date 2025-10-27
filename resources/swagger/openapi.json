@@ -19,6 +19,10 @@
     {
       "name": "Authentication",
       "description": "用户认证相关接口"
+    },
+    {
+      "name": "Banner",
+      "description": "Banner轮播图相关接口"
     }
   ],
   "paths": {
@@ -416,6 +420,63 @@
           }
         }
       }
+    },
+    "/banners": {
+      "get": {
+        "tags": ["Banner"],
+        "summary": "获取Banner列表",
+        "description": "获取当前可用的Banner轮播图",
+        "parameters": [
+          {
+            "name": "type",
+            "in": "query",
+            "description": "Banner类型",
+            "schema": {
+              "type": "string",
+              "enum": ["home", "promotion", "advertisement"]
+            }
+          },
+          {
+            "name": "platform",
+            "in": "query",
+            "description": "平台类型",
+            "schema": {
+              "type": "string",
+              "enum": ["web", "app"],
+              "default": "web"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "获取Banner列表成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BannerListResponse"
+                },
+                "example": {
+                  "code": 0,
+                  "errmsg": "Success",
+                  "data": {
+                    "items": [
+                      {
+                        "id": 1,
+                        "type": "home",
+                        "img_url": "https://example.com/banner1.jpg",
+                        "rule_url": "https://example.com/click",
+                        "description": "首页Banner",
+                        "sort_id": 1
+                      }
+                    ],
+                    "meta": {}
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -588,6 +649,63 @@
             "type": "object",
             "nullable": true,
             "description": "错误详情"
+          }
+        }
+      },
+      "BannerListResponse": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "integer",
+            "description": "响应码，0表示成功"
+          },
+          "errmsg": {
+            "type": "string",
+            "description": "响应消息"
+          },
+          "data": {
+            "type": "object",
+            "properties": {
+              "items": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/Banner"
+                }
+              },
+              "meta": {
+                "type": "object"
+              }
+            }
+          }
+        }
+      },
+      "Banner": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "description": "Banner ID"
+          },
+          "type": {
+            "type": "string",
+            "description": "Banner类型"
+          },
+          "img_url": {
+            "type": "string",
+            "description": "图片URL"
+          },
+          "rule_url": {
+            "type": "string",
+            "description": "跳转URL"
+          },
+          "description": {
+            "type": "string",
+            "nullable": true,
+            "description": "描述"
+          },
+          "sort_id": {
+            "type": "integer",
+            "description": "排序ID"
           }
         }
       }
