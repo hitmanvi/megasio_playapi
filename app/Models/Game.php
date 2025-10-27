@@ -31,21 +31,6 @@ class Game extends Model
      */
     protected $casts = [
         'enabled' => 'boolean',
+        'languages' => 'array',
     ];
-
-    /**
-     * Get languages as array.
-     */
-    public function getLanguagesAttribute($value): array
-    {
-        return $value ? explode(',', $value) : [];
-    }
-
-    /**
-     * Set languages from array.
-     */
-    public function setLanguagesAttribute($value): void
-    {
-        $this->attributes['languages'] = is_array($value) ? implode(',', $value) : $value;
-    }
 }
