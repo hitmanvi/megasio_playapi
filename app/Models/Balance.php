@@ -32,6 +32,19 @@ class Balance extends Model
     ];
 
     /**
+     * List of fields to be hidden in array/json representations
+     *
+     * @var array<int, string>
+     */
+    protected $hidden = [
+        'id',
+        'user_id',
+        'created_at',
+        'updated_at',
+        'version',
+    ];
+
+    /**
      * Get the user that owns the balance.
      */
     public function user(): BelongsTo
