@@ -27,6 +27,10 @@
     {
       "name": "Balance",
       "description": "余额相关接口"
+    },
+    {
+      "name": "GameGroup",
+      "description": "游戏群组相关接口"
     }
   ],
   "paths": {
@@ -665,6 +669,186 @@
           }
         }
       }
+    },
+    "/game-groups": {
+      "get": {
+        "tags": ["GameGroup"],
+        "summary": "获取游戏群组列表",
+        "description": "获取启用状态的游戏群组，支持按分类和平台筛选",
+        "parameters": [
+          {
+            "name": "category",
+            "in": "query",
+            "description": "分类筛选",
+            "schema": {
+              "type": "string",
+              "enum": ["Event", "System"]
+            }
+          },
+          {
+            "name": "platform",
+            "in": "query",
+            "description": "平台类型",
+            "schema": {
+              "type": "string",
+              "enum": ["web", "app"],
+              "default": "web"
+            }
+          },
+          {
+            "name": "locale",
+            "in": "query",
+            "description": "语言代码",
+            "schema": {
+              "type": "string",
+              "default": "en"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "获取游戏群组列表成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GameGroupListResponse"
+                },
+                "example": {
+                  "code": 0,
+                  "errmsg": "Success",
+                  "data": {
+                    "items": [
+                      {
+                        "id": 1,
+                        "category": "Event",
+                        "sort_id": 1,
+                        "name": "热门游戏",
+                        "app_limit": 10,
+                        "web_limit": 20
+                      }
+                    ],
+                    "meta": {}
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/game-groups/category/{category}": {
+      "get": {
+        "tags": ["GameGroup"],
+        "summary": "获取指定分类的游戏群组",
+        "description": "根据分类获取游戏群组",
+        "parameters": [
+          {
+            "name": "category",
+            "in": "path",
+            "required": true,
+            "description": "分类名称",
+            "schema": {
+              "type": "string",
+              "enum": ["Event", "System"]
+            }
+          },
+          {
+            "name": "platform",
+            "in": "query",
+            "description": "平台类型",
+            "schema": {
+              "type": "string",
+              "enum": ["web", "app"],
+              "default": "web"
+            }
+          },
+          {
+            "name": "locale",
+            "in": "query",
+            "description": "语言代码",
+            "schema": {
+              "type": "string",
+              "default": "en"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "获取游戏群组列表成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GameGroupListResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/game-groups/{groupId}/games": {
+      "get": {
+        "tags": ["GameGroup"],
+        "summary": "获取游戏群组中的游戏列表",
+        "description": "根据群组ID获取该群组中的游戏列表",
+        "parameters": [
+          {
+            "name": "groupId",
+            "in": "path",
+            "required": true,
+            "description": "游戏群组ID",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "platform",
+            "in": "query",
+            "description": "平台类型",
+            "schema": {
+              "type": "string",
+              "enum": ["web", "app"],
+              "default": "web"
+            }
+          },
+          {
+            "name": "locale",
+            "in": "query",
+            "description": "语言代码",
+            "schema": {
+              "type": "string",
+              "default": "en"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "获取游戏列表成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GameListResponse"
+                },
+                "example": {
+                  "code": 0,
+                  "errmsg": "Success",
+                  "data": {
+                    "items": [
+                      {
+                        "id": 1,
+                        "name": "The Matrix",
+                        "thumbnail": "https://example.com/thumbnails/matrix.jpg",
+                        "sort_id": 1
+                      }
+                    ],
+                    "meta": {}
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -1052,6 +1236,113 @@
             "type": "string",
             "format": "date-time",
             "description": "交易时间"
+          }
+        }
+      },
+      "GameGroupListResponse": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "integer",
+            "description": "响应码，0表示成功"
+          },
+          "errmsg": {
+            "type": "string",
+            "description": "响应消息"
+          },
+          "data": {
+            "type": "object",
+            "properties": {
+              "items": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/GameGroup"
+                }
+              },
+              "meta": {
+                "type": "object"
+              }
+            }
+          }
+        }
+      },
+      "GameGroup": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "description": "游戏群组ID"
+          },
+          "category": {
+            "type": "string",
+            "description": "分类：Event或System"
+          },
+          "sort_id": {
+            "type": "integer",
+            "description": "排序ID"
+          },
+          "name": {
+            "type": "string",
+            "nullable": true,
+            "description": "群组名称（多语言）"
+          },
+          "app_limit": {
+            "type": "integer",
+            "nullable": true,
+            "description": "App端显示游戏数量限制"
+          },
+          "web_limit": {
+            "type": "integer",
+            "nullable": true,
+            "description": "Web端显示游戏数量限制"
+          }
+        }
+      },
+      "Game": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "description": "游戏ID"
+          },
+          "name": {
+            "type": "string",
+            "description": "游戏名称"
+          },
+          "thumbnail": {
+            "type": "string",
+            "description": "缩略图URL"
+          },
+          "sort_id": {
+            "type": "integer",
+            "description": "排序ID"
+          }
+        }
+      },
+      "GameListResponse": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "integer",
+            "description": "响应码，0表示成功"
+          },
+          "errmsg": {
+            "type": "string",
+            "description": "响应消息"
+          },
+          "data": {
+            "type": "object",
+            "properties": {
+              "items": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/Game"
+                }
+              },
+              "meta": {
+                "type": "object"
+              }
+            }
           }
         }
       }

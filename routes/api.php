@@ -3,6 +3,7 @@
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\BalanceController;
 use App\Http\Controllers\BannerController;
+use App\Http\Controllers\GameGroupController;
 use App\Http\Controllers\TranslationExampleController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -52,6 +53,13 @@ Route::middleware('auth:sanctum')->prefix('balances')->group(function () {
     Route::get('/', [BalanceController::class, 'index']);
     Route::get('/{currency}', [BalanceController::class, 'show']);
     Route::get('/transactions/list', [BalanceController::class, 'transactions']);
+});
+
+// 游戏群组相关路由（只读）
+Route::prefix('game-groups')->group(function () {
+    Route::get('/', [GameGroupController::class, 'index']);
+    Route::get('/category/{category}', [GameGroupController::class, 'getByCategory']);
+    Route::get('/{groupId}/games', [GameGroupController::class, 'getGames']);
 });
 
 // 演示路由
