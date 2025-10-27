@@ -5,6 +5,7 @@ namespace Database\Seeders;
 use App\Models\Game;
 use App\Models\Brand;
 use App\Models\Tag;
+use App\Models\Translation;
 use Illuminate\Database\Seeder;
 
 class GameSeeder extends Seeder
@@ -153,8 +154,95 @@ class GameSeeder extends Seeder
             ],
         ];
 
-        foreach ($games as $gameData) {
-            Game::create($gameData);
+        foreach ($games as $index => $gameData) {
+            $game = Game::create($gameData);
+
+            // 创建游戏的翻译数据
+            $translations = [
+                ['locale' => 'en', 'value' => $gameData['name']],
+                ['locale' => 'zh-CN', 'value' => $this->getChineseName($gameData['name'])],
+                ['locale' => 'ja', 'value' => $this->getJapaneseName($gameData['name'])],
+                ['locale' => 'ko', 'value' => $this->getKoreanName($gameData['name'])],
+            ];
+
+            foreach ($translations as $translation) {
+                Translation::create([
+                    'translatable_type' => Game::class,
+                    'translatable_id' => $game->id,
+                    'field' => 'name',
+                    'locale' => $translation['locale'],
+                    'value' => $translation['value'],
+                ]);
+            }
         }
+    }
+
+    /**
+     * 获取中文名称
+     */
+    private function getChineseName(string $name): string
+    {
+        $names = [
+            'The Matrix' => '黑客帝国',
+            'The Hangover' => '宿醉',
+            'Pirates of the Caribbean' => '加勒比海盗',
+            'Your Name' => '你的名字',
+            'The Boys' => '黑袍纠察队',
+            'Game of Thrones' => '权力的游戏',
+            'Foundation' => '基地',
+            'Free Solo' => '徒手攀岩',
+            'Stranger Things' => '怪奇物语',
+            'Lava' => '熔岩',
+            'The Big Sick' => '大病',
+            'Succession' => '继承之战',
+        ];
+
+        return $names[$name] ?? $name;
+    }
+
+    /**
+     * 获取日文名称
+     */
+    private function getJapaneseName(string $name): string
+    {
+        $names = [
+            'The Matrix' => 'マトリックス',
+            'The Hangover' => 'ハングオーバー',
+            'Pirates of the Caribbean' => 'パイレーツ・オブ・カリビアン',
+            'Your Name' => '君の名は。',
+            'The Boys' => 'ザ・ボーイズ',
+            'Game of Thrones' => 'ゲーム・オブ・スローンズ',
+            'Foundation' => 'ファウンデーション',
+            'Free Solo' => 'フリーソロ',
+            'Stranger Things' => 'ストレンジャー・シングス',
+            'Lava' => 'ラバ',
+            'The Big Sick' => 'ビッグ・シック',
+            'Succession' => 'サクセッション',
+        ];
+
+        return $names[$name] ?? $name;
+    }
+
+    /**
+     * 获取韩文名称
+     */
+    private function getKoreanName(string $name): string
+    {
+        $names = [
+            'The Matrix' => '매트릭스',
+            'The Hangover' => '행오버',
+            'Pirates of the Caribbean' => '캐리비안의 해적',
+            'Your Name' => '너의 이름은',
+            'The Boys' => '보이즈',
+            'Game of Thrones' => '왕좌의 게임',
+            'Foundation' => '파운데이션',
+            'Free Solo' => '프리 솔로',
+            'Stranger Things' => '이상한 물건',
+            'Lava' => '용암',
+            'The Big Sick' => '더 빅 식',
+            'Succession' => '승계',
+        ];
+
+        return $names[$name] ?? $name;
     }
 }
