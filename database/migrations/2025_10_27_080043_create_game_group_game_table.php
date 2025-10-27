@@ -18,10 +18,6 @@ return new class extends Migration
             $table->integer('sort_id')->default(0)->comment('排序ID');
             $table->timestamps();
             
-            // 添加外键约束
-            $table->foreign('game_group_id')->references('id')->on('game_groups')->onDelete('cascade');
-            $table->foreign('game_id')->references('id')->on('games')->onDelete('cascade');
-            
             // 添加索引
             $table->index('game_group_id');
             $table->index('game_id');
