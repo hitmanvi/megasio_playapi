@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\BalanceController;
 use App\Http\Controllers\BannerController;
 use App\Http\Controllers\TranslationExampleController;
 use Illuminate\Http\Request;
@@ -45,6 +46,13 @@ Route::prefix('tags')->group(function () {
 
 // Banner相关路由（只读）
 Route::get('/banners', [BannerController::class, 'index']);
+
+// 余额相关路由（需要认证）
+Route::middleware('auth:sanctum')->prefix('balances')->group(function () {
+    Route::get('/', [BalanceController::class, 'index']);
+    Route::get('/{currency}', [BalanceController::class, 'show']);
+    Route::get('/transactions/list', [BalanceController::class, 'transactions']);
+});
 
 // 演示路由
 Route::get('/translation-example', [TranslationExampleController::class, 'example']);
