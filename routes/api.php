@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\BannerController;
 use App\Http\Controllers\TranslationExampleController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -41,6 +42,9 @@ Route::prefix('tags')->group(function () {
     // 创建标签
     Route::post('/', [TranslationExampleController::class, 'createTag']);
 });
+
+// Banner相关路由（只读）
+Route::get('/banners', [BannerController::class, 'index']);
 
 // 演示路由
 Route::get('/translation-example', [TranslationExampleController::class, 'example']);
