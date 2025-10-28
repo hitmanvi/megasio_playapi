@@ -20,6 +20,9 @@ class Order extends Model
         'payout',
         'status',
         'currency',
+        'payment_currency',
+        'payment_amount',
+        'payment_payout',
         'notes',
         'finished_at',
         'order_id',
@@ -35,6 +38,8 @@ class Order extends Model
     protected $casts = [
         'amount' => 'decimal:8',
         'payout' => 'decimal:8',
+        'payment_amount' => 'decimal:8',
+        'payment_payout' => 'decimal:8',
         'finished_at' => 'datetime',
         'version' => 'integer',
     ];
