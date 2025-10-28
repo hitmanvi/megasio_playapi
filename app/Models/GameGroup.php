@@ -15,6 +15,7 @@ class GameGroup extends Model
      */
     protected $fillable = [
         'category',
+        'name',
         'sort_id',
         'app_limit',
         'web_limit',

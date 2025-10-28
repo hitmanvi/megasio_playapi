@@ -32,7 +32,7 @@ class GameGroupController extends Controller
                 'id' => $group->id,
                 'category' => $group->category,
                 'sort_id' => $group->sort_id,
-                'name' => $group->getNameTranslation($locale),
+                'name' => $group->name ?: $group->getNameTranslation($locale),
                 'app_limit' => $group->app_limit,
                 'web_limit' => $group->web_limit,
             ];
@@ -58,7 +58,7 @@ class GameGroupController extends Controller
                 'id' => $group->id,
                 'category' => $group->category,
                 'sort_id' => $group->sort_id,
-                'name' => $group->getNameTranslation($locale),
+                'name' => $group->name ?: $group->getNameTranslation($locale),
                 'app_limit' => $group->app_limit,
                 'web_limit' => $group->web_limit,
             ];
