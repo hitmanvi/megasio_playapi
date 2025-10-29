@@ -95,6 +95,9 @@ class GameCategorySeeder extends Seeder
             $translations = $data['translations'];
             unset($data['translations']);
             
+            // Set name field with English name as default
+            $data['name'] = $translations['en'] ?? '';
+            
             // Create the game category
             $category = GameCategory::create($data);
             

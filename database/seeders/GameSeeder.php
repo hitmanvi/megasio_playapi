@@ -27,7 +27,10 @@ class GameSeeder extends Seeder
             $categoryMap[$name] = $category->id;
         }
         
-        $themes = Theme::all()->keyBy('name');
+        // Map themes by English name
+        $themes = Theme::all()->keyBy(function($theme) {
+            return $theme->getName('en');
+        });
 
         $games = [
             [

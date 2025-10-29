@@ -16,6 +16,7 @@ class GameCategory extends Model
      * @var array<int, string>
      */
     protected $fillable = [
+        'name',
         'icon',
         'enabled',
         'sort_id',
