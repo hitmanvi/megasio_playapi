@@ -21,6 +21,7 @@ class PaymentMethod extends Model
         'max_amount',
         'min_amount',
         'enabled',
+        'sort_id',
         'synced_at',
         'notes',
     ];
@@ -33,6 +34,7 @@ class PaymentMethod extends Model
     protected $casts = [
         'amounts' => 'array',
         'enabled' => 'boolean',
+        'sort_id' => 'integer',
         'max_amount' => 'decimal:8',
         'min_amount' => 'decimal:8',
         'synced_at' => 'datetime',
@@ -98,6 +100,14 @@ class PaymentMethod extends Model
     public function isEnabled(): bool
     {
         return $this->enabled;
+    }
+
+    /**
+     * Scope to order by sort_id.
+     */
+    public function scopeOrdered($query)
+    {
+        return $query->orderBy('sort_id', 'asc')->orderBy('id', 'asc');
     }
 
     /**
