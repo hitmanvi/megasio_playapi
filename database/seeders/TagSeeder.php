@@ -13,108 +13,9 @@ class TagSeeder extends Seeder
     public function run(): void
     {
         $tags = [
-            // Theme tags
-            [
-                'name' => 'action',
-                'type' => 'theme',
-                'icon' => 'fas fa-fist-raised',
-                'enabled' => true,
-                'translations' => [
-                    'en' => 'Action',
-                    'zh-CN' => '动作',
-                    'ja' => 'アクション',
-                    'ko' => '액션',
-                ]
-            ],
-            [
-                'name' => 'adventure',
-                'type' => 'theme',
-                'icon' => 'fas fa-map-marked-alt',
-                'enabled' => true,
-                'translations' => [
-                    'en' => 'Adventure',
-                    'zh-CN' => '冒险',
-                    'ja' => 'アドベンチャー',
-                    'ko' => '모험',
-                ]
-            ],
-            [
-                'name' => 'comedy',
-                'type' => 'theme',
-                'icon' => 'fas fa-laugh',
-                'enabled' => true,
-                'translations' => [
-                    'en' => 'Comedy',
-                    'zh-CN' => '喜剧',
-                    'ja' => 'コメディ',
-                    'ko' => '코미디',
-                ]
-            ],
-            [
-                'name' => 'drama',
-                'type' => 'theme',
-                'icon' => 'fas fa-theater-masks',
-                'enabled' => true,
-                'translations' => [
-                    'en' => 'Drama',
-                    'zh-CN' => '剧情',
-                    'ja' => 'ドラマ',
-                    'ko' => '드라마',
-                ]
-            ],
-            [
-                'name' => 'horror',
-                'type' => 'theme',
-                'icon' => 'fas fa-ghost',
-                'enabled' => true,
-                'translations' => [
-                    'en' => 'Horror',
-                    'zh-CN' => '恐怖',
-                    'ja' => 'ホラー',
-                    'ko' => '공포',
-                ]
-            ],
-            [
-                'name' => 'romance',
-                'type' => 'theme',
-                'icon' => 'fas fa-heart',
-                'enabled' => true,
-                'translations' => [
-                    'en' => 'Romance',
-                    'zh-CN' => '爱情',
-                    'ja' => 'ロマンス',
-                    'ko' => '로맨스',
-                ]
-            ],
-            [
-                'name' => 'sci-fi',
-                'type' => 'theme',
-                'icon' => 'fas fa-rocket',
-                'enabled' => true,
-                'translations' => [
-                    'en' => 'Science Fiction',
-                    'zh-CN' => '科幻',
-                    'ja' => 'SF',
-                    'ko' => 'SF',
-                ]
-            ],
-            [
-                'name' => 'thriller',
-                'type' => 'theme',
-                'icon' => 'fas fa-exclamation-triangle',
-                'enabled' => true,
-                'translations' => [
-                    'en' => 'Thriller',
-                    'zh-CN' => '惊悚',
-                    'ja' => 'スリラー',
-                    'ko' => '스릴러',
-                ]
-            ],
-
-            // Category tags
+            // Category tags (themes are now in separate themes table)
             [
                 'name' => 'movie',
-                'type' => 'category',
                 'icon' => 'fas fa-film',
                 'enabled' => true,
                 'translations' => [
@@ -126,7 +27,6 @@ class TagSeeder extends Seeder
             ],
             [
                 'name' => 'tv-series',
-                'type' => 'category',
                 'icon' => 'fas fa-tv',
                 'enabled' => true,
                 'translations' => [
@@ -138,7 +38,6 @@ class TagSeeder extends Seeder
             ],
             [
                 'name' => 'anime',
-                'type' => 'category',
                 'icon' => 'fas fa-user-ninja',
                 'enabled' => true,
                 'translations' => [
@@ -150,7 +49,6 @@ class TagSeeder extends Seeder
             ],
             [
                 'name' => 'documentary',
-                'type' => 'category',
                 'icon' => 'fas fa-book-open',
                 'enabled' => true,
                 'translations' => [
@@ -162,7 +60,6 @@ class TagSeeder extends Seeder
             ],
             [
                 'name' => 'short-film',
-                'type' => 'category',
                 'icon' => 'fas fa-clock',
                 'enabled' => true,
                 'translations' => [
@@ -174,7 +71,6 @@ class TagSeeder extends Seeder
             ],
             [
                 'name' => 'web-series',
-                'type' => 'category',
                 'icon' => 'fas fa-globe',
                 'enabled' => true,
                 'translations' => [

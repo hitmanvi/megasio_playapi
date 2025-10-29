@@ -15,7 +15,6 @@ class TranslationExampleController extends Controller
         // 创建一个标签
         $tag = Tag::create([
             'name' => 'action', // 默认名称
-            'type' => 'category'
         ]);
 
         // 方法1: 使用setTranslation设置单个翻译
@@ -66,14 +65,12 @@ class TranslationExampleController extends Controller
     {
         $request->validate([
             'name' => 'required|string',
-            'type' => 'required|string',
             'translations' => 'array',
             'translations.*' => 'string'
         ]);
 
         $tag = Tag::create([
             'name' => $request->name,
-            'type' => $request->type
         ]);
 
         // 设置多语言翻译
@@ -120,7 +117,6 @@ class TranslationExampleController extends Controller
             return [
                 'id' => $tag->id,
                 'name' => $tag->name, // 原始名称
-                'type' => $tag->type,
                 'translated_name' => $tag->getTranslatedAttribute('name', $locale, 'en'), // 翻译后的名称，回退到英文
                 'all_translations' => $tag->getAllNames(), // 所有语言的翻译
                 'available_locales' => $tag->getAvailableLocales('name'),
@@ -141,36 +137,9 @@ class TranslationExampleController extends Controller
     }
 
     /**
-     * 根据类型获取标签列表
+     * 注意：已移除 getTagsByType 方法，因为 tags 表不再有 type 字段
+     * 如果需要按类型筛选，请使用 themes 表（用于主题）或直接使用 tags（用于类别）
      */
-    public function getTagsByType(Request $request, $type)
-    {
-        $locale = $request->get('locale', app()->getLocale());
-        
-        $tags = Tag::where('type', $type)
-            ->with('translations')
-            ->get();
-        
-        $formattedTags = $tags->map(function ($tag) use ($locale) {
-            return [
-                'id' => $tag->id,
-                'name' => $tag->name,
-                'type' => $tag->type,
-                'translated_name' => $tag->getTranslatedAttribute('name', $locale, 'en'),
-                'all_translations' => $tag->getAllNames(),
-            ];
-        });
-        
-        return response()->json([
-            'success' => true,
-            'data' => $formattedTags,
-            'meta' => [
-                'type' => $type,
-                'total' => $tags->count(),
-                'locale' => $locale
-            ]
-        ]);
-    }
 
     /**
      * 搜索标签（支持多语言搜索）
@@ -179,7 +148,6 @@ class TranslationExampleController extends Controller
     {
         $query = $request->get('q', '');
         $locale = $request->get('locale', app()->getLocale());
-        $type = $request->get('type');
         
         if (empty($query)) {
             return response()->json([
@@ -190,11 +158,6 @@ class TranslationExampleController extends Controller
         
         // 构建查询
         $tagsQuery = Tag::with('translations');
-        
-        // 按类型过滤
-        if ($type) {
-            $tagsQuery->where('type', $type);
-        }
         
         // 搜索原始名称或翻译
         $tagsQuery->where(function ($q) use ($query, $locale) {
@@ -211,11 +174,10 @@ class TranslationExampleController extends Controller
         
         $tags = $tagsQuery->get();
         
-        $formattedTags = $tags->map(function ($tag) use ($locale) {
+        $formattedTags = $tags->map(function ($tag) use ($locale, $query) {
             return [
                 'id' => $tag->id,
                 'name' => $tag->name,
-                'type' => $tag->type,
                 'translated_name' => $tag->getTranslatedAttribute('name', $locale, 'en'),
                 'all_translations' => $tag->getAllNames(),
                 'match_type' => $this->getMatchType($tag, $query, $locale), // 标识匹配类型
@@ -228,7 +190,6 @@ class TranslationExampleController extends Controller
             'meta' => [
                 'query' => $query,
                 'locale' => $locale,
-                'type' => $type,
                 'total' => $tags->count()
             ]
         ]);

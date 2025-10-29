@@ -16,7 +16,6 @@ class Game extends Model
     protected $fillable = [
         'brand_id',
         'category_id',
-        'theme_id',
         'out_id',
         'name',
         'thumbnail',
@@ -45,19 +44,20 @@ class Game extends Model
     }
 
     /**
-     * Get the category tag for the game.
+     * Get the category for the game.
      */
-    public function categoryTag(): BelongsTo
+    public function category(): BelongsTo
     {
-        return $this->belongsTo(Tag::class, 'category_id');
+        return $this->belongsTo(GameCategory::class, 'category_id');
     }
 
     /**
-     * Get the theme tag for the game.
+     * Get the themes for the game.
      */
-    public function themeTag(): BelongsTo
+    public function themes(): BelongsToMany
     {
-        return $this->belongsTo(Tag::class, 'theme_id');
+        return $this->belongsToMany(Theme::class, 'game_theme')
+                    ->withTimestamps();
     }
 
     /**

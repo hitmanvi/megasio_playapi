@@ -4,7 +4,8 @@ namespace Database\Seeders;
 
 use App\Models\Game;
 use App\Models\Brand;
-use App\Models\Tag;
+use App\Models\GameCategory;
+use App\Models\Theme;
 use App\Models\Translation;
 use Illuminate\Database\Seeder;
 
@@ -15,15 +16,23 @@ class GameSeeder extends Seeder
      */
     public function run(): void
     {
-        // Get existing brands and tags
+        // Get existing brands, categories, and themes
         $brands = Brand::all()->keyBy('provider');
-        $tags = Tag::all()->keyBy('name');
+        $categories = GameCategory::all();
+        
+        // Map category names to IDs (using English names)
+        $categoryMap = [];
+        foreach ($categories as $category) {
+            $name = strtolower(str_replace([' ', '-'], ['', '_'], $category->getName('en') ?? ''));
+            $categoryMap[$name] = $category->id;
+        }
+        
+        $themes = Theme::all()->keyBy('name');
 
         $games = [
             [
                 'brand_id' => $brands['netflix']->id,
-                'category_id' => $tags['movie']->id,
-                'theme_id' => $tags['action']->id,
+                'category_id' => $categoryMap['movie'] ?? null,
                 'out_id' => 'netflix_001',
                 'name' => 'The Matrix',
                 'thumbnail' => 'https://example.com/thumbnails/matrix.jpg',
@@ -34,8 +43,7 @@ class GameSeeder extends Seeder
             ],
             [
                 'brand_id' => $brands['netflix']->id,
-                'category_id' => $tags['movie']->id,
-                'theme_id' => $tags['comedy']->id,
+                'category_id' => $categoryMap['movie'] ?? null,
                 'out_id' => 'netflix_002',
                 'name' => 'The Hangover',
                 'thumbnail' => 'https://example.com/thumbnails/hangover.jpg',
@@ -46,8 +54,7 @@ class GameSeeder extends Seeder
             ],
             [
                 'brand_id' => $brands['disney']->id,
-                'category_id' => $tags['movie']->id,
-                'theme_id' => $tags['adventure']->id,
+                'category_id' => $categoryMap['movie'] ?? null,
                 'out_id' => 'disney_001',
                 'name' => 'Pirates of the Caribbean',
                 'thumbnail' => 'https://example.com/thumbnails/pirates.jpg',
@@ -58,8 +65,7 @@ class GameSeeder extends Seeder
             ],
             [
                 'brand_id' => $brands['disney']->id,
-                'category_id' => $tags['anime']->id,
-                'theme_id' => $tags['romance']->id,
+                'category_id' => $categoryMap['anime'] ?? null,
                 'out_id' => 'disney_002',
                 'name' => 'Your Name',
                 'thumbnail' => 'https://example.com/thumbnails/yourname.jpg',
@@ -70,8 +76,7 @@ class GameSeeder extends Seeder
             ],
             [
                 'brand_id' => $brands['amazon']->id,
-                'category_id' => $tags['tv-series']->id,
-                'theme_id' => $tags['drama']->id,
+                'category_id' => $categoryMap['tvseries'] ?? null,
                 'out_id' => 'amazon_001',
                 'name' => 'The Boys',
                 'thumbnail' => 'https://example.com/thumbnails/theboys.jpg',
@@ -82,8 +87,7 @@ class GameSeeder extends Seeder
             ],
             [
                 'brand_id' => $brands['hbo']->id,
-                'category_id' => $tags['tv-series']->id,
-                'theme_id' => $tags['thriller']->id,
+                'category_id' => $categoryMap['tvseries'] ?? null,
                 'out_id' => 'hbo_001',
                 'name' => 'Game of Thrones',
                 'thumbnail' => 'https://example.com/thumbnails/got.jpg',
@@ -94,8 +98,7 @@ class GameSeeder extends Seeder
             ],
             [
                 'brand_id' => $brands['apple']->id,
-                'category_id' => $tags['movie']->id,
-                'theme_id' => $tags['sci-fi']->id,
+                'category_id' => $categoryMap['movie'] ?? null,
                 'out_id' => 'apple_001',
                 'name' => 'Foundation',
                 'thumbnail' => 'https://example.com/thumbnails/foundation.jpg',
@@ -106,8 +109,7 @@ class GameSeeder extends Seeder
             ],
             [
                 'brand_id' => $brands['youtube']->id,
-                'category_id' => $tags['documentary']->id,
-                'theme_id' => $tags['adventure']->id,
+                'category_id' => $categoryMap['documentary'] ?? null,
                 'out_id' => 'youtube_001',
                 'name' => 'Free Solo',
                 'thumbnail' => 'https://example.com/thumbnails/freesolo.jpg',
@@ -118,8 +120,7 @@ class GameSeeder extends Seeder
             ],
             [
                 'brand_id' => $brands['netflix']->id,
-                'category_id' => $tags['web-series']->id,
-                'theme_id' => $tags['horror']->id,
+                'category_id' => $categoryMap['webseries'] ?? null,
                 'out_id' => 'netflix_003',
                 'name' => 'Stranger Things',
                 'thumbnail' => 'https://example.com/thumbnails/strangerthings.jpg',
@@ -130,8 +131,7 @@ class GameSeeder extends Seeder
             ],
             [
                 'brand_id' => $brands['disney']->id,
-                'category_id' => $tags['short-film']->id,
-                'theme_id' => $tags['comedy']->id,
+                'category_id' => $categoryMap['shortfilm'] ?? null,
                 'out_id' => 'disney_003',
                 'name' => 'Lava',
                 'thumbnail' => 'https://example.com/thumbnails/lava.jpg',
@@ -142,8 +142,7 @@ class GameSeeder extends Seeder
             ],
             [
                 'brand_id' => $brands['amazon']->id,
-                'category_id' => $tags['movie']->id,
-                'theme_id' => $tags['romance']->id,
+                'category_id' => $categoryMap['movie'] ?? null,
                 'out_id' => 'amazon_002',
                 'name' => 'The Big Sick',
                 'thumbnail' => 'https://example.com/thumbnails/bigsick.jpg',
@@ -154,8 +153,7 @@ class GameSeeder extends Seeder
             ],
             [
                 'brand_id' => $brands['hbo']->id,
-                'category_id' => $tags['tv-series']->id,
-                'theme_id' => $tags['drama']->id,
+                'category_id' => $categoryMap['tvseries'] ?? null,
                 'out_id' => 'hbo_002',
                 'name' => 'Succession',
                 'thumbnail' => 'https://example.com/thumbnails/succession.jpg',
@@ -166,8 +164,47 @@ class GameSeeder extends Seeder
             ],
         ];
 
+        // Map old theme tag names to new theme names
+        $themeMap = [
+            'action' => 'Action',
+            'adventure' => 'Adventure',
+            'comedy' => 'Comedy',
+            'drama' => 'Drama',
+            'horror' => 'Horror',
+            'romance' => 'Romance',
+            'sci-fi' => 'Science Fiction',
+            'thriller' => 'Thriller',
+        ];
+
+        // Map game names to theme names
+        $gameThemesMap = [
+            'The Matrix' => ['Action', 'Science Fiction'],
+            'The Hangover' => ['Comedy'],
+            'Pirates of the Caribbean' => ['Adventure'],
+            'Your Name' => ['Romance'],
+            'The Boys' => ['Drama'],
+            'Game of Thrones' => ['Thriller', 'Drama'],
+            'Foundation' => ['Science Fiction'],
+            'Free Solo' => ['Adventure'],
+            'Stranger Things' => ['Horror', 'Thriller'],
+            'Lava' => ['Comedy', 'Romance'],
+            'The Big Sick' => ['Romance', 'Comedy'],
+            'Succession' => ['Drama'],
+        ];
+
         foreach ($games as $index => $gameData) {
+            // Get themes for this game
+            $themeNames = $gameThemesMap[$gameData['name']] ?? [];
+
+            // Create the game
             $game = Game::create($gameData);
+
+            // Attach themes
+            foreach ($themeNames as $themeName) {
+                if (isset($themes[$themeName])) {
+                    $game->themes()->attach($themes[$themeName]->id);
+                }
+            }
 
             // 创建游戏的翻译数据
             $translations = [

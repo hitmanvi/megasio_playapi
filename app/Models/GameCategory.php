@@ -3,8 +3,10 @@
 namespace App\Models;
 
 use App\Traits\Translatable;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
-class Tag extends Model
+class GameCategory extends Model
 {
     use Translatable;
 
@@ -14,9 +16,9 @@ class Tag extends Model
      * @var array<int, string>
      */
     protected $fillable = [
-        'name',
         'icon',
         'enabled',
+        'sort_id',
     ];
 
     /**
@@ -26,10 +28,19 @@ class Tag extends Model
      */
     protected $casts = [
         'enabled' => 'boolean',
+        'sort_id' => 'integer',
     ];
 
     /**
-     * Scope to filter by enabled status
+     * Get the games in this category.
+     */
+    public function games(): HasMany
+    {
+        return $this->hasMany(Game::class, 'category_id');
+    }
+
+    /**
+     * Scope to filter enabled categories.
      */
     public function scopeEnabled($query)
     {
@@ -37,7 +48,7 @@ class Tag extends Model
     }
 
     /**
-     * Scope to filter disabled tags
+     * Scope to filter disabled categories.
      */
     public function scopeDisabled($query)
     {
@@ -45,7 +56,15 @@ class Tag extends Model
     }
 
     /**
-     * Check if tag is enabled
+     * Scope to order by sort_id.
+     */
+    public function scopeOrdered($query)
+    {
+        return $query->orderBy('sort_id', 'asc')->orderBy('id', 'asc');
+    }
+
+    /**
+     * Check if category is enabled.
      */
     public function isEnabled(): bool
     {
@@ -53,7 +72,7 @@ class Tag extends Model
     }
 
     /**
-     * Check if tag is disabled
+     * Check if category is disabled.
      */
     public function isDisabled(): bool
     {
@@ -96,7 +115,7 @@ class Tag extends Model
     /**
      * Set multiple translated names.
      *
-     * @param array $names ['en' => 'Action', 'zh-CN' => '动作']
+     * @param array $names ['en' => 'Movie', 'zh-CN' => '电影']
      * @return void
      */
     public function setNames(array $names): void
