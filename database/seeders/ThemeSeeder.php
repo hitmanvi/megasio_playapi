@@ -15,6 +15,7 @@ class ThemeSeeder extends Seeder
     {
         $themes = [
             [
+                'name' => 'Action',
                 'icon' => 'fas fa-fist-raised',
                 'enabled' => true,
                 'sort_id' => 1,
@@ -26,6 +27,7 @@ class ThemeSeeder extends Seeder
                 ],
             ],
             [
+                'name' => 'Adventure',
                 'icon' => 'fas fa-map-marked-alt',
                 'enabled' => true,
                 'sort_id' => 2,
@@ -37,6 +39,7 @@ class ThemeSeeder extends Seeder
                 ],
             ],
             [
+                'name' => 'Comedy',
                 'icon' => 'fas fa-laugh',
                 'enabled' => true,
                 'sort_id' => 3,
@@ -48,6 +51,7 @@ class ThemeSeeder extends Seeder
                 ],
             ],
             [
+                'name' => 'Drama',
                 'icon' => 'fas fa-theater-masks',
                 'enabled' => true,
                 'sort_id' => 4,
@@ -59,6 +63,7 @@ class ThemeSeeder extends Seeder
                 ],
             ],
             [
+                'name' => 'Horror',
                 'icon' => 'fas fa-ghost',
                 'enabled' => true,
                 'sort_id' => 5,
@@ -70,6 +75,7 @@ class ThemeSeeder extends Seeder
                 ],
             ],
             [
+                'name' => 'Romance',
                 'icon' => 'fas fa-heart',
                 'enabled' => true,
                 'sort_id' => 6,
@@ -81,6 +87,7 @@ class ThemeSeeder extends Seeder
                 ],
             ],
             [
+                'name' => 'Science Fiction',
                 'icon' => 'fas fa-rocket',
                 'enabled' => true,
                 'sort_id' => 7,
@@ -92,6 +99,7 @@ class ThemeSeeder extends Seeder
                 ],
             ],
             [
+                'name' => 'Thriller',
                 'icon' => 'fas fa-exclamation-triangle',
                 'enabled' => true,
                 'sort_id' => 8,
