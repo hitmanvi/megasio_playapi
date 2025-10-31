@@ -83,7 +83,6 @@ class AuthController extends Controller
         $token = $user->createToken('auth_token')->plainTextToken;
 
         return $this->responseItem([
-            'user' => $user,
             'token' => $token,
             'token_type' => 'Bearer',
         ]);
@@ -104,9 +103,7 @@ class AuthController extends Controller
      */
     public function mine(Request $request): JsonResponse
     {
-        return $this->responseItem([
-            'user' => $request->user(),
-        ]);
+        return $this->responseItem($request->user());
     }
 
     /**

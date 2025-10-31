@@ -288,16 +288,10 @@
                   "code": 0,
                   "errmsg": "Success",
                   "data": {
-                    "user": {
-                      "id": 1,
-                      "uid": "01ARZ3NDEKTSV4RRFFQ69G5FAV",
-                      "name": "张三",
-                      "phone": "13800138000",
-                      "email": "zhangsan@example.com",
-                      "status": "active",
-                      "created_at": "2024-01-01T00:00:00.000000Z",
-                      "updated_at": "2024-01-01T00:00:00.000000Z"
-                    }
+                    "uid": "01ARZ3NDEKTSV4RRFFQ69G5FAV",
+                    "name": "张三",
+                    "phone": "13800138000",
+                    "email": "zhangsan@example.com"
                   }
                 }
               }
@@ -1384,12 +1378,7 @@
         }
       },
       "UserResponse": {
-        "type": "object",
-        "properties": {
-          "user": {
-            "$ref": "#/components/schemas/User"
-          }
-        }
+        "$ref": "#/components/schemas/User"
       },
       "TokenResponse": {
         "type": "object",
