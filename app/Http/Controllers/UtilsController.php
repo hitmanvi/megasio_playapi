@@ -14,7 +14,7 @@ class UtilsController extends Controller
     public function settings()
     {
         return $this->responseItem([
-            'currency' => 'USD',
+            "f" => "u",
         ]);
     }
 }
