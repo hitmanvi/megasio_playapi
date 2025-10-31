@@ -17,6 +17,7 @@ class GameController extends Controller
         $name = $request->input('name');
         $categoryId = $request->input('category_id');
         $brandId = $request->input('brand_id');
+        $themeId = $request->input('theme_id');
         $sort = $request->input('sort', 'new'); // new, hot, a-z, z-a
         $locale = $request->input('locale', 'en');
 
@@ -32,6 +33,13 @@ class GameController extends Controller
         // 按 brand_id 筛选
         if ($brandId) {
             $query->where('brand_id', $brandId);
+        }
+
+        // 按 theme_id 筛选
+        if ($themeId) {
+            $query->whereHas('themes', function ($q) use ($themeId) {
+                $q->where('themes.id', $themeId);
+            });
         }
 
         // 按名称搜索（支持原始名称和翻译名称）

@@ -7,6 +7,7 @@ use App\Http\Controllers\BrandController;
 use App\Http\Controllers\GameCategoryController;
 use App\Http\Controllers\GameController;
 use App\Http\Controllers\GameGroupController;
+use App\Http\Controllers\ThemeController;
 use App\Http\Controllers\TranslationExampleController;
 use App\Http\Controllers\UtilsController;
 use Illuminate\Http\Request;
@@ -64,6 +65,9 @@ Route::get('/brands', [BrandController::class, 'index']);
 
 // 游戏分类相关路由（只读）
 Route::get('/game-categories', [GameCategoryController::class, 'index']);
+
+// 主题相关路由（只读）
+Route::get('/themes', [ThemeController::class, 'index']);
 
 // 游戏相关路由（只读）
 Route::prefix('games')->group(function () {

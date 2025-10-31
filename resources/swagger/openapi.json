@@ -41,6 +41,10 @@
       "description": "游戏分类相关接口"
     },
     {
+      "name": "Theme",
+      "description": "主题相关接口"
+    },
+    {
       "name": "GameGroup",
       "description": "游戏群组相关接口"
     },
@@ -790,11 +794,62 @@
         }
       }
     },
+    "/themes": {
+      "get": {
+        "tags": ["Theme"],
+        "summary": "获取主题列表",
+        "description": "获取所有启用的主题列表，支持多语言",
+        "parameters": [
+          {
+            "name": "locale",
+            "in": "query",
+            "description": "语言代码",
+            "schema": {
+              "type": "string",
+              "default": "en"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "获取主题列表成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ThemeListResponse"
+                },
+                "example": {
+                  "code": 0,
+                  "errmsg": "Success",
+                  "data": {
+                    "items": [
+                      {
+                        "id": 1,
+                        "name": "Action",
+                        "icon": "fas fa-fist-raised",
+                        "sort_id": 1
+                      },
+                      {
+                        "id": 2,
+                        "name": "Comedy",
+                        "icon": "fas fa-laugh",
+                        "sort_id": 2
+                      }
+                    ],
+                    "meta": {}
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/games": {
       "get": {
         "tags": ["Game"],
         "summary": "获取游戏列表",
-        "description": "获取启用的游戏列表，支持按名称、分类、品牌筛选和排序",
+        "description": "获取启用的游戏列表，支持按名称、分类、品牌、主题筛选和排序",
         "parameters": [
           {
             "name": "name",
@@ -816,6 +871,14 @@
             "name": "brand_id",
             "in": "query",
             "description": "品牌ID筛选",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "theme_id",
+            "in": "query",
+            "description": "主题ID筛选",
             "schema": {
               "type": "integer"
             }
@@ -1912,6 +1975,54 @@
           "icon": {
             "type": "string",
             "description": "分类图标"
+          },
+          "sort_id": {
+            "type": "integer",
+            "description": "排序ID"
+          }
+        }
+      },
+      "ThemeListResponse": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "integer",
+            "description": "响应码，0表示成功"
+          },
+          "errmsg": {
+            "type": "string",
+            "description": "响应消息"
+          },
+          "data": {
+            "type": "object",
+            "properties": {
+              "items": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/ThemeListItem"
+                }
+              },
+              "meta": {
+                "type": "object"
+              }
+            }
+          }
+        }
+      },
+      "ThemeListItem": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "description": "主题ID"
+          },
+          "name": {
+            "type": "string",
+            "description": "主题名称（已翻译）"
+          },
+          "icon": {
+            "type": "string",
+            "description": "主题图标"
           },
           "sort_id": {
             "type": "integer",
