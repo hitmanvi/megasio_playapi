@@ -10,4 +10,11 @@ class UtilsController extends Controller
             'timestamp' => time(),
         ]);
     }
+
+    public function settings()
+    {
+        return $this->responseItem([
+            'currency' => 'USD',
+        ]);
+    }
 }
