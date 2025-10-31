@@ -3,6 +3,8 @@
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\BalanceController;
 use App\Http\Controllers\BannerController;
+use App\Http\Controllers\BrandController;
+use App\Http\Controllers\GameCategoryController;
 use App\Http\Controllers\GameController;
 use App\Http\Controllers\GameGroupController;
 use App\Http\Controllers\TranslationExampleController;
@@ -56,6 +58,12 @@ Route::middleware('auth:sanctum')->prefix('balances')->group(function () {
     Route::get('/{currency}', [BalanceController::class, 'show']);
     Route::get('/transactions/list', [BalanceController::class, 'transactions']);
 });
+
+// 品牌相关路由（只读）
+Route::get('/brands', [BrandController::class, 'index']);
+
+// 游戏分类相关路由（只读）
+Route::get('/game-categories', [GameCategoryController::class, 'index']);
 
 // 游戏相关路由（只读）
 Route::prefix('games')->group(function () {

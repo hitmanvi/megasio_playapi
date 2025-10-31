@@ -29,8 +29,16 @@
       "description": "余额相关接口"
     },
     {
+      "name": "Brand",
+      "description": "品牌相关接口"
+    },
+    {
       "name": "Game",
       "description": "游戏相关接口"
+    },
+    {
+      "name": "GameCategory",
+      "description": "游戏分类相关接口"
     },
     {
       "name": "GameGroup",
@@ -671,6 +679,110 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/brands": {
+      "get": {
+        "tags": ["Brand"],
+        "summary": "获取品牌列表",
+        "description": "获取所有启用的品牌列表，支持多语言",
+        "parameters": [
+          {
+            "name": "locale",
+            "in": "query",
+            "description": "语言代码",
+            "schema": {
+              "type": "string",
+              "default": "en"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "获取品牌列表成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BrandListResponse"
+                },
+                "example": {
+                  "code": 0,
+                  "errmsg": "Success",
+                  "data": {
+                    "items": [
+                      {
+                        "id": 1,
+                        "name": "Netflix",
+                        "provider": "netflix",
+                        "icon": "https://example.com/icons/netflix.png",
+                        "sort_id": 1
+                      },
+                      {
+                        "id": 2,
+                        "name": "Disney+",
+                        "provider": "disney",
+                        "icon": "https://example.com/icons/disney.png",
+                        "sort_id": 2
+                      }
+                    ],
+                    "meta": {}
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/game-categories": {
+      "get": {
+        "tags": ["GameCategory"],
+        "summary": "获取游戏分类列表",
+        "description": "获取所有启用的游戏分类列表，支持多语言",
+        "parameters": [
+          {
+            "name": "locale",
+            "in": "query",
+            "description": "语言代码",
+            "schema": {
+              "type": "string",
+              "default": "en"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "获取游戏分类列表成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GameCategoryListResponse"
+                },
+                "example": {
+                  "code": 0,
+                  "errmsg": "Success",
+                  "data": {
+                    "items": [
+                      {
+                        "id": 1,
+                        "name": "Movie",
+                        "icon": "fas fa-film",
+                        "sort_id": 1
+                      },
+                      {
+                        "id": 2,
+                        "name": "TV Show",
+                        "icon": "fas fa-tv",
+                        "sort_id": 2
+                      }
+                    ],
+                    "meta": {}
+                  }
                 }
               }
             }
@@ -1703,6 +1815,107 @@
           "created_at": {
             "type": "string",
             "format": "date-time"
+          }
+        }
+      },
+      "BrandListResponse": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "integer",
+            "description": "响应码，0表示成功"
+          },
+          "errmsg": {
+            "type": "string",
+            "description": "响应消息"
+          },
+          "data": {
+            "type": "object",
+            "properties": {
+              "items": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/BrandListItem"
+                }
+              },
+              "meta": {
+                "type": "object"
+              }
+            }
+          }
+        }
+      },
+      "BrandListItem": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "description": "品牌ID"
+          },
+          "name": {
+            "type": "string",
+            "description": "品牌名称（已翻译）"
+          },
+          "provider": {
+            "type": "string",
+            "description": "提供商"
+          },
+          "icon": {
+            "type": "string",
+            "nullable": true,
+            "description": "品牌图标URL"
+          },
+          "sort_id": {
+            "type": "integer",
+            "description": "排序ID"
+          }
+        }
+      },
+      "GameCategoryListResponse": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "integer",
+            "description": "响应码，0表示成功"
+          },
+          "errmsg": {
+            "type": "string",
+            "description": "响应消息"
+          },
+          "data": {
+            "type": "object",
+            "properties": {
+              "items": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/GameCategoryListItem"
+                }
+              },
+              "meta": {
+                "type": "object"
+              }
+            }
+          }
+        }
+      },
+      "GameCategoryListItem": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "description": "分类ID"
+          },
+          "name": {
+            "type": "string",
+            "description": "分类名称（已翻译）"
+          },
+          "icon": {
+            "type": "string",
+            "description": "分类图标"
+          },
+          "sort_id": {
+            "type": "integer",
+            "description": "排序ID"
           }
         }
       },
