@@ -5,6 +5,7 @@ use App\Http\Controllers\BalanceController;
 use App\Http\Controllers\BannerController;
 use App\Http\Controllers\GameGroupController;
 use App\Http\Controllers\TranslationExampleController;
+use App\Http\Controllers\UtilsController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -62,5 +63,5 @@ Route::prefix('game-groups')->group(function () {
     Route::get('/{groupId}/games', [GameGroupController::class, 'getGames']);
 });
 
-// 演示路由
-Route::get('/translation-example', [TranslationExampleController::class, 'example']);
+// 工具类路由
+Route::get('/timestamp', [UtilsController::class, 'timestamp']);
