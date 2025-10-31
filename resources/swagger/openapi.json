@@ -29,6 +29,10 @@
       "description": "余额相关接口"
     },
     {
+      "name": "Game",
+      "description": "游戏相关接口"
+    },
+    {
       "name": "GameGroup",
       "description": "游戏群组相关接口"
     },
@@ -663,6 +667,188 @@
           },
           "401": {
             "description": "未授权",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/games": {
+      "get": {
+        "tags": ["Game"],
+        "summary": "获取游戏列表",
+        "description": "获取启用的游戏列表，支持按名称、分类、品牌筛选和排序",
+        "parameters": [
+          {
+            "name": "name",
+            "in": "query",
+            "description": "游戏名称搜索（支持原始名称和翻译名称）",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "category_id",
+            "in": "query",
+            "description": "分类ID筛选",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "brand_id",
+            "in": "query",
+            "description": "品牌ID筛选",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "description": "排序方式",
+            "schema": {
+              "type": "string",
+              "enum": ["new", "hot", "a-z", "z-a"],
+              "default": "new"
+            }
+          },
+          {
+            "name": "locale",
+            "in": "query",
+            "description": "语言代码",
+            "schema": {
+              "type": "string",
+              "default": "en"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "获取游戏列表成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GameListResponse"
+                },
+                "example": {
+                  "code": 0,
+                  "errmsg": "Success",
+                  "data": {
+                    "items": [
+                      {
+                        "id": 1,
+                        "name": "The Matrix",
+                        "thumbnail": "https://example.com/thumbnails/matrix.jpg",
+                        "sort_id": 1,
+                        "brand": {
+                          "id": 1,
+                          "name": "Netflix",
+                          "provider": "netflix"
+                        },
+                        "category": {
+                          "id": 1,
+                          "name": "Movie"
+                        },
+                        "themes": [
+                          {
+                            "id": 1,
+                            "name": "Action",
+                            "icon": "fas fa-fist-raised"
+                          }
+                        ],
+                        "created_at": "2024-01-01T00:00:00.000000Z"
+                      }
+                    ],
+                    "meta": {}
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/games/{id}": {
+      "get": {
+        "tags": ["Game"],
+        "summary": "获取游戏详情",
+        "description": "获取指定游戏的详细信息",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "游戏ID",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "locale",
+            "in": "query",
+            "description": "语言代码",
+            "schema": {
+              "type": "string",
+              "default": "en"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "获取游戏详情成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GameDetailResponse"
+                },
+                "example": {
+                  "code": 0,
+                  "errmsg": "Success",
+                  "data": {
+                    "id": 1,
+                    "name": "The Matrix",
+                    "thumbnail": "https://example.com/thumbnails/matrix.jpg",
+                    "out_id": "netflix_001",
+                    "sort_id": 1,
+                    "memo": "Classic sci-fi action movie",
+                    "languages": ["en", "zh-CN", "ja", "ko"],
+                    "brand": {
+                      "id": 1,
+                      "name": "Netflix",
+                      "provider": "netflix"
+                    },
+                    "category": {
+                      "id": 1,
+                      "name": "Movie",
+                      "icon": "fas fa-film"
+                    },
+                    "themes": [
+                      {
+                        "id": 1,
+                        "name": "Action",
+                        "icon": "fas fa-fist-raised"
+                      },
+                      {
+                        "id": 7,
+                        "name": "Science Fiction",
+                        "icon": "fas fa-rocket"
+                      }
+                    ],
+                    "created_at": "2024-01-01T00:00:00.000000Z",
+                    "updated_at": "2024-01-01T00:00:00.000000Z"
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "游戏不存在或已禁用",
             "content": {
               "application/json": {
                 "schema": {
@@ -1375,33 +1561,6 @@
           }
         }
       },
-      "GameListResponse": {
-        "type": "object",
-        "properties": {
-          "code": {
-            "type": "integer",
-            "description": "响应码，0表示成功"
-          },
-          "errmsg": {
-            "type": "string",
-            "description": "响应消息"
-          },
-          "data": {
-            "type": "object",
-            "properties": {
-              "items": {
-                "type": "array",
-                "items": {
-                  "$ref": "#/components/schemas/Game"
-                }
-              },
-              "meta": {
-                "type": "object"
-              }
-            }
-          }
-        }
-      },
       "TimestampResponse": {
         "type": "object",
         "properties": {
@@ -1448,6 +1607,210 @@
                 "example": ["en", "zh-CN", "ja", "ko"]
               }
             }
+          }
+        }
+      },
+      "GameListResponse": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "integer",
+            "description": "响应码，0表示成功"
+          },
+          "errmsg": {
+            "type": "string",
+            "description": "响应消息"
+          },
+          "data": {
+            "type": "object",
+            "properties": {
+              "items": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/GameListItem"
+                }
+              },
+              "meta": {
+                "type": "object"
+              }
+            }
+          }
+        }
+      },
+      "GameListItem": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "description": "游戏ID"
+          },
+          "name": {
+            "type": "string",
+            "description": "游戏名称（已翻译）"
+          },
+          "thumbnail": {
+            "type": "string",
+            "description": "缩略图URL"
+          },
+          "sort_id": {
+            "type": "integer",
+            "description": "排序ID"
+          },
+          "brand": {
+            "type": "object",
+            "nullable": true,
+            "properties": {
+              "id": {
+                "type": "integer"
+              },
+              "name": {
+                "type": "string"
+              },
+              "provider": {
+                "type": "string"
+              }
+            }
+          },
+          "category": {
+            "type": "object",
+            "nullable": true,
+            "properties": {
+              "id": {
+                "type": "integer"
+              },
+              "name": {
+                "type": "string"
+              }
+            }
+          },
+          "themes": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "integer"
+                },
+                "name": {
+                  "type": "string"
+                },
+                "icon": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "GameDetailResponse": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "integer",
+            "description": "响应码，0表示成功"
+          },
+          "errmsg": {
+            "type": "string",
+            "description": "响应消息"
+          },
+          "data": {
+            "$ref": "#/components/schemas/GameDetail"
+          }
+        }
+      },
+      "GameDetail": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "description": "游戏ID"
+          },
+          "name": {
+            "type": "string",
+            "description": "游戏名称（已翻译）"
+          },
+          "thumbnail": {
+            "type": "string",
+            "description": "缩略图URL"
+          },
+          "out_id": {
+            "type": "string",
+            "description": "外部游戏ID"
+          },
+          "sort_id": {
+            "type": "integer",
+            "description": "排序ID"
+          },
+          "memo": {
+            "type": "string",
+            "nullable": true,
+            "description": "备注"
+          },
+          "languages": {
+            "type": "array",
+            "description": "支持的语言列表",
+            "items": {
+              "type": "string"
+            }
+          },
+          "brand": {
+            "type": "object",
+            "nullable": true,
+            "properties": {
+              "id": {
+                "type": "integer"
+              },
+              "name": {
+                "type": "string"
+              },
+              "provider": {
+                "type": "string"
+              }
+            }
+          },
+          "category": {
+            "type": "object",
+            "nullable": true,
+            "properties": {
+              "id": {
+                "type": "integer"
+              },
+              "name": {
+                "type": "string"
+              },
+              "icon": {
+                "type": "string"
+              }
+            }
+          },
+          "themes": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "integer"
+                },
+                "name": {
+                  "type": "string"
+                },
+                "icon": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time"
           }
         }
       }

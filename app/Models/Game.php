@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 
 class Game extends Model
 {
@@ -69,6 +70,27 @@ class Game extends Model
                     ->withPivot('sort_id')
                     ->withTimestamps()
                     ->orderBy('sort_id', 'asc');
+    }
+
+    /**
+     * Get all translations for this game.
+     */
+    public function translations(): MorphMany
+    {
+        return $this->morphMany(Translation::class, 'translatable');
+    }
+
+    /**
+     * Get the name translation for a specific locale.
+     */
+    public function getNameTranslation(string $locale): ?string
+    {
+        $translation = $this->translations()
+                           ->where('field', 'name')
+                           ->where('locale', $locale)
+                           ->first();
+
+        return $translation ? $translation->value : $this->name;
     }
 
     /**
