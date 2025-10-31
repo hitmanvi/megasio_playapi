@@ -11,10 +11,13 @@ class UtilsController extends Controller
         ]);
     }
 
+    /**
+     * 获取应用设置
+     */
     public function settings()
     {
         return $this->responseItem([
-            "f" => "u",
+            'supported_locales' => ['en', 'zh-CN', 'ja', 'ko'],
         ]);
     }
 }

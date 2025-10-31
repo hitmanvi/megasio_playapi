@@ -879,6 +879,32 @@
           }
         }
       }
+    },
+    "/settings": {
+      "get": {
+        "tags": ["Utils"],
+        "summary": "获取应用设置",
+        "description": "获取应用的支持语言列表等配置信息",
+        "responses": {
+          "200": {
+            "description": "获取设置成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SettingsResponse"
+                },
+                "example": {
+                  "code": 0,
+                  "errmsg": "Success",
+                  "data": {
+                    "supported_locales": ["en", "zh-CN", "ja", "ko"]
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -1394,6 +1420,32 @@
                 "type": "integer",
                 "description": "Unix时间戳（秒）",
                 "example": 1699526400
+              }
+            }
+          }
+        }
+      },
+      "SettingsResponse": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "integer",
+            "description": "响应码，0表示成功"
+          },
+          "errmsg": {
+            "type": "string",
+            "description": "响应消息"
+          },
+          "data": {
+            "type": "object",
+            "properties": {
+              "supported_locales": {
+                "type": "array",
+                "description": "支持的语言列表",
+                "items": {
+                  "type": "string"
+                },
+                "example": ["en", "zh-CN", "ja", "ko"]
               }
             }
           }
