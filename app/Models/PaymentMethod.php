@@ -12,6 +12,7 @@ class PaymentMethod extends Model
      * @var array<int, string>
      */
     protected $fillable = [
+        'key',
         'icon',
         'name',
         'display_name',

@@ -884,6 +884,7 @@
                     "items": [
                       {
                         "id": 1,
+                        "key": "bank_transfer_usd",
                         "icon": "fas fa-university",
                         "name": "bank_transfer",
                         "display_name": "Bank Transfer",
@@ -896,6 +897,7 @@
                       },
                       {
                         "id": 2,
+                        "key": "credit_card_usd",
                         "icon": "fas fa-credit-card",
                         "name": "credit_card",
                         "display_name": "Credit Card",
@@ -2257,6 +2259,11 @@
           "id": {
             "type": "integer",
             "description": "支付方式ID"
+          },
+          "key": {
+            "type": "string",
+            "nullable": true,
+            "description": "唯一标识符"
           },
           "icon": {
             "type": "string",

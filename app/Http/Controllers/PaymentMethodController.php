@@ -40,6 +40,7 @@ class PaymentMethodController extends Controller
         $result = $paymentMethods->map(function ($method) {
             return [
                 'id' => $method->id,
+                'key' => $method->key,
                 'icon' => $method->icon,
                 'name' => $method->name,
                 'display_name' => $method->display_name,
