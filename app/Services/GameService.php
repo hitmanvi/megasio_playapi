@@ -175,4 +175,30 @@ class GameService
                 break;
         }
     }
+
+    /**
+     * 获取游戏demo地址
+     *
+     * @param int $gameId
+     * @return string|null
+     */
+    public function getGameDemoUrl(int $gameId): ?string
+    {
+        $game = Game::with('brand')->find($gameId);
+        if (!$game || !$game->brand) {
+            return null;
+        }
+
+        $providerName = $game->brand->provider;
+        if (!$providerName) {
+            return null;
+        }
+
+        try {
+            $provider = \App\GameProviders\GameProviderFactory::create($providerName);
+            return $provider->demo($game->out_id, ['language' => 'en']);
+        } catch (\InvalidArgumentException $e) {
+            return null;
+        }
+    }
 }
