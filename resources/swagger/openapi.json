@@ -51,6 +51,10 @@
     {
       "name": "Utils",
       "description": "工具类接口"
+    },
+    {
+      "name": "PaymentMethod",
+      "description": "支付方式相关接口"
     }
   ],
   "paths": {
@@ -827,6 +831,79 @@
                         "id": 2,
                         "name": "Comedy",
                         "icon": "fas fa-laugh",
+                        "sort_id": 2
+                      }
+                    ],
+                    "meta": {}
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/payment-methods": {
+      "get": {
+        "tags": ["PaymentMethod"],
+        "summary": "获取支付方式列表",
+        "description": "获取支付方式列表，支持根据currency和type进行筛选。注意：currency和type参数必须同时提供。",
+        "parameters": [
+          {
+            "name": "currency",
+            "in": "query",
+            "description": "货币类型（如：USD, EUR）。必须与type参数同时提供。",
+            "schema": {
+              "type": "string"
+            },
+            "required": true
+          },
+          {
+            "name": "type",
+            "in": "query",
+            "description": "支付类型：deposit（存款）或withdraw（提款）。必须与currency参数同时提供。",
+            "schema": {
+              "type": "string",
+              "enum": ["deposit", "withdraw"]
+            },
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "获取支付方式列表成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaymentMethodListResponse"
+                },
+                "example": {
+                  "code": 0,
+                  "errmsg": "Success",
+                  "data": {
+                    "items": [
+                      {
+                        "id": 1,
+                        "icon": "fas fa-university",
+                        "name": "bank_transfer",
+                        "display_name": "Bank Transfer",
+                        "currency": "USD",
+                        "type": "deposit",
+                        "amounts": ["100", "500", "1000"],
+                        "max_amount": 10000,
+                        "min_amount": 100,
+                        "sort_id": 1
+                      },
+                      {
+                        "id": 2,
+                        "icon": "fas fa-credit-card",
+                        "name": "credit_card",
+                        "display_name": "Credit Card",
+                        "currency": "USD",
+                        "type": "deposit",
+                        "amounts": null,
+                        "max_amount": 5000,
+                        "min_amount": 50,
                         "sort_id": 2
                       }
                     ],
@@ -2012,6 +2089,86 @@
           "icon": {
             "type": "string",
             "description": "主题图标"
+          },
+          "sort_id": {
+            "type": "integer",
+            "description": "排序ID"
+          }
+        }
+      },
+      "PaymentMethodListResponse": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "integer",
+            "description": "响应码，0表示成功"
+          },
+          "errmsg": {
+            "type": "string",
+            "description": "响应消息"
+          },
+          "data": {
+            "type": "object",
+            "properties": {
+              "items": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/PaymentMethodListItem"
+                }
+              },
+              "meta": {
+                "type": "object"
+              }
+            }
+          }
+        }
+      },
+      "PaymentMethodListItem": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "description": "支付方式ID"
+          },
+          "icon": {
+            "type": "string",
+            "nullable": true,
+            "description": "图标标识（如：fas fa-university）"
+          },
+          "name": {
+            "type": "string",
+            "description": "支付方式名称（标识符）"
+          },
+          "display_name": {
+            "type": "string",
+            "description": "显示名称"
+          },
+          "currency": {
+            "type": "string",
+            "description": "货币类型（如：USD, EUR）"
+          },
+          "type": {
+            "type": "string",
+            "enum": ["deposit", "withdraw"],
+            "description": "支付类型：deposit（存款）或withdraw（提款）"
+          },
+          "amounts": {
+            "type": "array",
+            "nullable": true,
+            "description": "固定金额数组（如果为空，表示可以使用任意金额）",
+            "items": {
+              "type": "string"
+            }
+          },
+          "max_amount": {
+            "type": "number",
+            "nullable": true,
+            "description": "最大金额"
+          },
+          "min_amount": {
+            "type": "number",
+            "nullable": true,
+            "description": "最小金额"
           },
           "sort_id": {
             "type": "integer",
