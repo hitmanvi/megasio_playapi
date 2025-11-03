@@ -893,7 +893,8 @@
                         "amounts": ["100", "500", "1000"],
                         "max_amount": 10000,
                         "min_amount": 100,
-                        "sort_id": 1
+                        "sort_id": 1,
+                        "crypto_info": null
                       },
                       {
                         "id": 2,
@@ -906,7 +907,8 @@
                         "amounts": null,
                         "max_amount": 5000,
                         "min_amount": 50,
-                        "sort_id": 2
+                        "sort_id": 2,
+                        "crypto_info": null
                       }
                     ],
                     "meta": {}
@@ -2308,6 +2310,12 @@
           "sort_id": {
             "type": "integer",
             "description": "排序ID"
+          },
+          "crypto_info": {
+            "type": "object",
+            "nullable": true,
+            "description": "加密货币额外信息（如：网络类型、钱包地址、合约地址等）",
+            "additionalProperties": true
           }
         }
       },

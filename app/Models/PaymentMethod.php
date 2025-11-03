@@ -25,6 +25,7 @@ class PaymentMethod extends Model
         'sort_id',
         'synced_at',
         'notes',
+        'crypto_info',
     ];
 
     /**
@@ -34,6 +35,7 @@ class PaymentMethod extends Model
      */
     protected $casts = [
         'amounts' => 'array',
+        'crypto_info' => 'array',
         'enabled' => 'boolean',
         'sort_id' => 'integer',
         'max_amount' => 'decimal:8',
