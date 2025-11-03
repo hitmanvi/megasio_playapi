@@ -68,6 +68,32 @@ class GameGroupController extends Controller
     }
 
     /**
+     * 获取游戏群组详情
+     */
+    public function show(Request $request, int $id): JsonResponse
+    {
+        $locale = $request->input('locale', 'en');
+
+        $group = GameGroup::findOrFail($id);
+
+        if (!$group->enabled) {
+            return $this->error(\App\Enums\ErrorCode::NOT_FOUND, 'Game group not found or disabled');
+        }
+
+        $result = [
+            'id' => $group->id,
+            'category' => $group->category,
+            'name' => $group->name ?: $group->getNameTranslation($locale),
+            'sort_id' => $group->sort_id,
+            'app_limit' => $group->app_limit,
+            'web_limit' => $group->web_limit,
+            'enabled' => $group->enabled,
+        ];
+
+        return $this->responseItem($result);
+    }
+
+    /**
      * 获取指定群组中的游戏列表
      */
     public function getGames(Request $request, int $groupId): JsonResponse

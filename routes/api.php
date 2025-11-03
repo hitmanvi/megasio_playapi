@@ -83,6 +83,7 @@ Route::prefix('games')->group(function () {
 Route::prefix('game-groups')->group(function () {
     Route::get('/', [GameGroupController::class, 'index']);
     Route::get('/category/{category}', [GameGroupController::class, 'getByCategory']);
+    Route::get('/{id}', [GameGroupController::class, 'show']);
     Route::get('/{groupId}/games', [GameGroupController::class, 'getGames']);
 });
 
