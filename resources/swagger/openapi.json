@@ -702,6 +702,26 @@
               "type": "string",
               "default": "en"
             }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "description": "页码",
+            "schema": {
+              "type": "integer",
+              "default": 1,
+              "minimum": 1
+            }
+          },
+          {
+            "name": "per_page",
+            "in": "query",
+            "description": "每页数量",
+            "schema": {
+              "type": "integer",
+              "default": 10,
+              "minimum": 1
+            }
           }
         ],
         "responses": {
@@ -732,7 +752,11 @@
                         "sort_id": 2
                       }
                     ],
-                    "meta": {}
+                    "meta": {
+                      "current_page": 1,
+                      "last_page": 1,
+                      "total": 2
+                    }
                   }
                 }
               }
@@ -754,6 +778,26 @@
             "schema": {
               "type": "string",
               "default": "en"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "description": "页码",
+            "schema": {
+              "type": "integer",
+              "default": 1,
+              "minimum": 1
+            }
+          },
+          {
+            "name": "per_page",
+            "in": "query",
+            "description": "每页数量",
+            "schema": {
+              "type": "integer",
+              "default": 10,
+              "minimum": 1
             }
           }
         ],
@@ -783,7 +827,11 @@
                         "sort_id": 2
                       }
                     ],
-                    "meta": {}
+                    "meta": {
+                      "current_page": 1,
+                      "last_page": 1,
+                      "total": 2
+                    }
                   }
                 }
               }
@@ -2100,7 +2148,21 @@
                 }
               },
               "meta": {
-                "type": "object"
+                "type": "object",
+                "properties": {
+                  "current_page": {
+                    "type": "integer",
+                    "description": "当前页码"
+                  },
+                  "last_page": {
+                    "type": "integer",
+                    "description": "最后一页页码"
+                  },
+                  "total": {
+                    "type": "integer",
+                    "description": "总记录数"
+                  }
+                }
               }
             }
           }
@@ -2153,7 +2215,21 @@
                 }
               },
               "meta": {
-                "type": "object"
+                "type": "object",
+                "properties": {
+                  "current_page": {
+                    "type": "integer",
+                    "description": "当前页码"
+                  },
+                  "last_page": {
+                    "type": "integer",
+                    "description": "最后一页页码"
+                  },
+                  "total": {
+                    "type": "integer",
+                    "description": "总记录数"
+                  }
+                }
               }
             }
           }
