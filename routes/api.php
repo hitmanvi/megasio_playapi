@@ -4,6 +4,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\BalanceController;
 use App\Http\Controllers\BannerController;
 use App\Http\Controllers\BrandController;
+use App\Http\Controllers\DepositController;
 use App\Http\Controllers\GameCategoryController;
 use App\Http\Controllers\GameController;
 use App\Http\Controllers\GameGroupController;
@@ -59,6 +60,14 @@ Route::middleware('auth:sanctum')->prefix('balances')->group(function () {
     Route::get('/', [BalanceController::class, 'index']);
     Route::get('/{currency}', [BalanceController::class, 'show']);
     Route::get('/transactions/list', [BalanceController::class, 'transactions']);
+});
+
+// 存款相关路由（需要认证）
+Route::middleware('auth:sanctum')->prefix('deposits')->group(function () {
+    Route::get('/', [DepositController::class, 'index']);
+    Route::post('/', [DepositController::class, 'store']);
+    Route::get('/form-fields', [DepositController::class, 'formFields']);
+    Route::get('/{id}', [DepositController::class, 'show']);
 });
 
 // 品牌相关路由（只读）
