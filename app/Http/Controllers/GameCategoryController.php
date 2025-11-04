@@ -18,17 +18,8 @@ class GameCategoryController extends Controller
         $categories = GameCategory::query()
             ->enabled()
             ->ordered()
-            ->get();
+            ->paginate($request->input('per_page', 10));
 
-        $result = $categories->map(function ($category) use ($locale) {
-            return [
-                'id' => $category->id,
-                'name' => $category->getName($locale),
-                'icon' => $category->icon,
-                'sort_id' => $category->sort_id,
-            ];
-        });
-
-        return $this->responseList($result->toArray());
+        return $this->responseListWithPaginator($categories);
     }
 }
