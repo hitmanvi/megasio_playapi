@@ -16,11 +16,14 @@ class PaymentMethodSeeder extends Seeder
         $paymentMethods = [
             // Deposit methods
             [
+                'key' => 'credit_card_usd',
                 'icon' => 'credit-card.svg',
                 'name' => 'credit_card',
                 'display_name' => 'Credit Card',
                 'currency' => 'USD',
+                'currency_type' => 'USD',
                 'type' => PaymentMethod::TYPE_DEPOSIT,
+                'is_fiat' => true,
                 'amounts' => null,
                 'max_amount' => 10000.00,
                 'min_amount' => 20.00,
@@ -29,11 +32,14 @@ class PaymentMethodSeeder extends Seeder
                 'notes' => 'Visa, MasterCard, Amex accepted',
             ],
             [
+                'key' => 'debit_card_usd',
                 'icon' => 'debit-card.svg',
                 'name' => 'debit_card',
                 'display_name' => 'Debit Card',
                 'currency' => 'USD',
+                'currency_type' => 'USD',
                 'type' => PaymentMethod::TYPE_DEPOSIT,
+                'is_fiat' => true,
                 'amounts' => null,
                 'max_amount' => 2000.00,
                 'min_amount' => 10.00,
@@ -42,11 +48,14 @@ class PaymentMethodSeeder extends Seeder
                 'notes' => 'Direct debit from checking or savings account',
             ],
             [
+                'key' => 'paypal_usd',
                 'icon' => 'paypal.svg',
                 'name' => 'paypal',
                 'display_name' => 'PayPal',
                 'currency' => 'USD',
+                'currency_type' => 'USD',
                 'type' => PaymentMethod::TYPE_DEPOSIT,
+                'is_fiat' => true,
                 'amounts' => null,
                 'max_amount' => 5000.00,
                 'min_amount' => 10.00,
@@ -55,11 +64,14 @@ class PaymentMethodSeeder extends Seeder
                 'notes' => 'PayPal digital wallet',
             ],
             [
+                'key' => 'ach_usd_deposit',
                 'icon' => 'ach.svg',
                 'name' => 'ach',
                 'display_name' => 'ACH Transfer',
                 'currency' => 'USD',
+                'currency_type' => 'USD',
                 'type' => PaymentMethod::TYPE_DEPOSIT,
+                'is_fiat' => true,
                 'amounts' => null,
                 'max_amount' => 5000.00,
                 'min_amount' => 10.00,
@@ -68,11 +80,14 @@ class PaymentMethodSeeder extends Seeder
                 'notes' => 'Automated Clearing House transfer',
             ],
             [
+                'key' => 'bank_transfer_usd_deposit',
                 'icon' => 'bank-transfer.svg',
                 'name' => 'bank_transfer',
                 'display_name' => 'Bank Transfer',
                 'currency' => 'USD',
+                'currency_type' => 'USD',
                 'type' => PaymentMethod::TYPE_DEPOSIT,
+                'is_fiat' => true,
                 'amounts' => null,
                 'max_amount' => 5000.00,
                 'min_amount' => 10.00,
@@ -83,11 +98,14 @@ class PaymentMethodSeeder extends Seeder
             
             // Withdraw methods
             [
+                'key' => 'ach_usd_withdraw',
                 'icon' => 'ach.svg',
                 'name' => 'ach',
                 'display_name' => 'ACH Transfer',
                 'currency' => 'USD',
+                'currency_type' => 'USD',
                 'type' => PaymentMethod::TYPE_WITHDRAW,
+                'is_fiat' => true,
                 'amounts' => null,
                 'max_amount' => 5000.00,
                 'min_amount' => 50.00,
@@ -96,11 +114,14 @@ class PaymentMethodSeeder extends Seeder
                 'notes' => 'Direct deposit to your bank account',
             ],
             [
+                'key' => 'bank_transfer_usd_withdraw',
                 'icon' => 'bank-transfer.svg',
                 'name' => 'bank_transfer',
                 'display_name' => 'Bank Transfer',
                 'currency' => 'USD',
+                'currency_type' => 'USD',
                 'type' => PaymentMethod::TYPE_WITHDRAW,
+                'is_fiat' => true,
                 'amounts' => null,
                 'max_amount' => 10000.00,
                 'min_amount' => 100.00,
@@ -109,11 +130,14 @@ class PaymentMethodSeeder extends Seeder
                 'notes' => 'Wire transfer to your bank account',
             ],
             [
+                'key' => 'crypto_usd_withdraw',
                 'icon' => 'crypto.svg',
                 'name' => 'crypto',
                 'display_name' => 'Cryptocurrency',
                 'currency' => 'USD',
+                'currency_type' => 'BTC',
                 'type' => PaymentMethod::TYPE_WITHDRAW,
+                'is_fiat' => false,
                 'amounts' => null,
                 'max_amount' => 100000.00,
                 'min_amount' => 50.00,
@@ -122,11 +146,14 @@ class PaymentMethodSeeder extends Seeder
                 'notes' => 'Bitcoin and other crypto currencies',
             ],
             [
+                'key' => 'check_usd',
                 'icon' => 'check.svg',
                 'name' => 'check',
                 'display_name' => 'Check',
                 'currency' => 'USD',
+                'currency_type' => 'USD',
                 'type' => PaymentMethod::TYPE_WITHDRAW,
+                'is_fiat' => true,
                 'amounts' => null,
                 'max_amount' => 5000.00,
                 'min_amount' => 100.00,
@@ -137,7 +164,10 @@ class PaymentMethodSeeder extends Seeder
         ];
 
         foreach ($paymentMethods as $method) {
-            PaymentMethod::create($method);
+            PaymentMethod::updateOrCreate(
+                ['key' => $method['key']],
+                $method
+            );
         }
     }
 }
