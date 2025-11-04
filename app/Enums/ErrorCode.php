@@ -35,6 +35,16 @@ enum ErrorCode: int
     case RESOURCE_LOCKED = 4002;
     case OPERATION_NOT_ALLOWED = 4003;
 
+    // 支付错误 (5000-5999)
+    case PAY_DEPOSIT_FAILED = 5001;
+    case PAY_WITHDRAW_FAILED = 5002;
+    case PAY_INVALID_TIME = 5003;
+    case PAY_ATTEMPT_TOO_MANY = 5004;
+    case PAY_INVALID_AMOUNT = 5005;
+    case PAY_UNAVAILABLE = 5006;
+    case PAY_INVALID_PARAM = 5007;
+    case PAY_IFSC = 5008;
+    case PAY_EXPIRED = 5009;
     /**
      * 获取错误消息
      */

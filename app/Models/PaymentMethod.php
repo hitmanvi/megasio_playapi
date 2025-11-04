@@ -17,7 +17,9 @@ class PaymentMethod extends Model
         'name',
         'display_name',
         'currency',
+        'currency_type',
         'type',
+        'is_fiat',
         'amounts',
         'max_amount',
         'min_amount',
@@ -37,6 +39,7 @@ class PaymentMethod extends Model
         'amounts' => 'array',
         'crypto_info' => 'array',
         'enabled' => 'boolean',
+        'is_fiat' => 'boolean',
         'sort_id' => 'integer',
         'max_amount' => 'decimal:8',
         'min_amount' => 'decimal:8',
@@ -63,6 +66,14 @@ class PaymentMethod extends Model
     public function scopeByCurrency($query, $currency)
     {
         return $query->where('currency', $currency);
+    }
+
+    /**
+     * Scope to filter by currency type.
+     */
+    public function scopeByCurrencyType($query, $currencyType)
+    {
+        return $query->where('currency_type', $currencyType);
     }
 
     /**
@@ -98,11 +109,35 @@ class PaymentMethod extends Model
     }
 
     /**
+     * Scope to filter fiat payment methods.
+     */
+    public function scopeFiat($query)
+    {
+        return $query->where('is_fiat', true);
+    }
+
+    /**
+     * Scope to filter crypto payment methods.
+     */
+    public function scopeCrypto($query)
+    {
+        return $query->where('is_fiat', false);
+    }
+
+    /**
      * Check if the payment method is enabled.
      */
     public function isEnabled(): bool
     {
         return $this->enabled;
+    }
+
+    /**
+     * Check if the payment method is fiat.
+     */
+    public function isFiat(): bool
+    {
+        return $this->is_fiat ?? true;
     }
 
     /**

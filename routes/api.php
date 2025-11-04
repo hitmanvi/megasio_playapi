@@ -67,7 +67,7 @@ Route::middleware('auth:sanctum')->prefix('deposits')->group(function () {
     Route::get('/', [DepositController::class, 'index']);
     Route::post('/', [DepositController::class, 'store']);
     Route::get('/form-fields', [DepositController::class, 'formFields']);
-    Route::get('/{id}', [DepositController::class, 'show']);
+    Route::get('/{orderNo}', [DepositController::class, 'show']);
 });
 
 // 品牌相关路由（只读）
