@@ -1081,7 +1081,8 @@
                   "email": "john@example.com",
                   "phone": "1234567890",
                   "bank_account": "123456789012"
-                }
+                },
+                "note": "Withdrawal request"
               }
             }
           }
@@ -1126,7 +1127,8 @@
                       "phone": "1234567890",
                       "bank_account": "123456789012"
                     },
-                    "user_ip": "192.168.1.1"
+                    "user_ip": "192.168.1.1",
+                    "note": "Withdrawal request"
                   }
                 }
               }
@@ -1297,7 +1299,8 @@
                       "email": "john@example.com",
                       "phone": "1234567890",
                       "bank_account": "123456789012"
-                    }
+                    },
+                    "note": "Withdrawal request"
                   }
                 }
               }
@@ -3635,6 +3638,11 @@
           "extra_info": {
             "type": "object",
             "description": "额外信息（如银行账户信息等）"
+          },
+          "note": {
+            "type": "string",
+            "nullable": true,
+            "description": "备注"
           }
         }
       },
@@ -3856,6 +3864,11 @@
           "extra_info": {
             "type": "object",
             "description": "额外信息"
+          },
+          "note": {
+            "type": "string",
+            "nullable": true,
+            "description": "备注"
           }
         }
       },

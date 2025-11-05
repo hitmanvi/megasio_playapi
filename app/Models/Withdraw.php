@@ -28,6 +28,7 @@ class Withdraw extends Model
         'approved',
         'user_ip',
         'completed_at',
+        'note',
     ];
 
     /**

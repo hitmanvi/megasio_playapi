@@ -70,6 +70,7 @@ class WithdrawController extends Controller
             'currency'    => 'required',
             'withdraw_info' => '',
             'extra_info'  => '',
+            'note'        => '',
         ]);
 
         if ($validator->fails()) {
@@ -99,7 +100,8 @@ class WithdrawController extends Controller
             $amount,
             $request->input('withdraw_info', []),
             $request->input('extra_info', []),
-            $request->ip()
+            $request->ip(),
+            $request->input('note')
         );
 
         // 返回创建的提款订单信息

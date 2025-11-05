@@ -85,6 +85,7 @@ class WithdrawService
             $data['updated_at'] = $withdraw->updated_at->format('Y-m-d H:i:s');
             $data['withdraw_info'] = $withdraw->withdraw_info;
             $data['extra_info'] = $withdraw->extra_info;
+            $data['note'] = $withdraw->note;
         }
 
         return $data;
@@ -153,6 +154,7 @@ class WithdrawService
      * @param array $withdrawInfo
      * @param array $extraInfo
      * @param string $userIp
+     * @param string|null $note
      * @return Withdraw
      */
     public function createWithdraw(
@@ -162,7 +164,8 @@ class WithdrawService
         float $amount,
         array $withdrawInfo = [],
         array $extraInfo = [],
-        string $userIp = ''
+        string $userIp = '',
+        ?string $note = null
     ): Withdraw {
         // Generate unique order number
         $orderNo = 'WTD' . strtoupper(Str::ulid()->toString());
@@ -181,6 +184,7 @@ class WithdrawService
             'approved' => false,
             'fee' => 0.00,
             'user_ip' => $userIp,
+            'note' => $note,
         ]);
 
         return $withdraw;
