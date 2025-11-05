@@ -20,7 +20,7 @@ class AuthController extends Controller
             'name' => 'string|max:255',
             'phone' => 'nullable|string|unique:users,phone',
             'email' => 'nullable|string|email|max:255|unique:users,email',
-            'password' => 'required|string|min:8',
+            'password' => 'required|string|min:6',
         ], [
             'phone.unique' => ErrorCode::PHONE_ALREADY_EXISTS->getMessage(),
             'email.unique' => ErrorCode::EMAIL_ALREADY_EXISTS->getMessage(),
