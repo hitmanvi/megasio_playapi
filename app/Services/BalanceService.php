@@ -2,8 +2,10 @@
 
 namespace App\Services;
 
+use App\Exceptions\Exception;
 use App\Models\Balance;
 use App\Models\Transaction;
+use App\Enums\ErrorCode;
 use Illuminate\Support\Facades\DB;
 
 class BalanceService
@@ -135,6 +137,38 @@ class BalanceService
         });
     }
 
+    /**
+     * Request withdraw - freeze amount from available balance.
+     * This is called when a withdraw order is created.
+     */
+    public function requestWithdraw(int $userId, string $currency, float $amount, string $notes, int $relatedEntityId): array
+    {
+        return DB::transaction(function () use ($userId, $currency, $amount, $notes, $relatedEntityId) {
+            // Check if user has sufficient available balance
+            if (!$this->hasSufficientAvailableBalance($userId, $currency, $amount)) {
+                throw new Exception(ErrorCode::INSUFFICIENT_BALANCE);
+            }
+
+            // Freeze amount from available balance
+            $this->freezeAmount($userId, $currency, $amount);
+            $balance = $this->getBalance($userId, $currency);
+            
+            // Create transaction record
+            $transaction = $this->transactionService->createTransaction(
+                $userId,
+                $currency,
+                $amount,
+                Transaction::TYPE_WITHDRAWAL,
+                $notes,
+                $relatedEntityId
+            );
+
+            return [
+                'balance' => $balance,
+                'transaction' => $transaction,
+            ];
+        });
+    }
 
     /**
      * Get user's all balances.

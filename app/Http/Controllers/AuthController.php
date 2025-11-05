@@ -19,6 +19,7 @@ class AuthController extends Controller
         $request->validate([
             'name' => 'string|max:255',
             'phone' => 'nullable|string|unique:users,phone',
+            'area_code' => 'nullable|string|max:10',
             'email' => 'nullable|string|email|max:255|unique:users,email',
             'password' => 'required|string|min:6',
         ], [
@@ -36,10 +37,17 @@ class AuthController extends Controller
 
         $name = $request->name ?? ($request->phone ?? $request->email);
 
+        // 处理 area_code，移除 + 号
+        $areaCode = $request->area_code;
+        if ($areaCode && str_starts_with($areaCode, '+')) {
+            $areaCode = substr($areaCode, 1);
+        }
+
         $user = User::create([
             'uid' => User::generateUid(), // 使用ULID生成唯一标识
             'name' => $name,
             'phone' => $request->phone,
+            'area_code' => $areaCode,
             'email' => $request->email,
             'password' => Hash::make($request->password),
             'status' => 'active',

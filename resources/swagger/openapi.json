@@ -81,6 +81,7 @@
               "example": {
                 "name": "张三",
                 "phone": "13800138000",
+                "area_code": "86",
                 "email": "zhangsan@example.com",
                 "password": "password123",
                 "password_confirmation": "password123"
@@ -104,6 +105,7 @@
                       "uid": "01ARZ3NDEKTSV4RRFFQ69G5FAV",
                       "name": "张三",
                       "phone": "13800138000",
+                      "area_code": "86",
                       "email": "zhangsan@example.com"
                     },
                     "token": "1|abcdef123456789",
@@ -2206,6 +2208,12 @@
             "type": "string",
             "nullable": true,
             "description": "手机号码（与邮箱至少提供一个）"
+          },
+          "area_code": {
+            "type": "string",
+            "maxLength": 10,
+            "nullable": true,
+            "description": "区号/国家代码（不需要+号，如：86）"
           },
           "email": {
             "type": "string",
