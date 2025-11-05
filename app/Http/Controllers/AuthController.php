@@ -17,10 +17,10 @@ class AuthController extends Controller
     public function register(Request $request): JsonResponse
     {
         $request->validate([
-            'name' => 'required|string|max:255',
+            'name' => 'string|max:255',
             'phone' => 'nullable|string|unique:users,phone',
             'email' => 'nullable|string|email|max:255|unique:users,email',
-            'password' => 'required|string|min:8|confirmed',
+            'password' => 'required|string|min:8',
         ], [
             'phone.unique' => ErrorCode::PHONE_ALREADY_EXISTS->getMessage(),
             'email.unique' => ErrorCode::EMAIL_ALREADY_EXISTS->getMessage(),
