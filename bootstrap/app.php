@@ -22,7 +22,7 @@ return Application::configure(basePath: dirname(__DIR__))
             Log::error($e->getMessage());
             $resp = [
                 'code'   => ErrorCode::INTERNAL_ERROR->value,
-                'errmsg' => "SERVER ERROR",
+                'errmsg' => $e->getMessage(),
                 'data'   => null,
             ];
             return response()->json($resp);
