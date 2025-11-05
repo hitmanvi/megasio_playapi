@@ -10,11 +10,11 @@ use Illuminate\Support\Facades\DB;
 
 class BalanceService
 {
-    protected TransactionService $transactionService;
+    protected $transactionService;
 
-    public function __construct(TransactionService $transactionService)
+    public function __construct()
     {
-        $this->transactionService = $transactionService;
+        $this->transactionService = new TransactionService();
     }
     /**
      * Get balance for specific user and currency.

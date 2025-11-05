@@ -5,13 +5,20 @@ namespace App\Services;
 use App\Models\Withdraw;
 use App\Models\PaymentMethod;
 use Illuminate\Support\Str;
-use Carbon\Carbon;
 use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Facades\DB;
 use App\Exceptions\Exception;
 use App\Enums\ErrorCode;
 
 class WithdrawService
 {
+    protected BalanceService $balanceService;
+
+    public function __construct(BalanceService $balanceService)
+    {
+        $this->balanceService = $balanceService;
+    }
+
     /**
      * Get user withdraws with filters and pagination.
      *
@@ -154,7 +161,6 @@ class WithdrawService
      * @param array $withdrawInfo
      * @param array $extraInfo
      * @param string $userIp
-     * @param string|null $note
      * @return Withdraw
      */
     public function createWithdraw(
@@ -164,30 +170,45 @@ class WithdrawService
         float $amount,
         array $withdrawInfo = [],
         array $extraInfo = [],
-        string $userIp = '',
-        ?string $note = null
+        string $userIp = ''
     ): Withdraw {
-        // Generate unique order number
-        $orderNo = 'WTD' . strtoupper(Str::ulid()->toString());
+        return DB::transaction(function () use ($userId, $paymentMethod, $currency, $amount, $withdrawInfo, $extraInfo, $userIp) {
+            // Generate unique order number
+            $orderNo = 'WTD' . strtoupper(Str::ulid()->toString());
 
-        // Create withdraw order
-        $withdraw = Withdraw::create([
-            'user_id' => $userId,
-            'order_no' => $orderNo,
-            'currency' => $currency,
-            'amount' => $amount,
-            'payment_method_id' => $paymentMethod->id,
-            'withdraw_info' => $withdrawInfo,
-            'extra_info' => $extraInfo,
-            'status' => Withdraw::STATUS_PENDING,
-            'pay_status' => Withdraw::PAY_STATUS_PENDING,
-            'approved' => false,
-            'fee' => 0.00,
-            'user_ip' => $userIp,
-            'note' => $note,
-        ]);
+            // Create withdraw order first (with PENDING status)
+            $withdraw = Withdraw::create([
+                'user_id' => $userId,
+                'order_no' => $orderNo,
+                'currency' => $currency,
+                'amount' => $amount,
+                'payment_method_id' => $paymentMethod->id,
+                'withdraw_info' => $withdrawInfo,
+                'extra_info' => $extraInfo,
+                'status' => Withdraw::STATUS_PENDING,
+                'pay_status' => Withdraw::PAY_STATUS_PENDING,
+                'approved' => false,
+                'fee' => 0.00,
+                'user_ip' => $userIp,
+            ]);
 
-        return $withdraw;
+            // Freeze balance for this withdraw request
+            try {
+                $notes = "Withdraw request #{$orderNo}";
+                $this->balanceService->requestWithdraw(
+                    $userId,
+                    $currency,
+                    $amount,
+                    $notes,
+                    $withdraw->id
+                );
+            } catch (\Exception $e) {
+                // If balance freeze fails, throw exception to rollback transaction
+                throw new Exception(ErrorCode::INSUFFICIENT_BALANCE, $e->getMessage());
+            }
+
+            return $withdraw;
+        });
     }
 
     /**
