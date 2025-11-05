@@ -244,6 +244,134 @@
         }
       }
     },
+    "/auth/send-verification-code": {
+      "post": {
+        "tags": ["Authentication"],
+        "summary": "发送验证码",
+        "description": "向指定手机号或邮箱发送验证码。根据提供的参数自动选择发送方式：如果提供 phone 参数则发送短信，如果提供 email 参数则发送邮件。验证码有效期为5分钟，重发间隔为60秒。",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SendVerificationCodeRequest"
+              },
+              "examples": {
+                "phone": {
+                  "summary": "手机号发送",
+                  "description": "使用手机号发送短信验证码",
+                  "value": {
+                    "phone": "13800138000",
+                    "area_code": "86",
+                    "type": "register"
+                  }
+                },
+                "email": {
+                  "summary": "邮箱发送",
+                  "description": "使用邮箱发送邮件验证码",
+                  "value": {
+                    "email": "user@example.com",
+                    "type": "register"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "发送验证码成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SendVerificationCodeResponse"
+                },
+                "example": {
+                  "code": 0,
+                  "errmsg": "Success",
+                  "data": {
+                    "success": true,
+                    "message": "Verification code sent successfully",
+                    "expires_in": 300
+                  }
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "验证失败",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "examples": {
+                  "invalid_phone": {
+                    "summary": "手机号格式错误",
+                    "value": {
+                      "code": 1001,
+                      "errmsg": "Validation failed",
+                      "data": {
+                        "phone": ["Invalid phone number format"]
+                      }
+                    }
+                  },
+                  "invalid_email": {
+                    "summary": "邮箱格式错误",
+                    "value": {
+                      "code": 1001,
+                      "errmsg": "Validation failed",
+                      "data": {
+                        "email": ["Invalid email format"]
+                      }
+                    }
+                  },
+                  "phone_email_required": {
+                    "summary": "手机号或邮箱必填",
+                    "value": {
+                      "code": 1001,
+                      "errmsg": "Validation failed",
+                      "data": {
+                        "phone": ["Phone or email is required"],
+                        "email": ["Phone or email is required"]
+                      }
+                    }
+                  },
+                  "both_provided": {
+                    "summary": "不能同时提供手机号和邮箱",
+                    "value": {
+                      "code": 1001,
+                      "errmsg": "Validation failed",
+                      "data": {
+                        "phone": ["Cannot provide both phone and email"],
+                        "email": ["Cannot provide both phone and email"]
+                      }
+                    }
+                  },
+                  "too_frequent": {
+                    "summary": "发送过于频繁",
+                    "description": "距离上次发送验证码不足60秒",
+                    "value": {
+                      "code": 2009,
+                      "errmsg": "SMS sending too frequent, please try again later",
+                      "data": null
+                    }
+                  },
+                  "send_failed": {
+                    "summary": "发送失败",
+                    "value": {
+                      "code": 2008,
+                      "errmsg": "Failed to send SMS",
+                      "data": null
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/auth/logout": {
       "post": {
         "tags": ["Authentication"],
@@ -2251,6 +2379,58 @@
           "password": {
             "type": "string",
             "description": "密码"
+          }
+        }
+      },
+      "SendVerificationCodeRequest": {
+        "type": "object",
+        "description": "发送验证码请求。必须提供 phone 或 email 其中一个参数，不能同时提供。系统会根据提供的参数自动选择发送方式：提供 phone 则发送短信验证码，提供 email 则发送邮件验证码。注意：当提供 phone 时，area_code 为必填项。",
+        "properties": {
+          "phone": {
+            "type": "string",
+            "description": "手机号（与email二选一，提供此参数将发送短信验证码）"
+          },
+          "email": {
+            "type": "string",
+            "format": "email",
+            "description": "邮箱地址（与phone二选一，提供此参数将发送邮件验证码）"
+          },
+          "area_code": {
+            "type": "string",
+            "maxLength": 10,
+            "description": "区号/国家代码（不含+号，仅在使用phone时有效，当提供phone时此字段为必填）"
+          },
+          "type": {
+            "type": "string",
+            "enum": ["register", "login", "reset_password", "default"],
+            "default": "default",
+            "description": "验证码类型。register: 注册, login: 登录, reset_password: 重置密码, default: 默认"
+          }
+        },
+        "anyOf": [
+          {
+            "required": ["phone", "area_code"]
+          },
+          {
+            "required": ["email"]
+          }
+        ]
+      },
+      "SendVerificationCodeResponse": {
+        "type": "object",
+        "description": "发送验证码响应",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "description": "是否成功"
+          },
+          "message": {
+            "type": "string",
+            "description": "响应消息"
+          },
+          "expires_in": {
+            "type": "integer",
+            "description": "验证码有效期（秒），默认300秒（5分钟）"
           }
         }
       },

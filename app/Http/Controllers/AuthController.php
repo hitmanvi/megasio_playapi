@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\User;
 use App\Enums\ErrorCode;
+use App\Services\VerificationCodeService;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Auth;
@@ -11,6 +12,12 @@ use Illuminate\Support\Facades\Hash;
 
 class AuthController extends Controller
 {
+    protected VerificationCodeService $verificationCodeService;
+
+    public function __construct(VerificationCodeService $verificationCodeService)
+    {
+        $this->verificationCodeService = $verificationCodeService;
+    }
     /**
      * 用户注册
      */
@@ -156,5 +163,42 @@ class AuthController extends Controller
         ]);
 
         return $this->responseItem(null);
+    }
+
+    /**
+     * 发送验证码
+     */
+    public function sendVerificationCode(Request $request): JsonResponse
+    {
+        $request->validate([
+            'phone' => 'required_without:email|string',
+            'email' => 'required_without:phone|string|email',
+            'area_code' => 'nullable|string|max:10|required_with:phone',
+            'type' => 'nullable|string|in:register,login,reset_password,default',
+        ]);
+
+        $phone = $request->input('phone');
+        $email = $request->input('email');
+        $areaCode = $request->input('area_code');
+        $type = $request->input('type', 'default');
+
+        // 处理 area_code，移除 + 号
+        if ($areaCode && str_starts_with($areaCode, '+')) {
+            $areaCode = substr($areaCode, 1);
+        }
+
+        try {
+            // 根据提供的是手机号还是邮箱，调用对应的方法
+            if (!empty($email)) {
+                $result = $this->verificationCodeService->sendEmailCode($email, $type);
+            } else {
+                $result = $this->verificationCodeService->sendSmsCode($phone, $areaCode, $type);
+            }
+            return $this->responseItem($result);
+        } catch (\App\Exceptions\Exception $e) {
+            return $this->error($e->getErrorCode(), $e->getMessage());
+        } catch (\Exception $e) {
+            return $this->error(ErrorCode::SMS_SEND_FAILED, $e->getMessage());
+        }
     }
 }

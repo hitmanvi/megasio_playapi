@@ -22,6 +22,10 @@ enum ErrorCode: int
     case REGISTRATION_FAILED = 2005;
     case LOGIN_REQUIRED = 2006;
     case CURRENT_PASSWORD_INCORRECT = 2007;
+    case SMS_SEND_FAILED = 2008;
+    case SMS_SEND_TOO_FREQUENT = 2009;
+    case VERIFICATION_CODE_INVALID = 2010;
+    case VERIFICATION_CODE_EXPIRED = 2011;
 
     // 用户相关错误 (3000-3999)
     case USER_NOT_FOUND = 3001;
@@ -68,6 +72,10 @@ enum ErrorCode: int
             self::REGISTRATION_FAILED => 'Registration failed',
             self::LOGIN_REQUIRED => 'Login required',
             self::CURRENT_PASSWORD_INCORRECT => 'The current password is incorrect',
+            self::SMS_SEND_FAILED => 'Failed to send SMS',
+            self::SMS_SEND_TOO_FREQUENT => 'SMS sending too frequent, please try again later',
+            self::VERIFICATION_CODE_INVALID => 'Invalid verification code',
+            self::VERIFICATION_CODE_EXPIRED => 'Verification code has expired',
             
             // 用户相关错误
             self::USER_NOT_FOUND => 'User not found',

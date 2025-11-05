@@ -21,6 +21,7 @@ Route::prefix('auth')->group(function () {
     // 公开路由
     Route::post('/register', [AuthController::class, 'register']);
     Route::post('/login', [AuthController::class, 'login']);
+    Route::post('/send-verification-code', [AuthController::class, 'sendVerificationCode']);
     
     // 需要认证的路由
     Route::middleware('auth:sanctum')->group(function () {
