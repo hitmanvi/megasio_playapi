@@ -54,6 +54,7 @@ class Withdraw extends Model
     const STATUS_COMPLETED = 'COMPLETED';
     const STATUS_FAILED = 'FAILED';
     const STATUS_CANCELLED = 'CANCELLED';
+    const STATUS_REJECTED = 'REJECTED';
 
     /**
      * Pay status constants.
@@ -144,6 +145,14 @@ class Withdraw extends Model
     }
 
     /**
+     * Scope to filter rejected withdraws.
+     */
+    public function scopeRejected($query)
+    {
+        return $query->where('status', self::STATUS_REJECTED);
+    }
+
+    /**
      * Scope to filter paid withdraws.
      */
     public function scopePaid($query)
@@ -181,6 +190,14 @@ class Withdraw extends Model
     public function isApproved(): bool
     {
         return $this->approved === true;
+    }
+
+    /**
+     * Check if the withdraw is rejected.
+     */
+    public function isRejected(): bool
+    {
+        return $this->status === self::STATUS_REJECTED;
     }
 }
 

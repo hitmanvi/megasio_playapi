@@ -117,6 +117,17 @@ class WithdrawSeeder extends Seeder
                 'payment_method_key' => 'ach_usd_withdraw',
                 'completed_at_offset' => 4,
             ],
+            // 已拒绝订单
+            [
+                'amount' => 250.00,
+                'currency' => 'USD',
+                'status' => Withdraw::STATUS_REJECTED,
+                'pay_status' => Withdraw::PAY_STATUS_FAILED,
+                'approved' => false,
+                'days_ago' => 6,
+                'payment_method_key' => 'bank_transfer_usd_withdraw',
+                'note' => 'Withdrawal rejected due to insufficient verification',
+            ],
         ];
 
         foreach ($withdraws as $withdrawData) {

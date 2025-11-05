@@ -961,7 +961,7 @@
             "description": "订单状态筛选",
             "schema": {
               "type": "string",
-              "enum": ["PENDING", "PROCESSING", "COMPLETED", "FAILED", "CANCELLED"]
+              "enum": ["PENDING", "PROCESSING", "COMPLETED", "FAILED", "CANCELLED", "REJECTED"]
             }
           },
           {
@@ -3738,7 +3738,7 @@
           },
           "status": {
             "type": "string",
-            "enum": ["PENDING", "PROCESSING", "COMPLETED", "FAILED", "CANCELLED"],
+            "enum": ["PENDING", "PROCESSING", "COMPLETED", "FAILED", "CANCELLED", "REJECTED"],
             "description": "订单状态"
           },
           "pay_status": {
@@ -3828,7 +3828,7 @@
           },
           "status": {
             "type": "string",
-            "enum": ["PENDING", "PROCESSING", "COMPLETED", "FAILED", "CANCELLED"],
+            "enum": ["PENDING", "PROCESSING", "COMPLETED", "FAILED", "CANCELLED", "REJECTED"],
             "description": "订单状态"
           },
           "pay_status": {
