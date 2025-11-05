@@ -736,13 +736,15 @@
                 "amount": 100.00,
                 "native_app": "1",
                 "currency": "USD",
-                "ua": "Mozilla/5.0",
-                "channel_id": "123",
-                "extra_info": {},
-                "aaid": "",
-                "android_id": "",
-                "client_id": "",
-                "fb_info": ""
+                "deposit_info": {
+                  "channel_id": "123",
+                  "ua": "Mozilla/5.0",
+                  "aaid": "",
+                  "android_id": "",
+                  "client_id": "",
+                  "fb_info": ""
+                },
+                "extra_info": {}
               }
             }
           }
@@ -919,7 +921,14 @@
                     "finished_at": null,
                     "created_at": "2024-01-01 12:00:00",
                     "updated_at": "2024-01-01 12:00:00",
-                    "deposit_info": {},
+                    "deposit_info": {
+                      "channel_id": "123",
+                      "ua": "Mozilla/5.0",
+                      "aaid": "",
+                      "android_id": "",
+                      "client_id": "",
+                      "fb_info": ""
+                    },
                     "extra_info": {},
                     "is_expired": false
                   }
@@ -3259,33 +3268,39 @@
             "maxLength": 10,
             "description": "货币类型"
           },
-          "ua": {
-            "type": "string",
-            "description": "用户代理"
-          },
-          "channel_id": {
-            "type": "string",
-            "description": "渠道ID"
+          "deposit_info": {
+            "type": "object",
+            "description": "存款信息",
+            "properties": {
+              "channel_id": {
+                "type": "string",
+                "description": "渠道ID"
+              },
+              "ua": {
+                "type": "string",
+                "description": "用户代理（User Agent）"
+              },
+              "aaid": {
+                "type": "string",
+                "description": "Android广告ID"
+              },
+              "android_id": {
+                "type": "string",
+                "description": "Android ID"
+              },
+              "client_id": {
+                "type": "string",
+                "description": "客户端ID"
+              },
+              "fb_info": {
+                "type": "string",
+                "description": "Facebook信息"
+              }
+            }
           },
           "extra_info": {
             "type": "object",
             "description": "额外信息"
-          },
-          "aaid": {
-            "type": "string",
-            "description": "Android广告ID"
-          },
-          "android_id": {
-            "type": "string",
-            "description": "Android ID"
-          },
-          "client_id": {
-            "type": "string",
-            "description": "客户端ID"
-          },
-          "fb_info": {
-            "type": "string",
-            "description": "Facebook信息"
           }
         }
       },
@@ -3548,7 +3563,33 @@
           },
           "deposit_info": {
             "type": "object",
-            "description": "存款信息"
+            "description": "存款信息",
+            "properties": {
+              "channel_id": {
+                "type": "string",
+                "description": "渠道ID"
+              },
+              "ua": {
+                "type": "string",
+                "description": "用户代理（User Agent）"
+              },
+              "aaid": {
+                "type": "string",
+                "description": "Android广告ID"
+              },
+              "android_id": {
+                "type": "string",
+                "description": "Android ID"
+              },
+              "client_id": {
+                "type": "string",
+                "description": "客户端ID"
+              },
+              "fb_info": {
+                "type": "string",
+                "description": "Facebook信息"
+              }
+            }
           },
           "extra_info": {
             "type": "object",

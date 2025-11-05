@@ -68,13 +68,8 @@ class DepositController extends Controller
             'amount'      => 'required',
             'native_app'  => 'required',
             'currency'    => 'required',
-            'ua'          => '',
-            'channel_id'  => '',
+            'deposit_info' => '',
             'extra_info'  => '',
-            'aaid'        => '',
-            'android_id'  => '',
-            'client_id'   => '',
-            'fb_info'     => '',
         ]);
 
         if ($validator->fails()) {
