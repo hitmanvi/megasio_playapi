@@ -59,6 +59,10 @@
     {
       "name": "Deposit",
       "description": "存款订单相关接口"
+    },
+    {
+      "name": "Withdraw",
+      "description": "提款订单相关接口"
     }
   ],
   "paths": {
@@ -933,6 +937,384 @@
           },
           "404": {
             "description": "存款订单不存在",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/withdraws": {
+      "get": {
+        "tags": ["Withdraw"],
+        "summary": "获取提款订单列表",
+        "description": "获取当前用户的提款订单列表，支持按状态、支付状态、货币类型、支付方式筛选",
+        "security": [{"bearerAuth": []}],
+        "parameters": [
+          {
+            "name": "status",
+            "in": "query",
+            "description": "订单状态筛选",
+            "schema": {
+              "type": "string",
+              "enum": ["PENDING", "PROCESSING", "COMPLETED", "FAILED", "CANCELLED"]
+            }
+          },
+          {
+            "name": "pay_status",
+            "in": "query",
+            "description": "支付状态筛选",
+            "schema": {
+              "type": "string",
+              "enum": ["PENDING", "PAID", "FAILED", "CANCELLED"]
+            }
+          },
+          {
+            "name": "currency",
+            "in": "query",
+            "description": "货币类型筛选",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "payment_method_id",
+            "in": "query",
+            "description": "支付方式ID筛选",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "per_page",
+            "in": "query",
+            "description": "每页数量",
+            "schema": {
+              "type": "integer",
+              "default": 20,
+              "minimum": 1
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "获取提款订单列表成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WithdrawListResponse"
+                },
+                "example": {
+                  "code": 0,
+                  "errmsg": "Success",
+                  "data": {
+                    "items": [
+                      {
+                        "order_no": "WTD01ARZ3NDEKTSV4RRFFQ69G5FAV",
+                        "out_trade_no": "SOPAY123456",
+                        "currency": "USD",
+                        "amount": 1000.00,
+                        "actual_amount": null,
+                        "fee": 0.00,
+                        "payment_method": {
+                          "key": "ach_usd_withdraw",
+                          "name": "ach",
+                          "display_name": "ACH Transfer",
+                          "icon": "ach.svg"
+                        },
+                        "status": "PENDING",
+                        "pay_status": "PENDING",
+                        "approved": false,
+                        "completed_at": null,
+                        "created_at": "2024-01-01 12:00:00"
+                      }
+                    ],
+                    "meta": {
+                      "current_page": 1,
+                      "last_page": 1,
+                      "total": 1
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "未授权",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": ["Withdraw"],
+        "summary": "创建提款订单",
+        "description": "创建新的提款订单",
+        "security": [{"bearerAuth": []}],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateWithdrawRequest"
+              },
+              "example": {
+                "payment_method_id": 1,
+                "amount": 1000.00,
+                "currency": "USD",
+                "withdraw_info": {
+                  "ua": "h5",
+                  "channel_id": 13
+                },
+                "extra_info": {
+                  "ifsc": "IDJF0123123",
+                  "name": "John Doe",
+                  "email": "john@example.com",
+                  "phone": "1234567890",
+                  "bank_account": "123456789012"
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "创建提款订单成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WithdrawDetailResponse"
+                },
+                "example": {
+                  "code": 0,
+                  "errmsg": "Success",
+                  "data": {
+                    "order_no": "WTD01ARZ3NDEKTSV4RRFFQ69G5FAV",
+                    "currency": "USD",
+                    "amount": 1000.00,
+                    "actual_amount": null,
+                    "fee": 0.00,
+                    "payment_method": {
+                      "key": "ach_usd_withdraw",
+                      "name": "ach",
+                      "display_name": "ACH Transfer",
+                      "icon": "ach.svg"
+                    },
+                    "status": "PENDING",
+                    "pay_status": "PENDING",
+                    "approved": false,
+                    "completed_at": null,
+                    "created_at": "2024-01-01 12:00:00",
+                    "updated_at": "2024-01-01 12:00:00",
+                    "withdraw_info": {
+                      "ua": "h5",
+                      "channel_id": 13
+                    },
+                    "extra_info": {
+                      "ifsc": "IDJF0123123",
+                      "name": "John Doe",
+                      "email": "john@example.com",
+                      "phone": "1234567890",
+                      "bank_account": "123456789012"
+                    },
+                    "user_ip": "192.168.1.1"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "未授权",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "支付方式不存在",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/withdraws/form-fields": {
+      "get": {
+        "tags": ["Withdraw"],
+        "summary": "获取提款表单字段配置",
+        "description": "根据支付方式和金额获取用户需要填写的表单字段",
+        "security": [{"bearerAuth": []}],
+        "parameters": [
+          {
+            "name": "payment_method_id",
+            "in": "query",
+            "required": true,
+            "description": "支付方式ID",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "amount",
+            "in": "query",
+            "required": true,
+            "description": "金额",
+            "schema": {
+              "type": "number",
+              "minimum": 0.01
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "获取表单字段成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WithdrawFormFieldsResponse"
+                },
+                "example": {
+                  "code": 0,
+                  "errmsg": "Success",
+                  "data": {
+                    "channel_id": "123",
+                    "withdraw_fields": [
+                      {
+                        "field": "bank_account",
+                        "require": true,
+                        "type": "string",
+                        "title": "bank_account",
+                        "placeholder": "bank_account"
+                      },
+                      {
+                        "field": "ifsc",
+                        "require": true,
+                        "type": "string",
+                        "title": "ifsc",
+                        "placeholder": "ifsc"
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "未授权",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "支付方式不存在",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/withdraws/{orderNo}": {
+      "get": {
+        "tags": ["Withdraw"],
+        "summary": "获取提款订单详情",
+        "description": "根据订单号获取提款订单的详细信息",
+        "security": [{"bearerAuth": []}],
+        "parameters": [
+          {
+            "name": "orderNo",
+            "in": "path",
+            "required": true,
+            "description": "订单号",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "获取提款订单详情成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WithdrawDetailResponse"
+                },
+                "example": {
+                  "code": 0,
+                  "errmsg": "Success",
+                  "data": {
+                    "order_no": "WTD01ARZ3NDEKTSV4RRFFQ69G5FAV",
+                    "out_trade_no": "SOPAY123456",
+                    "currency": "USD",
+                    "amount": 1000.00,
+                    "actual_amount": 1000.00,
+                    "fee": 0.00,
+                    "payment_method": {
+                      "key": "ach_usd_withdraw",
+                      "name": "ach",
+                      "display_name": "ACH Transfer",
+                      "icon": "ach.svg"
+                    },
+                    "status": "COMPLETED",
+                    "pay_status": "PAID",
+                    "approved": true,
+                    "user_ip": "192.168.1.1",
+                    "completed_at": "2024-01-01 12:30:00",
+                    "created_at": "2024-01-01 12:00:00",
+                    "updated_at": "2024-01-01 12:30:00",
+                    "withdraw_info": {
+                      "ua": "h5",
+                      "channel_id": 13
+                    },
+                    "extra_info": {
+                      "ifsc": "IDJF0123123",
+                      "name": "John Doe",
+                      "email": "john@example.com",
+                      "phone": "1234567890",
+                      "bank_account": "123456789012"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "未授权",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "提款订单不存在",
             "content": {
               "application/json": {
                 "schema": {
@@ -3223,6 +3605,313 @@
               "native_support": {
                 "type": "boolean",
                 "description": "是否支持原生应用"
+              }
+            }
+          }
+        }
+      },
+      "CreateWithdrawRequest": {
+        "type": "object",
+        "required": ["payment_method_id", "amount", "currency"],
+        "properties": {
+          "payment_method_id": {
+            "type": "integer",
+            "description": "支付方式ID"
+          },
+          "amount": {
+            "type": "number",
+            "minimum": 0.01,
+            "description": "提款金额"
+          },
+          "currency": {
+            "type": "string",
+            "maxLength": 10,
+            "description": "货币类型"
+          },
+          "withdraw_info": {
+            "type": "object",
+            "description": "提款信息"
+          },
+          "extra_info": {
+            "type": "object",
+            "description": "额外信息（如银行账户信息等）"
+          }
+        }
+      },
+      "WithdrawListResponse": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "integer",
+            "description": "响应码，0表示成功"
+          },
+          "errmsg": {
+            "type": "string",
+            "description": "响应消息"
+          },
+          "data": {
+            "type": "object",
+            "properties": {
+              "items": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/WithdrawListItem"
+                }
+              },
+              "meta": {
+                "type": "object",
+                "properties": {
+                  "current_page": {
+                    "type": "integer",
+                    "description": "当前页码"
+                  },
+                  "last_page": {
+                    "type": "integer",
+                    "description": "最后一页页码"
+                  },
+                  "total": {
+                    "type": "integer",
+                    "description": "总记录数"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "WithdrawListItem": {
+        "type": "object",
+        "properties": {
+          "order_no": {
+            "type": "string",
+            "description": "订单号"
+          },
+          "out_trade_no": {
+            "type": "string",
+            "nullable": true,
+            "description": "外部交易号"
+          },
+          "currency": {
+            "type": "string",
+            "description": "货币类型"
+          },
+          "amount": {
+            "type": "number",
+            "description": "提款金额"
+          },
+          "actual_amount": {
+            "type": "number",
+            "nullable": true,
+            "description": "实际到账金额"
+          },
+          "fee": {
+            "type": "number",
+            "nullable": true,
+            "description": "手续费"
+          },
+          "payment_method": {
+            "type": "object",
+            "nullable": true,
+            "properties": {
+              "key": {
+                "type": "string"
+              },
+              "name": {
+                "type": "string"
+              },
+              "display_name": {
+                "type": "string"
+              },
+              "icon": {
+                "type": "string",
+                "nullable": true
+              }
+            }
+          },
+          "status": {
+            "type": "string",
+            "enum": ["PENDING", "PROCESSING", "COMPLETED", "FAILED", "CANCELLED"],
+            "description": "订单状态"
+          },
+          "pay_status": {
+            "type": "string",
+            "enum": ["PENDING", "PAID", "FAILED", "CANCELLED"],
+            "description": "支付状态"
+          },
+          "approved": {
+            "type": "boolean",
+            "description": "是否已审核通过"
+          },
+          "completed_at": {
+            "type": "string",
+            "nullable": true,
+            "description": "完成时间"
+          },
+          "created_at": {
+            "type": "string",
+            "description": "创建时间"
+          }
+        }
+      },
+      "WithdrawDetailResponse": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "integer",
+            "description": "响应码，0表示成功"
+          },
+          "errmsg": {
+            "type": "string",
+            "description": "响应消息"
+          },
+          "data": {
+            "$ref": "#/components/schemas/WithdrawDetail"
+          }
+        }
+      },
+      "WithdrawDetail": {
+        "type": "object",
+        "properties": {
+          "order_no": {
+            "type": "string",
+            "description": "订单号"
+          },
+          "out_trade_no": {
+            "type": "string",
+            "nullable": true,
+            "description": "外部交易号"
+          },
+          "currency": {
+            "type": "string",
+            "description": "货币类型"
+          },
+          "amount": {
+            "type": "number",
+            "description": "提款金额"
+          },
+          "actual_amount": {
+            "type": "number",
+            "nullable": true,
+            "description": "实际到账金额"
+          },
+          "fee": {
+            "type": "number",
+            "nullable": true,
+            "description": "手续费"
+          },
+          "payment_method": {
+            "type": "object",
+            "nullable": true,
+            "properties": {
+              "key": {
+                "type": "string"
+              },
+              "name": {
+                "type": "string"
+              },
+              "display_name": {
+                "type": "string"
+              },
+              "icon": {
+                "type": "string",
+                "nullable": true
+              }
+            }
+          },
+          "status": {
+            "type": "string",
+            "enum": ["PENDING", "PROCESSING", "COMPLETED", "FAILED", "CANCELLED"],
+            "description": "订单状态"
+          },
+          "pay_status": {
+            "type": "string",
+            "enum": ["PENDING", "PAID", "FAILED", "CANCELLED"],
+            "description": "支付状态"
+          },
+          "approved": {
+            "type": "boolean",
+            "description": "是否已审核通过"
+          },
+          "user_ip": {
+            "type": "string",
+            "description": "用户IP地址"
+          },
+          "completed_at": {
+            "type": "string",
+            "nullable": true,
+            "description": "完成时间"
+          },
+          "created_at": {
+            "type": "string",
+            "description": "创建时间"
+          },
+          "updated_at": {
+            "type": "string",
+            "description": "更新时间"
+          },
+          "withdraw_info": {
+            "type": "object",
+            "description": "提款信息"
+          },
+          "extra_info": {
+            "type": "object",
+            "description": "额外信息"
+          }
+        }
+      },
+      "WithdrawFormFieldsResponse": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "integer",
+            "description": "响应码，0表示成功"
+          },
+          "errmsg": {
+            "type": "string",
+            "description": "响应消息"
+          },
+          "data": {
+            "type": "object",
+            "properties": {
+              "channel_id": {
+                "type": "string",
+                "description": "渠道ID"
+              },
+              "withdraw_fields": {
+                "type": "array",
+                "description": "提款表单字段",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "field": {
+                      "type": "string",
+                      "description": "字段名"
+                    },
+                    "require": {
+                      "type": "boolean",
+                      "description": "是否必填"
+                    },
+                    "type": {
+                      "type": "string",
+                      "description": "字段类型"
+                    },
+                    "title": {
+                      "type": "string",
+                      "description": "字段标题"
+                    },
+                    "placeholder": {
+                      "type": "string",
+                      "description": "占位符"
+                    },
+                    "list": {
+                      "type": "array",
+                      "description": "选项列表（如银行代码列表）",
+                      "items": {
+                        "type": "object"
+                      }
+                    }
+                  }
+                }
               }
             }
           }

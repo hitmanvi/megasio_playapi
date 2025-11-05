@@ -5,6 +5,7 @@ use App\Http\Controllers\BalanceController;
 use App\Http\Controllers\BannerController;
 use App\Http\Controllers\BrandController;
 use App\Http\Controllers\DepositController;
+use App\Http\Controllers\WithdrawController;
 use App\Http\Controllers\GameCategoryController;
 use App\Http\Controllers\GameController;
 use App\Http\Controllers\GameGroupController;
@@ -34,24 +35,6 @@ Route::get('/user', function (Request $request) {
     return $request->user();
 })->middleware('auth:sanctum');
 
-// 多语言标签相关路由
-Route::prefix('tags')->group(function () {
-    // 获取所有标签列表
-    Route::get('/', [TranslationExampleController::class, 'getTagsList']);
-    
-    // 根据类型获取标签
-    Route::get('/type/{type}', [TranslationExampleController::class, 'getTagsByType']);
-    
-    // 搜索标签
-    Route::get('/search', [TranslationExampleController::class, 'searchTags']);
-    
-    // 获取单个标签详情
-    Route::get('/{id}', [TranslationExampleController::class, 'getTagWithTranslations']);
-    
-    // 创建标签
-    Route::post('/', [TranslationExampleController::class, 'createTag']);
-});
-
 // Banner相关路由（只读）
 Route::get('/banners', [BannerController::class, 'index']);
 
@@ -68,6 +51,14 @@ Route::middleware('auth:sanctum')->prefix('deposits')->group(function () {
     Route::post('/', [DepositController::class, 'store']);
     Route::get('/form-fields', [DepositController::class, 'formFields']);
     Route::get('/{orderNo}', [DepositController::class, 'show']);
+});
+
+// 提款相关路由（需要认证）
+Route::middleware('auth:sanctum')->prefix('withdraws')->group(function () {
+    Route::get('/', [WithdrawController::class, 'index']);
+    Route::post('/', [WithdrawController::class, 'store']);
+    Route::get('/form-fields', [WithdrawController::class, 'formFields']);
+    Route::get('/{orderNo}', [WithdrawController::class, 'show']);
 });
 
 // 品牌相关路由（只读）
