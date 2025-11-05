@@ -34,9 +34,11 @@ class AuthController extends Controller
             ]);
         }
 
+        $name = $request->name ?? ($request->phone ?? $request->email);
+
         $user = User::create([
             'uid' => User::generateUid(), // 使用ULID生成唯一标识
-            'name' => $request->name,
+            'name' => $name,
             'phone' => $request->phone,
             'email' => $request->email,
             'password' => Hash::make($request->password),
