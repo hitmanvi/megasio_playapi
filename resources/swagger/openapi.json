@@ -63,6 +63,10 @@
     {
       "name": "Withdraw",
       "description": "提款订单相关接口"
+    },
+    {
+      "name": "Transaction",
+      "description": "交易记录相关接口"
     }
   ],
   "paths": {
@@ -1455,6 +1459,117 @@
           },
           "404": {
             "description": "提款订单不存在",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/transactions": {
+      "get": {
+        "tags": ["Transaction"],
+        "summary": "获取交易记录列表",
+        "description": "获取当前用户的交易记录列表，支持按货币类型、交易类型、状态和时间范围筛选。时间范围仅支持：24h（最近24小时）、7d（最近7天）、30d（最近30天）",
+        "security": [{"bearerAuth": []}],
+        "parameters": [
+          {
+            "name": "period",
+            "in": "query",
+            "description": "时间范围筛选，仅支持：24h（最近24小时）、7d（最近7天）、30d（最近30天）。不传此参数则查询所有记录",
+            "schema": {
+              "type": "string",
+              "enum": ["24h", "7d", "30d"]
+            }
+          },
+          {
+            "name": "currency",
+            "in": "query",
+            "description": "货币类型筛选",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "type",
+            "in": "query",
+            "description": "交易类型筛选",
+            "schema": {
+              "type": "string",
+              "enum": ["DEPOSIT", "WITHDRAWAL", "FEE", "TRANSFER_IN", "TRANSFER_OUT", "REFUND"]
+            }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "description": "交易状态筛选",
+            "schema": {
+              "type": "string",
+              "enum": ["COMPLETED"]
+            }
+          },
+          {
+            "name": "per_page",
+            "in": "query",
+            "description": "每页数量",
+            "schema": {
+              "type": "integer",
+              "default": 20,
+              "minimum": 1
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "获取交易记录列表成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TransactionListResponse"
+                },
+                "example": {
+                  "code": 0,
+                  "errmsg": "Success",
+                  "data": {
+                    "items": [
+                      {
+                        "id": 1,
+                        "currency": "USD",
+                        "amount": 100.00,
+                        "type": "DEPOSIT",
+                        "status": "COMPLETED",
+                        "transaction_time": "2024-01-01 12:00:00",
+                        "created_at": "2024-01-01 12:00:00",
+                        "notes": "Deposit via bank transfer",
+                        "related_entity_id": 123
+                      }
+                    ],
+                    "meta": {
+                      "current_page": 1,
+                      "last_page": 5,
+                      "total": 100
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "未授权",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "参数验证失败",
             "content": {
               "application/json": {
                 "schema": {
@@ -3980,6 +4095,95 @@
           "created_at": {
             "type": "string",
             "description": "创建时间"
+          }
+        }
+      },
+      "TransactionListResponse": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "integer",
+            "description": "响应码，0表示成功"
+          },
+          "errmsg": {
+            "type": "string",
+            "description": "响应消息"
+          },
+          "data": {
+            "type": "object",
+            "properties": {
+              "items": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/TransactionListItem"
+                }
+              },
+              "meta": {
+                "type": "object",
+                "properties": {
+                  "current_page": {
+                    "type": "integer",
+                    "description": "当前页码"
+                  },
+                  "last_page": {
+                    "type": "integer",
+                    "description": "最后一页页码"
+                  },
+                  "total": {
+                    "type": "integer",
+                    "description": "总记录数"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "TransactionListItem": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "description": "交易记录ID"
+          },
+          "currency": {
+            "type": "string",
+            "description": "货币类型"
+          },
+          "amount": {
+            "type": "number",
+            "description": "交易金额"
+          },
+          "type": {
+            "type": "string",
+            "enum": ["DEPOSIT", "WITHDRAWAL", "FEE", "TRANSFER_IN", "TRANSFER_OUT", "REFUND"],
+            "description": "交易类型"
+          },
+          "status": {
+            "type": "string",
+            "enum": ["COMPLETED"],
+            "description": "交易状态"
+          },
+          "transaction_time": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true,
+            "description": "交易时间"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "创建时间"
+          },
+          "notes": {
+            "type": "string",
+            "nullable": true,
+            "description": "备注"
+          },
+          "related_entity_id": {
+            "type": "integer",
+            "nullable": true,
+            "description": "关联实体ID（如订单ID）"
           }
         }
       },

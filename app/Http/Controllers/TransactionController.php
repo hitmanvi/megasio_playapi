@@ -1,0 +1,64 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Services\TransactionService;
+use Illuminate\Http\Request;
+use Illuminate\Http\JsonResponse;
+use App\Enums\ErrorCode;
+
+class TransactionController extends Controller
+{
+    protected TransactionService $transactionService;
+
+    public function __construct(TransactionService $transactionService)
+    {
+        $this->transactionService = $transactionService;
+    }
+
+    /**
+     * 获取交易记录列表
+     * 
+     * 支持的时间范围参数：24h, 7d, 30d
+     */
+    public function index(Request $request): JsonResponse
+    {
+        $user = $request->user();
+        if (!$user) {
+            return $this->error(ErrorCode::UNAUTHORIZED, 'User not authenticated');
+        }
+
+        // 验证时间范围参数
+        $period = $request->input('period');
+        $allowedPeriods = ['24h', '7d', '30d'];
+        if ($period && !in_array($period, $allowedPeriods)) {
+            return $this->error(ErrorCode::VALIDATION_ERROR, 'Period must be one of: 24h, 7d, 30d');
+        }
+
+        // 构建筛选条件
+        $filters = [];
+        if ($request->has('currency')) {
+            $filters['currency'] = $request->input('currency');
+        }
+        if ($request->has('type')) {
+            $filters['type'] = $request->input('type');
+        }
+        if ($request->has('status')) {
+            $filters['status'] = $request->input('status');
+        }
+        if ($period) {
+            $filters['period'] = $period;
+        }
+
+        $perPage = max(1, (int)$request->input('per_page', 20));
+        $transactions = $this->transactionService->getUserTransactionsPaginated($user->id, $filters, $perPage);
+
+        // 格式化返回数据
+        $transactions->getCollection()->transform(function ($transaction) {
+            return $this->transactionService->formatTransactionForResponse($transaction, false);
+        });
+
+        return $this->responseListWithPaginator($transactions);
+    }
+}
+
