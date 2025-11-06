@@ -67,6 +67,10 @@
     {
       "name": "Transaction",
       "description": "交易记录相关接口"
+    },
+    {
+      "name": "Order",
+      "description": "订单相关接口"
     }
   ],
   "paths": {
@@ -1546,6 +1550,126 @@
                         "created_at": "2024-01-01 12:00:00",
                         "notes": "Deposit via bank transfer",
                         "related_entity_id": 123
+                      }
+                    ],
+                    "meta": {
+                      "current_page": 1,
+                      "last_page": 5,
+                      "total": 100
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "未授权",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "参数验证失败",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/orders": {
+      "get": {
+        "tags": ["Order"],
+        "summary": "获取订单列表",
+        "description": "获取当前用户的订单列表，支持按货币类型、订单状态、游戏ID和时间范围筛选。时间范围仅支持：24h（最近24小时）、7d（最近7天）、30d（最近30天）",
+        "security": [{"bearerAuth": []}],
+        "parameters": [
+          {
+            "name": "period",
+            "in": "query",
+            "description": "时间范围筛选，仅支持：24h（最近24小时）、7d（最近7天）、30d（最近30天）。不传此参数则查询所有记录",
+            "schema": {
+              "type": "string",
+              "enum": ["24h", "7d", "30d"]
+            }
+          },
+          {
+            "name": "currency",
+            "in": "query",
+            "description": "货币类型筛选",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "description": "订单状态筛选",
+            "schema": {
+              "type": "string",
+              "enum": ["PENDING", "COMPLETED", "CANCELLED", "FAILED", "SETTLED"]
+            }
+          },
+          {
+            "name": "game_id",
+            "in": "query",
+            "description": "游戏ID筛选",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "per_page",
+            "in": "query",
+            "description": "每页数量",
+            "schema": {
+              "type": "integer",
+              "default": 20,
+              "minimum": 1
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "获取订单列表成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrderListResponse"
+                },
+                "example": {
+                  "code": 0,
+                  "errmsg": "Success",
+                  "data": {
+                    "items": [
+                      {
+                        "id": 1,
+                        "order_id": "ORD01ARZ3NDEKTSV4RRFFQ69G5FAV",
+                        "out_id": "EXT_001",
+                        "currency": "USD",
+                        "amount": 100.00,
+                        "payout": 150.00,
+                        "status": "COMPLETED",
+                        "finished_at": "2024-01-01 12:30:00",
+                        "created_at": "2024-01-01 12:00:00",
+                        "game": {
+                          "id": 1,
+                          "name": "Game Name",
+                          "key": "game_key"
+                        },
+                        "brand": {
+                          "id": 1,
+                          "name": "Brand Name",
+                          "provider": "netflix"
+                        }
                       }
                     ],
                     "meta": {
@@ -4184,6 +4308,150 @@
             "type": "integer",
             "nullable": true,
             "description": "关联实体ID（如订单ID）"
+          }
+        }
+      },
+      "OrderListResponse": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "integer",
+            "description": "响应码，0表示成功"
+          },
+          "errmsg": {
+            "type": "string",
+            "description": "响应消息"
+          },
+          "data": {
+            "type": "object",
+            "properties": {
+              "items": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/OrderListItem"
+                }
+              },
+              "meta": {
+                "type": "object",
+                "properties": {
+                  "current_page": {
+                    "type": "integer",
+                    "description": "当前页码"
+                  },
+                  "last_page": {
+                    "type": "integer",
+                    "description": "最后一页页码"
+                  },
+                  "total": {
+                    "type": "integer",
+                    "description": "总记录数"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "OrderListItem": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "description": "订单ID"
+          },
+          "order_id": {
+            "type": "string",
+            "description": "系统订单ID"
+          },
+          "out_id": {
+            "type": "string",
+            "nullable": true,
+            "description": "外部订单ID"
+          },
+          "currency": {
+            "type": "string",
+            "description": "货币类型"
+          },
+          "amount": {
+            "type": "number",
+            "description": "订单金额"
+          },
+          "payout": {
+            "type": "number",
+            "nullable": true,
+            "description": "派彩金额"
+          },
+          "status": {
+            "type": "string",
+            "enum": ["PENDING", "COMPLETED", "CANCELLED", "FAILED", "SETTLED"],
+            "description": "订单状态"
+          },
+          "finished_at": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true,
+            "description": "完成时间"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "创建时间"
+          },
+          "game": {
+            "type": "object",
+            "nullable": true,
+            "properties": {
+              "id": {
+                "type": "integer",
+                "description": "游戏ID"
+              },
+              "name": {
+                "type": "string",
+                "description": "游戏名称"
+              },
+              "key": {
+                "type": "string",
+                "description": "游戏标识"
+              }
+            }
+          },
+          "brand": {
+            "type": "object",
+            "nullable": true,
+            "properties": {
+              "id": {
+                "type": "integer",
+                "description": "品牌ID"
+              },
+              "name": {
+                "type": "string",
+                "description": "品牌名称"
+              },
+              "provider": {
+                "type": "string",
+                "description": "提供商标识"
+              }
+            }
+          },
+          "notes": {
+            "type": "string",
+            "nullable": true,
+            "description": "备注信息"
+          },
+          "payment_currency": {
+            "type": "string",
+            "nullable": true,
+            "description": "支付货币类型"
+          },
+          "payment_amount": {
+            "type": "number",
+            "nullable": true,
+            "description": "支付金额"
+          },
+          "payment_payout": {
+            "type": "number",
+            "nullable": true,
+            "description": "支付派彩金额"
           }
         }
       },

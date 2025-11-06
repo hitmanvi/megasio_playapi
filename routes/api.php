@@ -5,6 +5,7 @@ use App\Http\Controllers\BalanceController;
 use App\Http\Controllers\BannerController;
 use App\Http\Controllers\BrandController;
 use App\Http\Controllers\DepositController;
+use App\Http\Controllers\OrderController;
 use App\Http\Controllers\TransactionController;
 use App\Http\Controllers\WithdrawController;
 use App\Http\Controllers\GameCategoryController;
@@ -66,6 +67,11 @@ Route::middleware('auth:sanctum')->prefix('withdraws')->group(function () {
 // 交易记录相关路由（需要认证）
 Route::middleware('auth:sanctum')->prefix('transactions')->group(function () {
     Route::get('/', [TransactionController::class, 'index']);
+});
+
+// 订单相关路由（需要认证）
+Route::middleware('auth:sanctum')->prefix('orders')->group(function () {
+    Route::get('/', [OrderController::class, 'index']);
 });
 
 // 品牌相关路由（只读）
