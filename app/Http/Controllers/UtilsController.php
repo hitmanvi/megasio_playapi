@@ -18,6 +18,8 @@ class UtilsController extends Controller
     {
         return $this->responseItem([
             'supported_locales' => ['en', 'zh-CN', 'ja', 'ko'],
+            'supported_currencies' => config('currency.supported_currencies', []),
+            'default_currency' => config('currency.default_currency', 'USD'),
             'app_limit' => config('app.app_limit', 10),
             'web_limit' => config('app.web_limit', 10),
         ]);

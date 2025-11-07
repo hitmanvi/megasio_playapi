@@ -2536,7 +2536,7 @@
       "get": {
         "tags": ["Utils"],
         "summary": "获取应用设置",
-        "description": "获取应用的支持语言列表等配置信息",
+        "description": "获取应用的支持语言列表、支持的货币列表等配置信息",
         "responses": {
           "200": {
             "description": "获取设置成功",
@@ -2549,7 +2549,30 @@
                   "code": 0,
                   "errmsg": "Success",
                   "data": {
-                    "supported_locales": ["en", "zh-CN", "ja", "ko"]
+                    "supported_locales": ["en", "zh-CN", "ja", "ko"],
+                    "supported_currencies": [
+                      {
+                        "code": "USD",
+                        "name": "US Dollar",
+                        "symbol": "$",
+                        "name_zh": "美元"
+                      },
+                      {
+                        "code": "EUR",
+                        "name": "Euro",
+                        "symbol": "€",
+                        "name_zh": "欧元"
+                      },
+                      {
+                        "code": "CNY",
+                        "name": "Chinese Yuan",
+                        "symbol": "¥",
+                        "name_zh": "人民币"
+                      }
+                    ],
+                    "default_currency": "USD",
+                    "app_limit": 10,
+                    "web_limit": 10
                   }
                 }
               }
@@ -3188,6 +3211,46 @@
                   "type": "string"
                 },
                 "example": ["en", "zh-CN", "ja", "ko"]
+              },
+              "supported_currencies": {
+                "type": "array",
+                "description": "支持的货币列表",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string",
+                      "description": "货币代码（ISO 4217）"
+                    },
+                    "name": {
+                      "type": "string",
+                      "description": "货币英文名称"
+                    },
+                    "symbol": {
+                      "type": "string",
+                      "description": "货币符号"
+                    },
+                    "name_zh": {
+                      "type": "string",
+                      "description": "货币中文名称"
+                    }
+                  }
+                }
+              },
+              "default_currency": {
+                "type": "string",
+                "description": "默认货币代码",
+                "example": "USD"
+              },
+              "app_limit": {
+                "type": "integer",
+                "description": "应用限制",
+                "example": 10
+              },
+              "web_limit": {
+                "type": "integer",
+                "description": "Web限制",
+                "example": 10
               }
             }
           }
