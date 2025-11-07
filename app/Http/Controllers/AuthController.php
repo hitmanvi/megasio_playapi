@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\User;
 use App\Enums\ErrorCode;
+use App\Events\UserLoggedIn;
 use App\Services\VerificationCodeService;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
@@ -98,6 +99,9 @@ class AuthController extends Controller
         }
 
         $token = $user->createToken('auth_token')->plainTextToken;
+
+        // 触发登录事件，异步记录活动
+        event(new UserLoggedIn($user, $request->ip(), $request->userAgent()));
 
         return $this->responseItem([
             'token' => $token,
