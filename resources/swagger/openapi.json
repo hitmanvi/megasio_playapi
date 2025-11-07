@@ -2553,21 +2553,15 @@
                     "supported_currencies": [
                       {
                         "code": "USD",
-                        "name": "US Dollar",
-                        "symbol": "$",
-                        "name_zh": "美元"
+                        "symbol": "$"
                       },
                       {
                         "code": "EUR",
-                        "name": "Euro",
-                        "symbol": "€",
-                        "name_zh": "欧元"
+                        "symbol": "€"
                       },
                       {
                         "code": "CNY",
-                        "name": "Chinese Yuan",
-                        "symbol": "¥",
-                        "name_zh": "人民币"
+                        "symbol": "¥"
                       }
                     ],
                     "default_currency": "USD",
@@ -2951,39 +2945,6 @@
           }
         }
       },
-      "TransactionListResponse": {
-        "type": "object",
-        "properties": {
-          "code": {
-            "type": "integer",
-            "description": "响应码，0表示成功"
-          },
-          "errmsg": {
-            "type": "string",
-            "description": "响应消息"
-          },
-          "data": {
-            "type": "object",
-            "properties": {
-              "items": {
-                "type": "array",
-                "items": {
-                  "$ref": "#/components/schemas/Transaction"
-                }
-              },
-              "meta": {
-                "type": "object",
-                "properties": {
-                  "total": {
-                    "type": "integer",
-                    "description": "总数量"
-                  }
-                }
-              }
-            }
-          }
-        }
-      },
       "Transaction": {
         "type": "object",
         "properties": {
@@ -3222,17 +3183,9 @@
                       "type": "string",
                       "description": "货币代码（ISO 4217）"
                     },
-                    "name": {
-                      "type": "string",
-                      "description": "货币英文名称"
-                    },
                     "symbol": {
                       "type": "string",
                       "description": "货币符号"
-                    },
-                    "name_zh": {
-                      "type": "string",
-                      "description": "货币中文名称"
                     }
                   }
                 }
