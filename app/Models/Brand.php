@@ -49,6 +49,14 @@ class Brand extends Model
     }
 
     /**
+     * Get the games for this brand.
+     */
+    public function games(): HasMany
+    {
+        return $this->hasMany(Game::class);
+    }
+
+    /**
      * Scope to filter by enabled status.
      */
     public function scopeEnabled($query)

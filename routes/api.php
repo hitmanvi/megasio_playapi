@@ -76,7 +76,10 @@ Route::middleware('auth:sanctum')->prefix('orders')->group(function () {
 });
 
 // 品牌相关路由（只读）
-Route::get('/brands', [BrandController::class, 'index']);
+Route::prefix('brands')->group(function () {
+    Route::get('/', [BrandController::class, 'index']);
+    Route::get('/recommend', [BrandController::class, 'recommend']);
+});
 
 // 游戏分类相关路由（只读）
 Route::get('/game-categories', [GameCategoryController::class, 'index']);

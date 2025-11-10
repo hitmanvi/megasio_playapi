@@ -1873,6 +1873,88 @@
         }
       }
     },
+    "/brands/recommend": {
+      "get": {
+        "tags": ["Brand"],
+        "summary": "获取推荐品牌列表",
+        "description": "根据指定游戏获取推荐品牌列表，优先推荐同分类、同主题游戏所属的品牌",
+        "parameters": [
+          {
+            "name": "Locale",
+            "in": "header",
+            "description": "语言代码",
+            "schema": {
+              "type": "string",
+              "default": "en"
+            }
+          },
+          {
+            "name": "id",
+            "in": "query",
+            "required": true,
+            "description": "游戏ID",
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "返回数量限制",
+            "schema": {
+              "type": "integer",
+              "default": 10,
+              "minimum": 1,
+              "maximum": 50
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "获取推荐品牌列表成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BrandListResponse"
+                },
+                "example": {
+                  "code": 0,
+                  "errmsg": "Success",
+                  "data": {
+                    "items": [
+                      {
+                        "id": 2,
+                        "name": "Disney+",
+                        "provider": "disney",
+                        "sort_id": 2
+                      },
+                      {
+                        "id": 3,
+                        "name": "HBO Max",
+                        "provider": "hbo",
+                        "sort_id": 3
+                      }
+                    ],
+                    "meta": {}
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "游戏不存在或已禁用",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/game-categories": {
       "get": {
         "tags": ["GameCategory"],
