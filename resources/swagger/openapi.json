@@ -57,6 +57,10 @@
       "description": "支付方式相关接口"
     },
     {
+      "name": "Currency",
+      "description": "货币相关接口"
+    },
+    {
       "name": "Deposit",
       "description": "存款订单相关接口"
     },
@@ -2072,6 +2076,49 @@
         }
       }
     },
+    "/currencies": {
+      "get": {
+        "tags": ["Currency"],
+        "summary": "获取支持的货币列表",
+        "description": "获取所有启用的货币列表，按排序顺序返回",
+        "responses": {
+          "200": {
+            "description": "获取货币列表成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CurrencyListResponse"
+                },
+                "example": {
+                  "code": 0,
+                  "errmsg": "Success",
+                  "data": {
+                    "items": [
+                      {
+                        "code": "USD",
+                        "symbol": "$",
+                        "icon": "usd.svg"
+                      },
+                      {
+                        "code": "EUR",
+                        "symbol": "€",
+                        "icon": "eur.svg"
+                      },
+                      {
+                        "code": "CNY",
+                        "symbol": "¥",
+                        "icon": "cny.svg"
+                      }
+                    ],
+                    "meta": {}
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/games": {
       "get": {
         "tags": ["Game"],
@@ -2536,7 +2583,7 @@
       "get": {
         "tags": ["Utils"],
         "summary": "获取应用设置",
-        "description": "获取应用的支持语言列表、支持的货币列表等配置信息",
+        "description": "获取应用的支持语言列表等配置信息",
         "responses": {
           "200": {
             "description": "获取设置成功",
@@ -2550,21 +2597,6 @@
                   "errmsg": "Success",
                   "data": {
                     "supported_locales": ["en", "zh-CN", "ja", "ko"],
-                    "supported_currencies": [
-                      {
-                        "code": "USD",
-                        "symbol": "$"
-                      },
-                      {
-                        "code": "EUR",
-                        "symbol": "€"
-                      },
-                      {
-                        "code": "CNY",
-                        "symbol": "¥"
-                      }
-                    ],
-                    "default_currency": "USD",
                     "app_limit": 10,
                     "web_limit": 10
                   }
@@ -3173,28 +3205,6 @@
                 },
                 "example": ["en", "zh-CN", "ja", "ko"]
               },
-              "supported_currencies": {
-                "type": "array",
-                "description": "支持的货币列表",
-                "items": {
-                  "type": "object",
-                  "properties": {
-                    "code": {
-                      "type": "string",
-                      "description": "货币代码（ISO 4217）"
-                    },
-                    "symbol": {
-                      "type": "string",
-                      "description": "货币符号"
-                    }
-                  }
-                }
-              },
-              "default_currency": {
-                "type": "string",
-                "description": "默认货币代码",
-                "example": "USD"
-              },
               "app_limit": {
                 "type": "integer",
                 "description": "应用限制",
@@ -3206,6 +3216,51 @@
                 "example": 10
               }
             }
+          }
+        }
+      },
+      "CurrencyListResponse": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "integer",
+            "description": "响应码，0表示成功"
+          },
+          "errmsg": {
+            "type": "string",
+            "description": "响应消息"
+          },
+          "data": {
+            "type": "object",
+            "properties": {
+              "items": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/CurrencyListItem"
+                }
+              },
+              "meta": {
+                "type": "object"
+              }
+            }
+          }
+        }
+      },
+      "CurrencyListItem": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string",
+            "description": "货币代码（ISO 4217）"
+          },
+          "symbol": {
+            "type": "string",
+            "description": "货币符号"
+          },
+          "icon": {
+            "type": "string",
+            "nullable": true,
+            "description": "货币图标"
           }
         }
       },
