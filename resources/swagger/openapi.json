@@ -1803,8 +1803,8 @@
         "description": "获取所有启用的品牌列表，支持多语言",
         "parameters": [
           {
-            "name": "locale",
-            "in": "query",
+            "name": "Locale",
+            "in": "header",
             "description": "语言代码",
             "schema": {
               "type": "string",
@@ -1880,8 +1880,8 @@
         "description": "获取所有启用的游戏分类列表，支持多语言",
         "parameters": [
           {
-            "name": "locale",
-            "in": "query",
+            "name": "Locale",
+            "in": "header",
             "description": "语言代码",
             "schema": {
               "type": "string",
@@ -1955,8 +1955,8 @@
         "description": "获取所有启用的主题列表，支持多语言",
         "parameters": [
           {
-            "name": "locale",
-            "in": "query",
+            "name": "Locale",
+            "in": "header",
             "description": "语言代码",
             "schema": {
               "type": "string",
@@ -2168,8 +2168,8 @@
             }
           },
           {
-            "name": "locale",
-            "in": "query",
+            "name": "Locale",
+            "in": "header",
             "description": "语言代码",
             "schema": {
               "type": "string",
@@ -2239,8 +2239,8 @@
             }
           },
           {
-            "name": "locale",
-            "in": "query",
+            "name": "Locale",
+            "in": "header",
             "description": "语言代码",
             "schema": {
               "type": "string",
@@ -2309,6 +2309,104 @@
         }
       }
     },
+    "/games/recommend": {
+      "get": {
+        "tags": ["Game"],
+        "summary": "获取推荐游戏列表",
+        "description": "根据指定游戏获取推荐游戏列表，优先推荐同分类、同品牌、同主题的游戏",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "query",
+            "required": true,
+            "description": "游戏ID",
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
+          },
+          {
+            "name": "Locale",
+            "in": "header",
+            "description": "语言代码",
+            "schema": {
+              "type": "string",
+              "default": "en"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "返回数量限制",
+            "schema": {
+              "type": "integer",
+              "default": 10,
+              "minimum": 1,
+              "maximum": 50
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "获取推荐游戏列表成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GameListResponse"
+                },
+                "example": {
+                  "code": 0,
+                  "errmsg": "Success",
+                  "data": {
+                    "items": [
+                      {
+                        "id": 2,
+                        "name": "The Matrix Reloaded",
+                        "thumbnail": "https://example.com/thumbnails/matrix2.jpg",
+                        "sort_id": 2,
+                        "brand": {
+                          "id": 1,
+                          "name": "Netflix",
+                          "provider": "netflix"
+                        },
+                        "category": {
+                          "id": 1,
+                          "name": "Movie"
+                        },
+                        "themes": [
+                          {
+                            "id": 1,
+                            "name": "Action",
+                            "icon": "fas fa-fist-raised"
+                          },
+                          {
+                            "id": 7,
+                            "name": "Science Fiction",
+                            "icon": "fas fa-rocket"
+                          }
+                        ],
+                        "created_at": "2024-01-02T00:00:00.000000Z"
+                      }
+                    ],
+                    "meta": {}
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "游戏不存在或已禁用",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/game-groups": {
       "get": {
         "tags": ["GameGroup"],
@@ -2335,8 +2433,8 @@
             }
           },
           {
-            "name": "locale",
-            "in": "query",
+            "name": "Locale",
+            "in": "header",
             "description": "语言代码",
             "schema": {
               "type": "string",
@@ -2391,8 +2489,8 @@
             }
           },
           {
-            "name": "locale",
-            "in": "query",
+            "name": "Locale",
+            "in": "header",
             "description": "语言代码",
             "schema": {
               "type": "string",
@@ -2466,8 +2564,8 @@
             }
           },
           {
-            "name": "locale",
-            "in": "query",
+            "name": "Locale",
+            "in": "header",
             "description": "语言代码",
             "schema": {
               "type": "string",
@@ -2515,8 +2613,8 @@
             }
           },
           {
-            "name": "locale",
-            "in": "query",
+            "name": "Locale",
+            "in": "header",
             "description": "语言代码",
             "schema": {
               "type": "string",

@@ -93,6 +93,7 @@ Route::get('/currencies', [CurrencyController::class, 'index']);
 // 游戏相关路由（只读）
 Route::prefix('games')->group(function () {
     Route::get('/', [GameController::class, 'index']);
+    Route::get('/recommend', [GameController::class, 'recommend']);
     Route::get('/{id}', [GameController::class, 'show']);
 });
 

@@ -28,7 +28,7 @@ class GameController extends Controller
         ];
 
         $sort = $request->input('sort', 'new');
-        $locale = $request->input('locale', 'en');
+        $locale = $this->getLocale($request);
 
         $games = $this->gameService->getGames($filters, $sort, $locale);
         $result = $this->gameService->formatGamesList($games, $locale);
@@ -41,11 +41,31 @@ class GameController extends Controller
      */
     public function show(Request $request, int $id): JsonResponse
     {
-        $locale = $request->input('locale', 'en');
+        $locale = $this->getLocale($request);
 
         $game = $this->gameService->getGame($id);
         $result = $this->gameService->formatGameDetail($game, $locale);
 
         return $this->responseItem($result);
+    }
+
+    /**
+     * 获取推荐游戏列表
+     */
+    public function recommend(Request $request): JsonResponse
+    {
+        $request->validate([
+            'id' => 'required|integer|min:1',
+            'limit' => 'sometimes|integer|min:1|max:50',
+        ]);
+
+        $id = (int) $request->input('id');
+        $locale = $this->getLocale($request);
+        $limit = (int) $request->input('limit', 10);
+
+        $games = $this->gameService->getRecommendedGames($id, $locale, $limit);
+        $result = $this->gameService->formatGamesList($games, $locale);
+
+        return $this->responseList($result);
     }
 }

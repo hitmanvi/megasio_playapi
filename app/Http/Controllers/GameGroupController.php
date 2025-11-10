@@ -14,7 +14,7 @@ class GameGroupController extends Controller
     public function index(Request $request): JsonResponse
     {
         $category = $request->input('category');
-        $locale = $request->input('locale', 'en');
+        $locale = $this->getLocale($request);
 
         $query = GameGroup::query()
             ->enabled()
@@ -46,7 +46,7 @@ class GameGroupController extends Controller
      */
     public function getByCategory(string $category, Request $request): JsonResponse
     {
-        $locale = $request->input('locale', 'en');
+        $locale = $this->getLocale($request);
 
         $groups = GameGroup::where('category', $category)
             ->enabled()
@@ -72,7 +72,7 @@ class GameGroupController extends Controller
      */
     public function show(Request $request, int $id): JsonResponse
     {
-        $locale = $request->input('locale', 'en');
+        $locale = $this->getLocale($request);
 
         $group = GameGroup::findOrFail($id);
 
@@ -99,7 +99,7 @@ class GameGroupController extends Controller
     public function getGames(Request $request, int $groupId): JsonResponse
     {
         $platform = $request->input('platform', 'web');
-        $locale = $request->input('locale', 'en');
+        $locale = $this->getLocale($request);
 
         $group = GameGroup::findOrFail($groupId);
 

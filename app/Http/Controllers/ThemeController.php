@@ -13,7 +13,7 @@ class ThemeController extends Controller
      */
     public function index(Request $request): JsonResponse
     {
-        $locale = $request->input('locale', 'en');
+        $locale = $this->getLocale($request);
 
         $themes = Theme::query()
             ->enabled()
