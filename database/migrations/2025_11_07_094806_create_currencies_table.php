@@ -15,14 +15,15 @@ return new class extends Migration
             $table->id();
             $table->string('code', 10)->unique()->comment('货币代码（ISO 4217）');
             $table->string('symbol', 10)->comment('货币符号');
+            $table->string('icon')->nullable()->comment('货币图标');
             $table->boolean('enabled')->default(true)->comment('是否启用');
-            $table->integer('sort_order')->default(0)->comment('排序顺序');
+            $table->integer('sort_id')->default(0)->comment('排序ID');
             $table->timestamps();
             
             // 添加索引
             $table->index('enabled');
-            $table->index('sort_order');
-            $table->index(['enabled', 'sort_order']);
+            $table->index('sort_id');
+            $table->index(['enabled', 'sort_id']);
         });
     }
 

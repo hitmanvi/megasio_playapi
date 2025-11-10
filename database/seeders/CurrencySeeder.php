@@ -13,12 +13,12 @@ class CurrencySeeder extends Seeder
     public function run(): void
     {
         $currencies = [
-            ['code' => 'USD', 'symbol' => '$', 'icon' => 'usd.svg', 'sort_order' => 1],
-            ['code' => 'EUR', 'symbol' => '€', 'icon' => 'eur.svg', 'sort_order' => 2],
-            ['code' => 'CNY', 'symbol' => '¥', 'icon' => 'cny.svg', 'sort_order' => 3],
-            ['code' => 'JPY', 'symbol' => '¥', 'icon' => 'jpy.svg', 'sort_order' => 4],
-            ['code' => 'KRW', 'symbol' => '₩', 'icon' => 'krw.svg', 'sort_order' => 5],
-            ['code' => 'GBP', 'symbol' => '£', 'icon' => 'gbp.svg', 'sort_order' => 6],
+            ['code' => 'USD', 'symbol' => '$', 'icon' => 'usd.svg', 'sort_id' => 1],
+            ['code' => 'EUR', 'symbol' => '€', 'icon' => 'eur.svg', 'sort_id' => 2],
+            ['code' => 'CNY', 'symbol' => '¥', 'icon' => 'cny.svg', 'sort_id' => 3],
+            ['code' => 'JPY', 'symbol' => '¥', 'icon' => 'jpy.svg', 'sort_id' => 4],
+            ['code' => 'KRW', 'symbol' => '₩', 'icon' => 'krw.svg', 'sort_id' => 5],
+            ['code' => 'GBP', 'symbol' => '£', 'icon' => 'gbp.svg', 'sort_id' => 6],
         ];
 
         foreach ($currencies as $currency) {
@@ -27,7 +27,7 @@ class CurrencySeeder extends Seeder
                 [
                     'symbol' => $currency['symbol'],
                     'icon' => $currency['icon'],
-                    'sort_order' => $currency['sort_order'],
+                    'sort_id' => $currency['sort_id'],
                     'enabled' => true,
                 ]
             );

@@ -16,7 +16,7 @@ class Currency extends Model
         'symbol',
         'icon',
         'enabled',
-        'sort_order',
+        'sort_id',
     ];
 
     /**
@@ -26,7 +26,7 @@ class Currency extends Model
      */
     protected $casts = [
         'enabled' => 'boolean',
-        'sort_order' => 'integer',
+        'sort_id' => 'integer',
     ];
 
     /**
@@ -38,10 +38,10 @@ class Currency extends Model
     }
 
     /**
-     * Scope to order by sort_order.
+     * Scope to order by sort_id.
      */
     public function scopeOrdered($query)
     {
-        return $query->orderBy('sort_order')->orderBy('code');
+        return $query->orderBy('sort_id')->orderBy('code');
     }
 }
