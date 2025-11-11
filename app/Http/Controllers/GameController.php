@@ -20,11 +20,27 @@ class GameController extends Controller
      */
     public function index(Request $request): JsonResponse
     {
+        // 处理数组参数，支持单个值或数组
+        $categoryIds = $request->input('category_id');
+        $brandIds = $request->input('brand_id');
+        $themeIds = $request->input('theme_id');
+        
+        // 确保是数组格式
+        if ($categoryIds && !is_array($categoryIds)) {
+            $categoryIds = [$categoryIds];
+        }
+        if ($brandIds && !is_array($brandIds)) {
+            $brandIds = [$brandIds];
+        }
+        if ($themeIds && !is_array($themeIds)) {
+            $themeIds = [$themeIds];
+        }
+
         $filters = [
             'name' => $request->input('name'),
-            'category_id' => $request->input('category_id'),
-            'brand_id' => $request->input('brand_id'),
-            'theme_id' => $request->input('theme_id'),
+            'category_id' => $categoryIds,
+            'brand_id' => $brandIds,
+            'theme_id' => $themeIds,
         ];
 
         $sort = $request->input('sort', 'new');

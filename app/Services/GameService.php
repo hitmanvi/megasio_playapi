@@ -23,20 +23,20 @@ class GameService
             ->enabled()
             ->with(['brand', 'category', 'themes']);
 
-        // 按 category_id 筛选
-        if (!empty($filters['category_id'])) {
-            $query->where('category_id', $filters['category_id']);
+        // 按 category_id 筛选（支持数组）
+        if (!empty($filters['category_id']) && is_array($filters['category_id'])) {
+            $query->whereIn('category_id', $filters['category_id']);
         }
 
-        // 按 brand_id 筛选
-        if (!empty($filters['brand_id'])) {
-            $query->where('brand_id', $filters['brand_id']);
+        // 按 brand_id 筛选（支持数组）
+        if (!empty($filters['brand_id']) && is_array($filters['brand_id'])) {
+            $query->whereIn('brand_id', $filters['brand_id']);
         }
 
-        // 按 theme_id 筛选
-        if (!empty($filters['theme_id'])) {
+        // 按 theme_id 筛选（支持数组）
+        if (!empty($filters['theme_id']) && is_array($filters['theme_id'])) {
             $query->whereHas('themes', function ($q) use ($filters) {
-                $q->where('themes.id', $filters['theme_id']);
+                $q->whereIn('themes.id', $filters['theme_id']);
             });
         }
 
