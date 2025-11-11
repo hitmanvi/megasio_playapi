@@ -31,4 +31,26 @@ class ThemeController extends Controller
 
         return $this->responseList($result->toArray());
     }
+
+    /**
+     * 获取主题详情
+     */
+    public function show(Request $request, int $id): JsonResponse
+    {
+        $locale = $this->getLocale($request);
+
+        $theme = Theme::enabled()->findOrFail($id);
+
+        $result = [
+            'id' => $theme->id,
+            'name' => $theme->getName($locale),
+            'icon' => $theme->icon,
+            'sort_id' => $theme->sort_id,
+            'enabled' => $theme->enabled,
+            'created_at' => $theme->created_at,
+            'updated_at' => $theme->updated_at,
+        ];
+
+        return $this->responseItem($result);
+    }
 }

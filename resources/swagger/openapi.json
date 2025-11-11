@@ -2095,6 +2095,68 @@
         }
       }
     },
+    "/themes/{id}": {
+      "get": {
+        "tags": ["Theme"],
+        "summary": "获取主题详情",
+        "description": "获取指定主题的详细信息",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "主题ID",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "Locale",
+            "in": "header",
+            "description": "语言代码",
+            "schema": {
+              "type": "string",
+              "default": "en"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "获取主题详情成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ThemeDetailResponse"
+                },
+                "example": {
+                  "code": 0,
+                  "errmsg": "Success",
+                  "data": {
+                    "id": 1,
+                    "name": "Action",
+                    "icon": "fas fa-fist-raised",
+                    "sort_id": 1,
+                    "enabled": true,
+                    "created_at": "2024-01-01T00:00:00.000000Z",
+                    "updated_at": "2024-01-01T00:00:00.000000Z"
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "主题不存在或已禁用",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/payment-methods": {
       "get": {
         "tags": ["PaymentMethod"],
@@ -3757,6 +3819,57 @@
           "sort_id": {
             "type": "integer",
             "description": "排序ID"
+          }
+        }
+      },
+      "ThemeDetailResponse": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "integer",
+            "description": "响应码，0表示成功"
+          },
+          "errmsg": {
+            "type": "string",
+            "description": "响应消息"
+          },
+          "data": {
+            "$ref": "#/components/schemas/ThemeDetail"
+          }
+        }
+      },
+      "ThemeDetail": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "description": "主题ID"
+          },
+          "name": {
+            "type": "string",
+            "description": "主题名称（已翻译）"
+          },
+          "icon": {
+            "type": "string",
+            "description": "主题图标"
+          },
+          "sort_id": {
+            "type": "integer",
+            "description": "排序ID"
+          },
+          "enabled": {
+            "type": "boolean",
+            "description": "是否启用"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "创建时间"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "更新时间"
           }
         }
       },

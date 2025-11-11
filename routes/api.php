@@ -85,7 +85,10 @@ Route::prefix('brands')->group(function () {
 Route::get('/game-categories', [GameCategoryController::class, 'index']);
 
 // 主题相关路由（只读）
-Route::get('/themes', [ThemeController::class, 'index']);
+Route::prefix('themes')->group(function () {
+    Route::get('/', [ThemeController::class, 'index']);
+    Route::get('/{id}', [ThemeController::class, 'show']);
+});
 
 // 支付方式相关路由（只读）
 Route::get('/payment-methods', [PaymentMethodController::class, 'index']);
