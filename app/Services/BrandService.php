@@ -5,93 +5,31 @@ namespace App\Services;
 use App\Models\Brand;
 use App\Models\Game;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Pagination\LengthAwarePaginator;
 
 class BrandService
 {
     /**
-     * 根据游戏ID获取推荐品牌列表
+     * 根据游戏ID获取推荐品牌列表（分页）
      *
      * @param int $gameId 游戏ID
-     * @param string $locale 语言代码
-     * @param int $limit 返回数量限制
-     * @return Collection
+     * @param int $perPage 每页数量
+     * @return LengthAwarePaginator
      */
-    public function getRecommendedBrands(int $gameId, string $locale = 'en', int $limit = 10): Collection
+    public function getRecommendedBrandsPaginated(int $gameId, int $perPage = 20): LengthAwarePaginator
     {
-        $game = Game::with(['category', 'brand', 'themes'])->enabled()->find($gameId);
+        $game = Game::enabled()->find($gameId);
         
-        if (!$game || !$game->brand_id) {
-            return collect();
+        $query = Brand::query()
+            ->enabled()
+            ->ordered();
+
+        // 排除当前游戏所属的品牌
+        if ($game && $game->brand_id) {
+            $query->where('id', '!=', $game->brand_id);
         }
 
-        $recommendedBrands = collect();
-        $excludeIds = [$game->brand_id];
-
-        // 优先推荐同分类游戏所属的品牌
-        if ($game->category_id) {
-            $sameCategoryBrandIds = Game::query()
-                ->enabled()
-                ->where('category_id', $game->category_id)
-                ->where('brand_id', '!=', $game->brand_id)
-                ->distinct()
-                ->pluck('brand_id')
-                ->toArray();
-            
-            if (!empty($sameCategoryBrandIds)) {
-                $sameCategoryBrands = Brand::query()
-                    ->enabled()
-                    ->whereIn('id', $sameCategoryBrandIds)
-                    ->whereNotIn('id', $excludeIds)
-                    ->ordered()
-                    ->limit($limit)
-                    ->get();
-                
-                $recommendedBrands = $recommendedBrands->merge($sameCategoryBrands);
-                $excludeIds = array_merge($excludeIds, $sameCategoryBrands->pluck('id')->toArray());
-            }
-        }
-
-        // 如果还不够，推荐同主题游戏所属的品牌
-        if ($recommendedBrands->count() < $limit && $game->themes->isNotEmpty()) {
-            $themeIds = $game->themes->pluck('id')->toArray();
-            $sameThemeBrandIds = Game::query()
-                ->enabled()
-                ->whereHas('themes', function ($q) use ($themeIds) {
-                    $q->whereIn('themes.id', $themeIds);
-                })
-                ->where('brand_id', '!=', $game->brand_id)
-                ->distinct()
-                ->pluck('brand_id')
-                ->toArray();
-            
-            if (!empty($sameThemeBrandIds)) {
-                $sameThemeBrands = Brand::query()
-                    ->enabled()
-                    ->whereIn('id', $sameThemeBrandIds)
-                    ->whereNotIn('id', $excludeIds)
-                    ->ordered()
-                    ->limit($limit - $recommendedBrands->count())
-                    ->get();
-                
-                $recommendedBrands = $recommendedBrands->merge($sameThemeBrands);
-                $excludeIds = array_merge($excludeIds, $sameThemeBrands->pluck('id')->toArray());
-            }
-        }
-
-        // 如果还不够，推荐其他启用的品牌
-        if ($recommendedBrands->count() < $limit) {
-            $otherBrands = Brand::query()
-                ->enabled()
-                ->whereNotIn('id', $excludeIds)
-                ->ordered()
-                ->limit($limit - $recommendedBrands->count())
-                ->get();
-            
-            $recommendedBrands = $recommendedBrands->merge($otherBrands);
-        }
-
-        // 限制返回数量并去重
-        return $recommendedBrands->unique('id')->take($limit);
+        return $query->paginate($perPage);
     }
 
     /**

@@ -36,16 +36,28 @@ class BrandController extends Controller
     {
         $request->validate([
             'id' => 'required|integer|min:1',
-            'limit' => 'sometimes|integer|min:1|max:50',
+            'per_page' => 'sometimes|integer|min:1|max:100',
         ]);
 
         $id = (int) $request->input('id');
         $locale = $this->getLocale($request);
-        $limit = (int) $request->input('limit', 10);
+        $perPage = (int) $request->input('per_page', 20);
 
-        $brands = $this->brandService->getRecommendedBrands($id, $locale, $limit);
+        $brandsPaginator = $this->brandService->getRecommendedBrandsPaginated($id, $perPage);
+        
+        // 格式化分页数据
+        $brands = $brandsPaginator->getCollection();
         $result = $this->brandService->formatBrandsList($brands, $locale);
+        
+        // 创建新的分页器，使用格式化后的数据
+        $formattedPaginator = new \Illuminate\Pagination\LengthAwarePaginator(
+            $result,
+            $brandsPaginator->total(),
+            $brandsPaginator->perPage(),
+            $brandsPaginator->currentPage(),
+            ['path' => $request->url(), 'query' => $request->query()]
+        );
 
-        return $this->responseList($result);
+        return $this->responseListWithPaginator($formattedPaginator);
     }
 }

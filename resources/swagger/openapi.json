@@ -1877,7 +1877,7 @@
       "get": {
         "tags": ["Brand"],
         "summary": "获取推荐品牌列表",
-        "description": "根据指定游戏获取推荐品牌列表，优先推荐同分类、同主题游戏所属的品牌",
+        "description": "根据指定游戏获取推荐品牌列表（分页）",
         "parameters": [
           {
             "name": "Locale",
@@ -1899,14 +1899,24 @@
             }
           },
           {
-            "name": "limit",
+            "name": "page",
             "in": "query",
-            "description": "返回数量限制",
+            "description": "页码",
             "schema": {
               "type": "integer",
-              "default": 10,
+              "default": 1,
+              "minimum": 1
+            }
+          },
+          {
+            "name": "per_page",
+            "in": "query",
+            "description": "每页数量",
+            "schema": {
+              "type": "integer",
+              "default": 20,
               "minimum": 1,
-              "maximum": 50
+              "maximum": 100
             }
           }
         ],
@@ -1936,7 +1946,11 @@
                         "sort_id": 3
                       }
                     ],
-                    "meta": {}
+                    "meta": {
+                      "current_page": 1,
+                      "last_page": 3,
+                      "total": 50
+                    }
                   }
                 }
               }
@@ -2395,7 +2409,7 @@
       "get": {
         "tags": ["Game"],
         "summary": "获取推荐游戏列表",
-        "description": "根据指定游戏获取推荐游戏列表，优先推荐同分类、同品牌、同主题的游戏",
+        "description": "根据指定游戏获取推荐游戏列表（分页）",
         "parameters": [
           {
             "name": "id",
@@ -2417,14 +2431,24 @@
             }
           },
           {
-            "name": "limit",
+            "name": "page",
             "in": "query",
-            "description": "返回数量限制",
+            "description": "页码",
             "schema": {
               "type": "integer",
-              "default": 10,
+              "default": 1,
+              "minimum": 1
+            }
+          },
+          {
+            "name": "per_page",
+            "in": "query",
+            "description": "每页数量",
+            "schema": {
+              "type": "integer",
+              "default": 20,
               "minimum": 1,
-              "maximum": 50
+              "maximum": 100
             }
           }
         ],
@@ -2470,7 +2494,11 @@
                         "created_at": "2024-01-02T00:00:00.000000Z"
                       }
                     ],
-                    "meta": {}
+                    "meta": {
+                      "current_page": 1,
+                      "last_page": 5,
+                      "total": 100
+                    }
                   }
                 }
               }

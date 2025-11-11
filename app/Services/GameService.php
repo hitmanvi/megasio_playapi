@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\Game;
 use App\Models\Translation;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Pagination\LengthAwarePaginator;
 
 class GameService
 {
@@ -177,73 +178,20 @@ class GameService
     }
 
     /**
-     * 获取推荐游戏列表
+     * 获取推荐游戏列表（分页）
      *
      * @param int $gameId 当前游戏ID
-     * @param string $locale 语言代码
-     * @param int $limit 返回数量限制
-     * @return Collection
+     * @param int $perPage 每页数量
+     * @return LengthAwarePaginator
      */
-    public function getRecommendedGames(int $gameId, string $locale = 'en', int $limit = 10): Collection
+    public function getRecommendedGamesPaginated(int $gameId, int $perPage = 20): LengthAwarePaginator
     {
-        $game = Game::with(['category', 'brand', 'themes'])->enabled()->find($gameId);
-        
-        if (!$game) {
-            return collect();
-        }
-
-        $recommendedGames = collect();
-        $excludeIds = [$gameId];
-
-        // 优先推荐同分类的游戏
-        if ($game->category_id) {
-            $sameCategoryGames = Game::query()
-                ->enabled()
-                ->where('category_id', $game->category_id)
-                ->whereNotIn('id', $excludeIds)
-                ->with(['brand', 'category', 'themes'])
-                ->ordered()
-                ->limit($limit)
-                ->get();
-            
-            $recommendedGames = $recommendedGames->merge($sameCategoryGames);
-            $excludeIds = array_merge($excludeIds, $sameCategoryGames->pluck('id')->toArray());
-        }
-
-        // 如果还不够，推荐同品牌的游戏
-        if ($recommendedGames->count() < $limit && $game->brand_id) {
-            $sameBrandGames = Game::query()
-                ->enabled()
-                ->where('brand_id', $game->brand_id)
-                ->whereNotIn('id', $excludeIds)
-                ->with(['brand', 'category', 'themes'])
-                ->ordered()
-                ->limit($limit - $recommendedGames->count())
-                ->get();
-            
-            $recommendedGames = $recommendedGames->merge($sameBrandGames);
-            $excludeIds = array_merge($excludeIds, $sameBrandGames->pluck('id')->toArray());
-        }
-
-        // 如果还不够，推荐有相同主题的游戏
-        if ($recommendedGames->count() < $limit && $game->themes->isNotEmpty()) {
-            $themeIds = $game->themes->pluck('id')->toArray();
-            $sameThemeGames = Game::query()
-                ->enabled()
-                ->whereHas('themes', function ($q) use ($themeIds) {
-                    $q->whereIn('themes.id', $themeIds);
-                })
-                ->whereNotIn('id', $excludeIds)
-                ->with(['brand', 'category', 'themes'])
-                ->ordered()
-                ->limit($limit - $recommendedGames->count())
-                ->get();
-            
-            $recommendedGames = $recommendedGames->merge($sameThemeGames);
-        }
-
-        // 限制返回数量并去重
-        return $recommendedGames->unique('id')->take($limit);
+        return Game::query()
+            ->enabled()
+            ->where('id', '!=', $gameId)
+            ->with(['brand', 'category', 'themes'])
+            ->ordered()
+            ->paginate($perPage);
     }
 
     /**
