@@ -113,7 +113,7 @@ trait Translatable
      * @param string|null $fallbackLocale
      * @return string|null
      */
-    public function getTranslatedAttribute(string $field, ?string $locale = null, ?string $fallbackLocale = 'en'): ?string
+    public function getTranslatedAttribute(string $field, ?string $locale = null, ?string $fallbackLocale = 'en-US'): ?string
     {
         $locale = $locale ?: App::getLocale();
         
