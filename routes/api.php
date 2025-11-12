@@ -80,6 +80,7 @@ Route::middleware('auth:sanctum')->prefix('orders')->group(function () {
 Route::prefix('brands')->group(function () {
     Route::get('/', [BrandController::class, 'index']);
     Route::get('/recommend', [BrandController::class, 'recommend']);
+    Route::get('/{id}', [BrandController::class, 'show']);
 });
 
 // 游戏分类相关路由（只读）

@@ -92,4 +92,30 @@ class BrandController extends Controller
 
         return $this->responseListWithPaginator($formattedPaginator);
     }
+
+    /**
+     * 获取品牌详情
+     */
+    public function show(Request $request, int $id): JsonResponse
+    {
+        $locale = $this->getLocale($request);
+
+        $brand = Brand::enabled()->findOrFail($id);
+
+        $result = [
+            'id' => $brand->id,
+            'name' => $brand->getName($locale),
+            'provider' => $brand->provider,
+            'restricted_region' => $brand->restricted_region,
+            'sort_id' => $brand->sort_id,
+            'enabled' => $brand->enabled,
+            'maintain_start' => $brand->maintain_start,
+            'maintain_end' => $brand->maintain_end,
+            'maintain_auto' => $brand->maintain_auto,
+            'created_at' => $brand->created_at,
+            'updated_at' => $brand->updated_at,
+        ];
+
+        return $this->responseItem($result);
+    }
 }
