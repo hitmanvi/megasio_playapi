@@ -215,7 +215,7 @@ class AuthController extends Controller
         $user = $request->user();
         
         // JWT 密钥，使用 APP_KEY 或专门的 JWT_SECRET
-        $secret = env('JWT_SECRET', config('app.key'));
+        $secret = config('app.jwt_secret');
         
         // JWT payload
         $payload = [
