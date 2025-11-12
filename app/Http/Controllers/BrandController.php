@@ -24,10 +24,21 @@ class BrandController extends Controller
     {
         $locale = $this->getLocale($request);
         $name = $request->input('name');
+        
+        // 处理 ids 参数，支持单个值或数组
+        $ids = $request->input('ids');
+        if ($ids && !is_array($ids)) {
+            $ids = [$ids];
+        }
 
         $query = Brand::query()
             ->enabled()
             ->ordered();
+
+        // 按 ids 筛选（支持数组）
+        if (!empty($ids) && is_array($ids)) {
+            $query->whereIn('id', $ids);
+        }
 
         // 按名称搜索（支持原始名称和翻译名称）
         if (!empty($name)) {

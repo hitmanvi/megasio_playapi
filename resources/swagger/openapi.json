@@ -1859,6 +1859,19 @@
             }
           },
           {
+            "name": "ids",
+            "in": "query",
+            "description": "品牌ID筛选（支持多个，使用数组格式：ids[]=1&ids[]=2）",
+            "style": "form",
+            "explode": true,
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "integer"
+              }
+            }
+          },
+          {
             "name": "page",
             "in": "query",
             "description": "页码",
