@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Theme;
+use App\Models\Translation;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 
@@ -14,11 +15,29 @@ class ThemeController extends Controller
     public function index(Request $request): JsonResponse
     {
         $locale = $this->getLocale($request);
+        $name = $request->input('name');
 
-        $themes = Theme::query()
+        $query = Theme::query()
             ->enabled()
-            ->ordered()
-            ->get();
+            ->ordered();
+
+        // 按名称搜索（支持原始名称和翻译名称）
+        if (!empty($name)) {
+            $translationIds = Translation::where('translatable_type', Theme::class)
+                ->where('field', 'name')
+                ->where('locale', $locale)
+                ->where('value', 'like', "%{$name}%")
+                ->pluck('translatable_id');
+
+            $query->where(function ($q) use ($name, $translationIds) {
+                $q->where('name', 'like', "%{$name}%");
+                if ($translationIds->isNotEmpty()) {
+                    $q->orWhereIn('id', $translationIds);
+                }
+            });
+        }
+
+        $themes = $query->get();
 
         $result = $themes->map(function ($theme) use ($locale) {
             return [

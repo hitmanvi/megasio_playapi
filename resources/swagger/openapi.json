@@ -1800,7 +1800,7 @@
       "get": {
         "tags": ["Brand"],
         "summary": "获取品牌列表",
-        "description": "获取所有启用的品牌列表，支持多语言",
+        "description": "获取所有启用的品牌列表，支持多语言和名称搜索",
         "parameters": [
           {
             "name": "Locale",
@@ -1809,6 +1809,14 @@
             "schema": {
               "type": "string",
               "default": "en"
+            }
+          },
+          {
+            "name": "name",
+            "in": "query",
+            "description": "品牌名称搜索（支持原始名称和翻译名称）",
+            "schema": {
+              "type": "string"
             }
           },
           {
@@ -2048,7 +2056,7 @@
       "get": {
         "tags": ["Theme"],
         "summary": "获取主题列表",
-        "description": "获取所有启用的主题列表，支持多语言",
+        "description": "获取所有启用的主题列表，支持多语言和名称搜索",
         "parameters": [
           {
             "name": "Locale",
@@ -2057,6 +2065,14 @@
             "schema": {
               "type": "string",
               "default": "en"
+            }
+          },
+          {
+            "name": "name",
+            "in": "query",
+            "description": "主题名称搜索（支持原始名称和翻译名称）",
+            "schema": {
+              "type": "string"
             }
           }
         ],

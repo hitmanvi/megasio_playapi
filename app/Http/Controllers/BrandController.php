@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Brand;
+use App\Models\Translation;
 use App\Services\BrandService;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
@@ -21,10 +22,30 @@ class BrandController extends Controller
      */
     public function index(Request $request): JsonResponse
     {
-        $brands = Brand::query()
+        $locale = $this->getLocale($request);
+        $name = $request->input('name');
+
+        $query = Brand::query()
             ->enabled()
-            ->ordered()
-            ->paginate($request->input('per_page', 10));
+            ->ordered();
+
+        // 按名称搜索（支持原始名称和翻译名称）
+        if (!empty($name)) {
+            $translationIds = Translation::where('translatable_type', Brand::class)
+                ->where('field', 'name')
+                ->where('locale', $locale)
+                ->where('value', 'like', "%{$name}%")
+                ->pluck('translatable_id');
+
+            $query->where(function ($q) use ($name, $translationIds) {
+                $q->where('name', 'like', "%{$name}%");
+                if ($translationIds->isNotEmpty()) {
+                    $q->orWhereIn('id', $translationIds);
+                }
+            });
+        }
+
+        $brands = $query->paginate($request->input('per_page', 10));
 
         return $this->responseListWithPaginator($brands);
     }
