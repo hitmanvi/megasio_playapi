@@ -6,6 +6,7 @@ use App\Models\User;
 use App\Enums\ErrorCode;
 use App\Events\UserLoggedIn;
 use App\Services\VerificationCodeService;
+use Firebase\JWT\JWT;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Auth;
@@ -204,5 +205,32 @@ class AuthController extends Controller
         } catch (\Exception $e) {
             return $this->error(ErrorCode::SMS_SEND_FAILED, $e->getMessage());
         }
+    }
+
+    /**
+     * 生成 JWT token（用于 WebSocket 认证）
+     */
+    public function generateJwtToken(Request $request): JsonResponse
+    {
+        $user = $request->user();
+        
+        // JWT 密钥，使用 APP_KEY 或专门的 JWT_SECRET
+        $secret = env('JWT_SECRET', config('app.key'));
+        
+        // JWT payload
+        $payload = [
+            'iss' => config('app.url'), // Issuer
+            'uid' => $user->uid, // User UID
+            'iat' => time(), // Issued at
+            'exp' => time() + (60 * 60 * 24), // Expiration time (24 hours)
+        ];
+
+        // 生成 JWT token
+        $token = JWT::encode($payload, $secret, 'HS256');
+
+        return $this->responseItem([
+            'token' => $token,
+            'expires_in' => 60 * 60 * 24, // 24 hours in seconds
+        ]);
     }
 }

@@ -32,6 +32,7 @@ Route::prefix('auth')->group(function () {
         Route::get('/mine', [AuthController::class, 'mine']);
         Route::post('/refresh', [AuthController::class, 'refresh']);
         Route::post('/change-password', [AuthController::class, 'changePassword']);
+        Route::post('/jwt-token', [AuthController::class, 'generateJwtToken']);
     });
 });
 

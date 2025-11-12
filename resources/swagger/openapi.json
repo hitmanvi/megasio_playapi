@@ -597,6 +597,45 @@
         }
       }
     },
+    "/auth/jwt-token": {
+      "post": {
+        "tags": ["Authentication"],
+        "summary": "生成 JWT token",
+        "description": "生成用于 WebSocket 认证的 JWT token",
+        "security": [{"bearerAuth": []}],
+        "responses": {
+          "200": {
+            "description": "生成 JWT token 成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JwtTokenResponse"
+                },
+                "example": {
+                  "code": 0,
+                  "errmsg": "Success",
+                  "data": {
+                    "token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwOi8vbG9jYWxob3N0OjgwMDAiLCJ1aWQiOiIwMUFSWjNORElLVFNWNFJSRkZRNjlHNUZBViIsImlhdCI6MTcxMDAwMDAwMCwiZXhwIjoxNzEwMDg2NDAwfQ.example_signature",
+                    "expires_in": 86400,
+                    "token_type": "Bearer"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "未授权",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/banners": {
       "get": {
         "tags": ["Banner"],
@@ -3096,6 +3135,37 @@
             "type": "string",
             "enum": ["Bearer"],
             "description": "令牌类型"
+          }
+        }
+      },
+      "JwtTokenResponse": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "integer",
+            "description": "响应码，0表示成功"
+          },
+          "errmsg": {
+            "type": "string",
+            "description": "响应消息"
+          },
+          "data": {
+            "type": "object",
+            "properties": {
+              "token": {
+                "type": "string",
+                "description": "JWT token（用于 WebSocket 认证）"
+              },
+              "expires_in": {
+                "type": "integer",
+                "description": "过期时间（秒），默认 86400（24小时）"
+              },
+              "token_type": {
+                "type": "string",
+                "enum": ["Bearer"],
+                "description": "令牌类型"
+              }
+            }
           }
         }
       },
