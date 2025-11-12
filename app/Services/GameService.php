@@ -10,14 +10,15 @@ use Illuminate\Pagination\LengthAwarePaginator;
 class GameService
 {
     /**
-     * 获取游戏列表
+     * 获取游戏列表（分页）
      *
      * @param array $filters 筛选条件
      * @param string $sort 排序方式
      * @param string $locale 语言代码
-     * @return Collection
+     * @param int $perPage 每页数量
+     * @return LengthAwarePaginator
      */
-    public function getGames(array $filters = [], string $sort = 'new', string $locale = 'en'): Collection
+    public function getGamesPaginated(array $filters = [], string $sort = 'new', string $locale = 'en', int $perPage = 20): LengthAwarePaginator
     {
         $query = Game::query()
             ->enabled()
@@ -59,7 +60,7 @@ class GameService
         // 排序
         $this->applySort($query, $sort);
 
-        return $query->get();
+        return $query->paginate($perPage);
     }
 
     /**
