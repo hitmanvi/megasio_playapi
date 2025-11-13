@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Events\BalanceChanged;
 use App\Exceptions\Exception;
 use App\Models\Balance;
 use App\Models\Transaction;
@@ -49,7 +50,12 @@ class BalanceService
                 $data['frozen'] = $operation === 'add' ? $amount : -$amount;
             }
             
-            return Balance::create($data);
+            $newBalance = Balance::create($data);
+            
+            // 触发余额变动事件（传递 user_id，查询延迟到监听器）
+            event(new BalanceChanged($userId, $newBalance, $amount, $operation, $type));
+            
+            return $newBalance;
         }
 
         // Update existing balance with optimistic locking
@@ -78,7 +84,13 @@ class BalanceService
             throw new \Exception('Balance update failed due to concurrent modification');
         }
 
-        return $balance->fresh();
+        // 重新加载余额
+        $updatedBalance = $balance->fresh();
+        
+        // 触发余额变动事件（传递 user_id，查询延迟到监听器）
+        event(new BalanceChanged($userId, $updatedBalance, $amount, $operation, $type));
+
+        return $updatedBalance;
     }
 
     /**
