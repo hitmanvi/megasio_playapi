@@ -48,12 +48,14 @@ class GameGroupController extends Controller
     {
         $locale = $this->getLocale($request);
 
-        $groups = GameGroup::where('category', $category)
+        $perPage = (int) $request->input('per_page', 20);
+
+        $groupsPaginator = GameGroup::where('category', $category)
             ->enabled()
             ->ordered()
-            ->get();
+            ->paginate($perPage);
 
-        $result = $groups->map(function ($group) use ($locale) {
+        $result = $groupsPaginator->getCollection()->map(function ($group) use ($locale) {
             return [
                 'id' => $group->id,
                 'category' => $group->category,
@@ -64,7 +66,16 @@ class GameGroupController extends Controller
             ];
         });
 
-        return $this->responseList($result->toArray());
+        // 创建分页器，使用格式化后的数据
+        $formattedPaginator = new \Illuminate\Pagination\LengthAwarePaginator(
+            $result,
+            $groupsPaginator->total(),
+            $groupsPaginator->perPage(),
+            $groupsPaginator->currentPage(),
+            ['path' => $request->url(), 'query' => $request->query()]
+        );
+
+        return $this->responseListWithPaginator($formattedPaginator);
     }
 
     /**
@@ -107,9 +118,12 @@ class GameGroupController extends Controller
             return $this->responseItem([]);
         }
 
-        $games = $group->getGamesForPlatform($platform);
+        // 不限制平台，直接分页返回所有游戏
+        $perPage = (int) $request->input('per_page', 20);
 
-        $result = $games->map(function ($game) use ($locale) {
+        $gamesPaginator = $group->games()->paginate($perPage);
+
+        $result = $gamesPaginator->getCollection()->map(function ($game) use ($locale) {
             return [
                 'id' => $game->id,
                 'name' => $game->name,
@@ -118,6 +132,15 @@ class GameGroupController extends Controller
             ];
         });
 
-        return $this->responseList($result->toArray());
+        // 创建新的分页器，使用格式化后的数据
+        $formattedPaginator = new \Illuminate\Pagination\LengthAwarePaginator(
+            $result,
+            $gamesPaginator->total(),
+            $gamesPaginator->perPage(),
+            $gamesPaginator->currentPage(),
+            ['path' => $request->url(), 'query' => $request->query()]
+        );
+
+        return $this->responseListWithPaginator($formattedPaginator);
     }
 }
