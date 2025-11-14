@@ -16,6 +16,7 @@ class ThemeController extends Controller
     {
         $locale = $this->getLocale($request);
         $name = $request->input('name');
+        $perPage = (int) $request->input('per_page', 20);
 
         $query = Theme::query()
             ->enabled()
@@ -37,8 +38,10 @@ class ThemeController extends Controller
             });
         }
 
-        $themes = $query->get();
+        $themesPaginator = $query->paginate($perPage);
 
+        // 格式化分页数据
+        $themes = $themesPaginator->getCollection();
         $result = $themes->map(function ($theme) use ($locale) {
             return [
                 'id' => $theme->id,
@@ -48,7 +51,16 @@ class ThemeController extends Controller
             ];
         });
 
-        return $this->responseList($result->toArray());
+        // 创建新的分页器，使用格式化后的数据
+        $formattedPaginator = new \Illuminate\Pagination\LengthAwarePaginator(
+            $result,
+            $themesPaginator->total(),
+            $themesPaginator->perPage(),
+            $themesPaginator->currentPage(),
+            ['path' => $request->url(), 'query' => $request->query()]
+        );
+
+        return $this->responseListWithPaginator($formattedPaginator);
     }
 
     /**
