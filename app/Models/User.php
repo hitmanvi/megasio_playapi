@@ -8,6 +8,7 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 use Illuminate\Support\Str;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class User extends Authenticatable
 {
@@ -104,5 +105,29 @@ class User extends Authenticatable
                 $user->invite_code = static::generateInviteCode();
             }
         });
+    }
+
+    /**
+     * 获取我邀请的用户列表
+     */
+    public function invitedUsers(): HasMany
+    {
+        return $this->hasMany(Invitation::class, 'inviter_id');
+    }
+
+    /**
+     * 获取邀请我的人（通过邀请关系）
+     */
+    public function invitation(): HasMany
+    {
+        return $this->hasMany(Invitation::class, 'invitee_id');
+    }
+
+    /**
+     * 根据邀请码查找用户
+     */
+    public static function findByInviteCode(string $inviteCode): ?User
+    {
+        return static::where('invite_code', $inviteCode)->first();
     }
 }

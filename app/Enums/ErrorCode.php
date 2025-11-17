@@ -33,6 +33,7 @@ enum ErrorCode: int
     case PHONE_ALREADY_EXISTS = 3003;
     case EMAIL_ALREADY_EXISTS = 3004;
     case PHONE_EMAIL_REQUIRED = 3005;
+    case INVALID_INVITE_CODE = 3006;
 
     // 业务逻辑错误 (4000-4999)
     case INSUFFICIENT_PERMISSIONS = 4001;
@@ -83,6 +84,7 @@ enum ErrorCode: int
             self::PHONE_ALREADY_EXISTS => 'This phone number has already been registered',
             self::EMAIL_ALREADY_EXISTS => 'This email has already been registered',
             self::PHONE_EMAIL_REQUIRED => 'Please provide either phone number or email',
+            self::INVALID_INVITE_CODE => 'Invalid invite code',
             
             // 业务逻辑错误
             self::INSUFFICIENT_PERMISSIONS => 'Insufficient permissions',

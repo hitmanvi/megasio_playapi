@@ -75,6 +75,10 @@
     {
       "name": "Order",
       "description": "订单相关接口"
+    },
+    {
+      "name": "Invitation",
+      "description": "邀请相关接口"
     }
   ],
   "paths": {
@@ -1835,6 +1839,112 @@
         }
       }
     },
+    "/invitations/stats": {
+      "get": {
+        "tags": ["Invitation"],
+        "summary": "获取邀请统计数据",
+        "description": "获取当前用户的邀请统计数据，包括总邀请人数和活跃邀请人数",
+        "security": [{"bearerAuth": []}],
+        "responses": {
+          "200": {
+            "description": "获取成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InvitationStatsResponse"
+                },
+                "example": {
+                  "code": 0,
+                  "errmsg": "Success",
+                  "data": {
+                    "total_invited": 10,
+                    "active_invited": 8
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "未授权",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/invitations": {
+      "get": {
+        "tags": ["Invitation"],
+        "summary": "获取邀请列表",
+        "description": "获取当前用户的邀请列表，支持分页",
+        "security": [{"bearerAuth": []}],
+        "parameters": [
+          {
+            "name": "per_page",
+            "in": "query",
+            "description": "每页数量，默认20",
+            "schema": {
+              "type": "integer",
+              "default": 20,
+              "minimum": 1,
+              "maximum": 100
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "获取成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InvitationListResponse"
+                },
+                "example": {
+                  "code": 0,
+                  "errmsg": "Success",
+                  "data": {
+                    "items": [
+                      {
+                        "id": 1,
+                        "invitee": {
+                          "uid": "01ARZ3NDEKTSV4RRFFQ69G5FAV",
+                          "name": "张三",
+                          "phone": "13800138000",
+                          "email": "zhangsan@example.com",
+                          "status": "active"
+                        },
+                        "invited_at": "2024-01-01T00:00:00.000000Z"
+                      }
+                    ],
+                    "meta": {
+                      "current_page": 1,
+                      "per_page": 20,
+                      "total": 10,
+                      "last_page": 1
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "未授权",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/brands": {
       "get": {
         "tags": ["Brand"],
@@ -3171,6 +3281,13 @@
           "password_confirmation": {
             "type": "string",
             "description": "密码确认"
+          },
+          "invite_code": {
+            "type": "string",
+            "maxLength": 8,
+            "minLength": 8,
+            "nullable": true,
+            "description": "邀请码（8位字符）"
           }
         }
       },
@@ -5397,6 +5514,118 @@
                 }
               }
             }
+          }
+        }
+      },
+      "InvitationStatsResponse": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "integer",
+            "description": "响应码，0表示成功"
+          },
+          "errmsg": {
+            "type": "string",
+            "description": "响应消息"
+          },
+          "data": {
+            "type": "object",
+            "properties": {
+              "total_invited": {
+                "type": "integer",
+                "description": "总邀请人数"
+              },
+              "active_invited": {
+                "type": "integer",
+                "description": "活跃邀请人数（状态为active的用户）"
+              }
+            }
+          }
+        }
+      },
+      "InvitationListResponse": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "integer",
+            "description": "响应码，0表示成功"
+          },
+          "errmsg": {
+            "type": "string",
+            "description": "响应消息"
+          },
+          "data": {
+            "type": "object",
+            "properties": {
+              "items": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/InvitationListItem"
+                }
+              },
+              "meta": {
+                "type": "object",
+                "properties": {
+                  "current_page": {
+                    "type": "integer",
+                    "description": "当前页码"
+                  },
+                  "last_page": {
+                    "type": "integer",
+                    "description": "最后一页页码"
+                  },
+                  "per_page": {
+                    "type": "integer",
+                    "description": "每页数量"
+                  },
+                  "total": {
+                    "type": "integer",
+                    "description": "总记录数"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "InvitationListItem": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "description": "邀请记录ID"
+          },
+          "invitee": {
+            "type": "object",
+            "properties": {
+              "uid": {
+                "type": "string",
+                "description": "被邀请人UID"
+              },
+              "name": {
+                "type": "string",
+                "description": "被邀请人姓名"
+              },
+              "phone": {
+                "type": "string",
+                "nullable": true,
+                "description": "被邀请人手机号"
+              },
+              "email": {
+                "type": "string",
+                "nullable": true,
+                "description": "被邀请人邮箱"
+              },
+              "status": {
+                "type": "string",
+                "description": "被邀请人状态"
+              }
+            }
+          },
+          "invited_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "邀请时间"
           }
         }
       }

@@ -6,6 +6,7 @@ use App\Http\Controllers\BannerController;
 use App\Http\Controllers\BrandController;
 use App\Http\Controllers\CurrencyController;
 use App\Http\Controllers\DepositController;
+use App\Http\Controllers\InvitationController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\TransactionController;
 use App\Http\Controllers\WithdrawController;
@@ -74,6 +75,12 @@ Route::middleware('auth:sanctum')->prefix('transactions')->group(function () {
 // 订单相关路由（需要认证）
 Route::middleware('auth:sanctum')->prefix('orders')->group(function () {
     Route::get('/', [OrderController::class, 'index']);
+});
+
+// 邀请相关路由（需要认证）
+Route::middleware('auth:sanctum')->prefix('invitations')->group(function () {
+    Route::get('/stats', [InvitationController::class, 'stats']);
+    Route::get('/', [InvitationController::class, 'index']);
 });
 
 // 品牌相关路由（只读）

@@ -29,6 +29,7 @@ class AuthController extends Controller
             'area_code' => 'nullable|string|max:10',
             'email' => 'nullable|string|email|max:255|unique:users,email',
             'password' => 'required|string|min:6',
+            'invite_code' => 'nullable|string|size:8',
         ], [
             'phone.unique' => ErrorCode::PHONE_ALREADY_EXISTS->getMessage(),
             'email.unique' => ErrorCode::EMAIL_ALREADY_EXISTS->getMessage(),
@@ -41,6 +42,7 @@ class AuthController extends Controller
                 'area_code' => $request->area_code,
                 'email' => $request->email,
                 'password' => $request->password,
+                'invite_code' => $request->invite_code,
             ]);
 
             return $this->responseItem($result);

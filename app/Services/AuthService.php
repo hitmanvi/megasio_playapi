@@ -3,10 +3,12 @@
 namespace App\Services;
 
 use App\Models\User;
+use App\Models\Invitation;
 use App\Enums\ErrorCode;
 use App\Events\UserLoggedIn;
 use App\Exceptions\Exception;
 use Firebase\JWT\JWT;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 
 class AuthService
@@ -36,26 +38,46 @@ class AuthService
             $areaCode = substr($areaCode, 1);
         }
 
-        // 创建用户
-        $user = User::create([
-            'uid' => User::generateUid(),
-            'name' => $name,
-            'phone' => $data['phone'] ?? null,
-            'area_code' => $areaCode,
-            'email' => $data['email'] ?? null,
-            'password' => Hash::make($data['password']),
-            'status' => 'active',
-            // invite_code 会在 boot 方法中自动生成
-        ]);
+        // 处理邀请关系
+        $inviter = null;
+        if (!empty($data['invite_code'])) {
+            $inviter = User::findByInviteCode($data['invite_code']);
+            if (!$inviter) {
+                throw new Exception(ErrorCode::INVALID_INVITE_CODE, 'Invalid invite code');
+            }
+        }
 
-        // 生成 token
-        $token = $user->createToken('auth_token')->plainTextToken;
+        // 创建用户和邀请关系
+        return DB::transaction(function () use ($data, $name, $areaCode, $inviter) {
+            // 创建用户
+            $user = User::create([
+                'uid' => User::generateUid(),
+                'name' => $name,
+                'phone' => $data['phone'] ?? null,
+                'area_code' => $areaCode,
+                'email' => $data['email'] ?? null,
+                'password' => Hash::make($data['password']),
+                'status' => 'active',
+                // invite_code 会在 boot 方法中自动生成
+            ]);
 
-        return [
-            'user' => $user,
-            'token' => $token,
-            'token_type' => 'Bearer',
-        ];
+            // 如果有邀请人，创建邀请关系
+            if ($inviter) {
+                Invitation::create([
+                    'inviter_id' => $inviter->id,
+                    'invitee_id' => $user->id,
+                ]);
+            }
+
+            // 生成 token
+            $token = $user->createToken('auth_token')->plainTextToken;
+
+            return [
+                'user' => $user,
+                'token' => $token,
+                'token_type' => 'Bearer',
+            ];
+        });
     }
 
     /**
