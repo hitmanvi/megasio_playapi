@@ -60,6 +60,7 @@ class AuthController extends Controller
             'email' => $request->email,
             'password' => Hash::make($request->password),
             'status' => 'active',
+            'invite_code' => User::generateInviteCode(),
         ]);
 
         $token = $user->createToken('auth_token')->plainTextToken;
