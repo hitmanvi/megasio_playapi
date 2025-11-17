@@ -131,4 +131,20 @@ class User extends Authenticatable
     {
         return static::where('invite_code', $inviteCode)->first();
     }
+
+    /**
+     * 获取用户统计数据
+     */
+    public function statistics(): HasOne
+    {
+        return $this->hasOne(UserStatistic::class);
+    }
+
+    /**
+     * 获取用户扩展统计属性
+     */
+    public function statistic_attributes(): HasMany
+    {
+        return $this->hasMany(UserStatisticAttribute::class);
+    }
 }
