@@ -90,4 +90,19 @@ class User extends Authenticatable
         // 如果100次尝试都失败，使用时间戳+随机字符
         return strtoupper(substr(Str::random(6) . time(), 0, 8));
     }
+
+    /**
+     * Boot the model.
+     */
+    protected static function boot()
+    {
+        parent::boot();
+
+        // 在创建用户时自动生成邀请码
+        static::creating(function ($user) {
+            if (empty($user->invite_code)) {
+                $user->invite_code = static::generateInviteCode();
+            }
+        });
+    }
 }

@@ -2,22 +2,20 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\User;
 use App\Enums\ErrorCode;
-use App\Events\UserLoggedIn;
+use App\Services\AuthService;
 use App\Services\VerificationCodeService;
-use Firebase\JWT\JWT;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Hash;
 
 class AuthController extends Controller
 {
+    protected AuthService $authService;
     protected VerificationCodeService $verificationCodeService;
 
-    public function __construct(VerificationCodeService $verificationCodeService)
+    public function __construct(AuthService $authService, VerificationCodeService $verificationCodeService)
     {
+        $this->authService = $authService;
         $this->verificationCodeService = $verificationCodeService;
     }
     /**
@@ -36,40 +34,19 @@ class AuthController extends Controller
             'email.unique' => ErrorCode::EMAIL_ALREADY_EXISTS->getMessage(),
         ]);
 
-        // 至少需要提供手机号或邮箱其中一个
-        if (empty($request->phone) && empty($request->email)) {
-            return $this->error(ErrorCode::PHONE_EMAIL_REQUIRED, [
-                'phone' => ['Phone number and email cannot both be empty'],
-                'email' => ['Phone number and email cannot both be empty'],
+        try {
+            $result = $this->authService->register([
+                'name' => $request->name,
+                'phone' => $request->phone,
+                'area_code' => $request->area_code,
+                'email' => $request->email,
+                'password' => $request->password,
             ]);
+
+            return $this->responseItem($result);
+        } catch (\App\Exceptions\Exception $e) {
+            return $this->error($e->getErrorCode(), $e->getMessage());
         }
-
-        $name = $request->name ?? ($request->phone ?? $request->email);
-
-        // 处理 area_code，移除 + 号
-        $areaCode = $request->area_code;
-        if ($areaCode && str_starts_with($areaCode, '+')) {
-            $areaCode = substr($areaCode, 1);
-        }
-
-        $user = User::create([
-            'uid' => User::generateUid(), // 使用ULID生成唯一标识
-            'name' => $name,
-            'phone' => $request->phone,
-            'area_code' => $areaCode,
-            'email' => $request->email,
-            'password' => Hash::make($request->password),
-            'status' => 'active',
-            'invite_code' => User::generateInviteCode(),
-        ]);
-
-        $token = $user->createToken('auth_token')->plainTextToken;
-
-        return $this->responseItem([
-            'user' => $user,
-            'token' => $token,
-            'token_type' => 'Bearer',
-        ]);
     }
 
     /**
@@ -85,30 +62,18 @@ class AuthController extends Controller
             'password.required' => 'Please enter password',
         ]);
 
-        // 判断是手机号还是邮箱
-        $loginField = filter_var($request->login, FILTER_VALIDATE_EMAIL) ? 'email' : 'phone';
-        
-        // 检查用户是否存在
-        $user = User::where($loginField, $request->login)->first();
-        
-        if (!$user || !Hash::check($request->password, $user->password)) {
-            return $this->error(ErrorCode::INVALID_CREDENTIALS);
+        try {
+            $result = $this->authService->login(
+                $request->login,
+                $request->password,
+                $request->ip(),
+                $request->userAgent()
+            );
+
+            return $this->responseItem($result);
+        } catch (\App\Exceptions\Exception $e) {
+            return $this->error($e->getErrorCode(), $e->getMessage());
         }
-
-        // 检查用户状态
-        if ($user->status !== 'active') {
-            return $this->error(ErrorCode::ACCOUNT_DISABLED);
-        }
-
-        $token = $user->createToken('auth_token')->plainTextToken;
-
-        // 触发登录事件，异步记录活动
-        event(new UserLoggedIn($user, $request->ip(), $request->userAgent()));
-
-        return $this->responseItem([
-            'token' => $token,
-            'token_type' => 'Bearer',
-        ]);
     }
 
     /**
@@ -116,7 +81,7 @@ class AuthController extends Controller
      */
     public function logout(Request $request): JsonResponse
     {
-        $request->user()->currentAccessToken()->delete();
+        $this->authService->logout($request->user());
 
         return $this->responseItem(null);
     }
@@ -134,18 +99,9 @@ class AuthController extends Controller
      */
     public function refresh(Request $request): JsonResponse
     {
-        $user = $request->user();
-        
-        // 删除当前令牌
-        $request->user()->currentAccessToken()->delete();
-        
-        // 创建新令牌
-        $token = $user->createToken('auth_token')->plainTextToken;
+        $result = $this->authService->refreshToken($request->user());
 
-        return $this->responseItem([
-            'token' => $token,
-            'token_type' => 'Bearer',
-        ]);
+        return $this->responseItem($result);
     }
 
     /**
@@ -158,17 +114,17 @@ class AuthController extends Controller
             'password' => 'required|string|min:8|confirmed',
         ]);
 
-        $user = $request->user();
+        try {
+            $this->authService->changePassword(
+                $request->user(),
+                $request->current_password,
+                $request->password
+            );
 
-        if (!Hash::check($request->current_password, $user->password)) {
-            return $this->error(ErrorCode::CURRENT_PASSWORD_INCORRECT);
+            return $this->responseItem(null);
+        } catch (\App\Exceptions\Exception $e) {
+            return $this->error($e->getErrorCode(), $e->getMessage());
         }
-
-        $user->update([
-            'password' => Hash::make($request->password),
-        ]);
-
-        return $this->responseItem(null);
     }
 
     /**
@@ -213,25 +169,8 @@ class AuthController extends Controller
      */
     public function generateJwtToken(Request $request): JsonResponse
     {
-        $user = $request->user();
-        
-        // JWT 密钥，使用 APP_KEY 或专门的 JWT_SECRET
-        $secret = config('app.jwt_secret');
-        
-        // JWT payload
-        $payload = [
-            'iss' => config('app.url'), // Issuer
-            'uid' => $user->uid, // User UID
-            'iat' => time(), // Issued at
-            'exp' => time() + (60 * 60 * 24), // Expiration time (24 hours)
-        ];
+        $result = $this->authService->generateJwtToken($request->user());
 
-        // 生成 JWT token
-        $token = JWT::encode($payload, $secret, 'HS256');
-
-        return $this->responseItem([
-            'token' => $token,
-            'expires_in' => 60 * 60 * 24, // 24 hours in seconds
-        ]);
+        return $this->responseItem($result);
     }
 }
