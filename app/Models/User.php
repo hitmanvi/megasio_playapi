@@ -9,6 +9,7 @@ use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 use Illuminate\Support\Str;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class User extends Authenticatable
 {
@@ -110,17 +111,17 @@ class User extends Authenticatable
     /**
      * 获取我邀请的用户列表
      */
-    public function invitedUsers(): HasMany
+    public function invited_users(): HasMany
     {
         return $this->hasMany(Invitation::class, 'inviter_id');
     }
 
     /**
-     * 获取邀请我的人（通过邀请关系）
+     * 获取邀请我的人（通过邀请关系，一个用户只能有一个邀请人）
      */
-    public function invitation(): HasMany
+    public function invitation(): HasOne
     {
-        return $this->hasMany(Invitation::class, 'invitee_id');
+        return $this->hasOne(Invitation::class, 'invitee_id');
     }
 
     /**
