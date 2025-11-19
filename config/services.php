@@ -35,4 +35,11 @@ return [
         ],
     ],
 
+    'sopay' => [
+        'endpoint'     => env('SOPAY_ENDPOINT'),
+        'app_id'       => env('SOPAY_APP_ID'),
+        'app_key'      => env('SOPAY_APP_KEY'),
+        'callback_url' => env('SOPAY_CALLBACK_URL'),
+    ],
+
 ];
