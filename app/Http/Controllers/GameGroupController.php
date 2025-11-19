@@ -16,6 +16,8 @@ class GameGroupController extends Controller
         $category = $request->input('category');
         $locale = $this->getLocale($request);
 
+        $perPage = (int) $request->input('per_page', 20);
+
         $query = GameGroup::query()
             ->enabled()
             ->ordered();
@@ -24,10 +26,10 @@ class GameGroupController extends Controller
             $query->byCategory($category);
         }
 
-        $groups = $query->get();
+        $groupsPaginator = $query->paginate($perPage);
 
         // 格式化返回数据，包含翻译和多语言名称
-        $result = $groups->map(function ($group) use ($locale) {
+        $result = $groupsPaginator->getCollection()->map(function ($group) use ($locale) {
             return [
                 'id' => $group->id,
                 'category' => $group->category,
@@ -38,7 +40,16 @@ class GameGroupController extends Controller
             ];
         });
 
-        return $this->responseList($result->toArray());
+        // 创建分页器，使用格式化后的数据
+        $formattedPaginator = new \Illuminate\Pagination\LengthAwarePaginator(
+            $result,
+            $groupsPaginator->total(),
+            $groupsPaginator->perPage(),
+            $groupsPaginator->currentPage(),
+            ['path' => $request->url(), 'query' => $request->query()]
+        );
+
+        return $this->responseListWithPaginator($formattedPaginator);
     }
 
     /**
