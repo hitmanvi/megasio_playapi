@@ -31,6 +31,7 @@ class User extends Authenticatable
         'status',
         'ban_reason',
         'invite_code',
+        'display_currencies',
     ];
 
     /**
@@ -57,6 +58,7 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'display_currencies' => 'array',
         ];
     }
 
@@ -146,5 +148,22 @@ class User extends Authenticatable
     public function statistic_attributes(): HasMany
     {
         return $this->hasMany(UserStatisticAttribute::class);
+    }
+
+    /**
+     * 获取用户选择的展示货币列表
+     */
+    public function getDisplayCurrencies(): array
+    {
+        return $this->display_currencies ?? [];
+    }
+
+    /**
+     * 设置用户选择的展示货币列表
+     */
+    public function setDisplayCurrencies(array $currencies): void
+    {
+        $this->display_currencies = $currencies;
+        $this->save();
     }
 }

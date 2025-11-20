@@ -75,4 +75,49 @@ class BalanceController extends Controller
 
         return $this->responseList($transactions->toArray(), ['total' => $transactions->count()]);
     }
+
+    /**
+     * 设置用户选择的展示货币列表
+     */
+    public function setDisplayCurrencies(Request $request): JsonResponse
+    {
+        $request->validate([
+            'currencies' => 'required|array',
+            'currencies.*' => 'string|max:10',
+        ]);
+
+        $user = $request->user();
+        $currencies = $request->input('currencies');
+
+        // 验证货币代码是否有效
+        $validCurrencies = \App\Models\Currency::whereIn('code', $currencies)
+            ->pluck('code')
+            ->toArray();
+
+        if (count($validCurrencies) !== count($currencies)) {
+            return $this->error(\App\Enums\ErrorCode::VALIDATION_ERROR, [
+                'currencies' => ['Some currency codes are invalid'],
+            ]);
+        }
+
+        // 设置用户选择的展示货币
+        $user->setDisplayCurrencies($validCurrencies);
+
+        return $this->responseItem([
+            'currencies' => $validCurrencies,
+        ]);
+    }
+
+    /**
+     * 获取用户选择的展示货币列表
+     */
+    public function getDisplayCurrencies(Request $request): JsonResponse
+    {
+        $user = $request->user();
+        $currencies = $user->getDisplayCurrencies();
+
+        return $this->responseItem([
+            'currencies' => $currencies,
+        ]);
+    }
 }

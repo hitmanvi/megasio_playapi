@@ -49,6 +49,8 @@ Route::middleware('auth:sanctum')->prefix('balances')->group(function () {
     Route::get('/', [BalanceController::class, 'index']);
     Route::get('/{currency}', [BalanceController::class, 'show']);
     Route::get('/transactions/list', [BalanceController::class, 'transactions']);
+    Route::post('/display-currencies', [BalanceController::class, 'setDisplayCurrencies']);
+    Route::get('/display-currencies', [BalanceController::class, 'getDisplayCurrencies']);
 });
 
 // 存款相关路由（需要认证）

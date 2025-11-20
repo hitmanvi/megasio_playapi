@@ -184,10 +184,23 @@ class BalanceService
 
     /**
      * Get user's all balances.
+     * If user has set display currencies preference, only return those currencies.
      */
     public function getUserBalances(int $userId): \Illuminate\Database\Eloquent\Collection
     {
-        return Balance::where('user_id', $userId)->get();
+        $query = Balance::where('user_id', $userId);
+        
+        // 检查用户是否设置了展示货币偏好
+        $user = \App\Models\User::find($userId);
+        if ($user) {
+            $displayCurrencies = $user->getDisplayCurrencies();
+            if (!empty($displayCurrencies) && is_array($displayCurrencies)) {
+                // 只返回用户选择的货币
+                $query->whereIn('currency', $displayCurrencies);
+            }
+        }
+        
+        return $query->get();
     }
 
     /**
