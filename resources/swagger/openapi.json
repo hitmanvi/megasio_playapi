@@ -2629,18 +2629,21 @@
                     "items": [
                       {
                         "code": "USD",
+                        "name": "US Dollar",
                         "type": "fiat",
                         "symbol": "$",
                         "icon": "usd.svg"
                       },
                       {
                         "code": "EUR",
+                        "name": "Euro",
                         "type": "fiat",
                         "symbol": "€",
                         "icon": "eur.svg"
                       },
                       {
                         "code": "CNY",
+                        "name": "Chinese Yuan",
                         "type": "fiat",
                         "symbol": "¥",
                         "icon": "cny.svg"
@@ -4068,6 +4071,11 @@
           "code": {
             "type": "string",
             "description": "货币代码（ISO 4217）"
+          },
+          "name": {
+            "type": "string",
+            "nullable": true,
+            "description": "货币名称"
           },
           "type": {
             "type": "string",

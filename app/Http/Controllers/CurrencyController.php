@@ -28,6 +28,7 @@ class CurrencyController extends Controller
             ->map(function ($currency) {
                 return [
                     'code' => $currency->code,
+                    'name' => $currency->name,
                     'type' => $currency->type,
                     'symbol' => $currency->symbol,
                     'icon' => $currency->icon,

@@ -20,6 +20,7 @@ class Currency extends Model
      */
     protected $fillable = [
         'code',
+        'name',
         'type',
         'symbol',
         'icon',
