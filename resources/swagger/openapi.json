@@ -2507,7 +2507,18 @@
       "get": {
         "tags": ["Currency"],
         "summary": "获取支持的货币列表",
-        "description": "获取所有启用的货币列表，按排序顺序返回",
+        "description": "获取所有启用的货币列表，按排序顺序返回，支持按类型筛选",
+        "parameters": [
+          {
+            "name": "type",
+            "in": "query",
+            "description": "货币类型筛选：fiat(法币), crypto(加密货币), virtual(虚拟货币)",
+            "schema": {
+              "type": "string",
+              "enum": ["fiat", "crypto", "virtual"]
+            }
+          }
+        ],
         "responses": {
           "200": {
             "description": "获取货币列表成功",
@@ -2523,16 +2534,19 @@
                     "items": [
                       {
                         "code": "USD",
+                        "type": "fiat",
                         "symbol": "$",
                         "icon": "usd.svg"
                       },
                       {
                         "code": "EUR",
+                        "type": "fiat",
                         "symbol": "€",
                         "icon": "eur.svg"
                       },
                       {
                         "code": "CNY",
+                        "type": "fiat",
                         "symbol": "¥",
                         "icon": "cny.svg"
                       }
@@ -3920,6 +3934,11 @@
           "code": {
             "type": "string",
             "description": "货币代码（ISO 4217）"
+          },
+          "type": {
+            "type": "string",
+            "enum": ["fiat", "crypto", "virtual"],
+            "description": "货币类型：fiat(法币), crypto(加密货币), virtual(虚拟货币)"
           },
           "symbol": {
             "type": "string",

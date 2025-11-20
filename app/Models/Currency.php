@@ -7,12 +7,20 @@ use Illuminate\Database\Eloquent\Model;
 class Currency extends Model
 {
     /**
+     * Currency type constants.
+     */
+    const TYPE_FIAT = 'fiat';
+    const TYPE_CRYPTO = 'crypto';
+    const TYPE_VIRTUAL = 'virtual';
+
+    /**
      * The attributes that are mass assignable.
      *
      * @var array<int, string>
      */
     protected $fillable = [
         'code',
+        'type',
         'symbol',
         'icon',
         'enabled',
@@ -43,5 +51,25 @@ class Currency extends Model
     public function scopeOrdered($query)
     {
         return $query->orderBy('sort_id')->orderBy('code');
+    }
+
+    /**
+     * Scope to filter by type.
+     */
+    public function scopeOfType($query, string $type)
+    {
+        return $query->where('type', $type);
+    }
+
+    /**
+     * Get all currency types.
+     */
+    public static function getTypes(): array
+    {
+        return [
+            self::TYPE_FIAT,
+            self::TYPE_CRYPTO,
+            self::TYPE_VIRTUAL,
+        ];
     }
 }

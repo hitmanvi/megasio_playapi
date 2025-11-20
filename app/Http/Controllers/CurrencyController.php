@@ -4,20 +4,31 @@ namespace App\Http\Controllers;
 
 use App\Models\Currency;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 
 class CurrencyController extends Controller
 {
     /**
      * 获取支持的货币列表
      */
-    public function index(): JsonResponse
+    public function index(Request $request): JsonResponse
     {
-        $currencies = Currency::enabled()
-            ->ordered()
+        $query = Currency::query()->enabled();
+
+        // 按类型筛选
+        if ($request->has('type')) {
+            $type = $request->input('type');
+            if (in_array($type, Currency::getTypes())) {
+                $query->ofType($type);
+            }
+        }
+
+        $currencies = $query->ordered()
             ->get()
             ->map(function ($currency) {
                 return [
                     'code' => $currency->code,
+                    'type' => $currency->type,
                     'symbol' => $currency->symbol,
                     'icon' => $currency->icon,
                 ];
