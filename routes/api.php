@@ -6,6 +6,7 @@ use App\Http\Controllers\BannerController;
 use App\Http\Controllers\BrandController;
 use App\Http\Controllers\CurrencyController;
 use App\Http\Controllers\DepositController;
+use App\Http\Controllers\ExchangeRateController;
 use App\Http\Controllers\InvitationController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\TransactionController;
@@ -106,6 +107,9 @@ Route::get('/payment-methods', [PaymentMethodController::class, 'index']);
 
 // 货币相关路由（只读）
 Route::get('/currencies', [CurrencyController::class, 'index']);
+
+// 汇率相关路由（只读）
+Route::get('/exchange-rates', [ExchangeRateController::class, 'index']);
 
 // 游戏相关路由（只读）
 Route::prefix('games')->group(function () {

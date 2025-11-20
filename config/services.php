@@ -42,4 +42,9 @@ return [
         'callback_url' => env('SOPAY_CALLBACK_URL'),
     ],
 
+    'exchange_rate' => [
+        'endpoint' => env('EXCHANGE_RATE_ENDPOINT'),
+        'api_key' => env('EXCHANGE_RATE_API_KEY'),
+    ],
+
 ];
