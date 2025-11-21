@@ -39,12 +39,15 @@ class ExchangeRateController extends Controller
         }
 
         try {
-            $rates = $this->exchangeRateService->getFormattedRates($baseCurrency);
+            $rates = $this->exchangeRateService->calculateRates($baseCurrency);
+            
+            // 格式化汇率，保留2位小数
+            $formattedRates = [];
+            foreach ($rates as $currency => $rate) {
+                $formattedRates[$currency] = round($rate, 2);
+            }
 
-            return $this->responseItem([
-                'base_currency' => $baseCurrency,
-                'rates' => $rates,
-            ]);
+            return $this->responseItem($formattedRates);
         } catch (\InvalidArgumentException $e) {
             return $this->error(ErrorCode::VALIDATION_ERROR, [
                 'base' => [$e->getMessage()],

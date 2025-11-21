@@ -2687,27 +2687,12 @@
                   "code": 0,
                   "errmsg": "Success",
                   "data": {
-                    "base_currency": "JPY",
-                    "rates": [
-                      {
-                        "currency": "JPY",
-                        "name": "Japanese Yen",
-                        "symbol": "¥",
-                        "rate": 1.0
-                      },
-                      {
-                        "currency": "USD",
-                        "name": "US Dollar",
-                        "symbol": "$",
-                        "rate": 0.0071428571428571
-                      },
-                      {
-                        "currency": "CNY",
-                        "name": "Chinese Yuan",
-                        "symbol": "¥",
-                        "rate": 0.051428571428571
-                      }
-                    ]
+                    "USD": 1.00,
+                    "JPY": 140.00,
+                    "CNY": 7.20,
+                    "EUR": 0.85,
+                    "KRW": 1300.00,
+                    "GBP": 0.80
                   }
                 }
               }
@@ -4174,41 +4159,16 @@
           },
           "data": {
             "type": "object",
-            "properties": {
-              "base_currency": {
-                "type": "string",
-                "description": "主币种代码"
-              },
-              "rates": {
-                "type": "array",
-                "items": {
-                  "$ref": "#/components/schemas/ExchangeRateItem"
-                },
-                "description": "汇率列表"
-              }
+            "description": "汇率数据，键为货币代码，值为汇率（1个主币种 = 值个目标币种），保留2位小数",
+            "additionalProperties": {
+              "type": "number",
+              "format": "float"
+            },
+            "example": {
+              "USD": 1.00,
+              "JPY": 140.00,
+              "CNY": 7.20
             }
-          }
-        }
-      },
-      "ExchangeRateItem": {
-        "type": "object",
-        "properties": {
-          "currency": {
-            "type": "string",
-            "description": "货币代码"
-          },
-          "name": {
-            "type": "string",
-            "nullable": true,
-            "description": "货币名称"
-          },
-          "symbol": {
-            "type": "string",
-            "description": "货币符号"
-          },
-          "rate": {
-            "type": "number",
-            "description": "汇率（1个主币种 = rate个目标币种）"
           }
         }
       },
