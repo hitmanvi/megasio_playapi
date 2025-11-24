@@ -88,13 +88,6 @@ class AuthController extends Controller
         return $this->responseItem(null);
     }
 
-    /**
-     * 获取当前用户信息
-     */
-    public function mine(Request $request): JsonResponse
-    {
-        return $this->responseItem($request->user());
-    }
 
     /**
      * 刷新用户令牌

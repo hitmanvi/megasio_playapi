@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\BalanceController;
+use App\Http\Controllers\UserController;
 use App\Http\Controllers\BannerController;
 use App\Http\Controllers\BrandController;
 use App\Http\Controllers\CurrencyController;
@@ -31,16 +32,17 @@ Route::prefix('auth')->group(function () {
     // 需要认证的路由
     Route::middleware('auth:sanctum')->group(function () {
         Route::post('/logout', [AuthController::class, 'logout']);
-        Route::get('/mine', [AuthController::class, 'mine']);
         Route::post('/refresh', [AuthController::class, 'refresh']);
         Route::post('/change-password', [AuthController::class, 'changePassword']);
         Route::post('/jwt-token', [AuthController::class, 'generateJwtToken']);
     });
 });
 
-Route::get('/user', function (Request $request) {
-    return $request->user();
-})->middleware('auth:sanctum');
+// 用户相关路由（需要认证）
+Route::middleware('auth:sanctum')->prefix('users')->group(function () {
+    Route::get('/mine', [UserController::class, 'show']);
+    Route::patch('/currency-preferences', [UserController::class, 'updateCurrencyPreferences']);
+});
 
 // Banner相关路由（只读）
 Route::get('/banners', [BannerController::class, 'index']);
@@ -49,12 +51,6 @@ Route::get('/banners', [BannerController::class, 'index']);
 Route::middleware('auth:sanctum')->prefix('balances')->group(function () {
     Route::get('/', [BalanceController::class, 'index']);
     Route::get('/transactions/list', [BalanceController::class, 'transactions']);
-    Route::post('/display-currencies', [BalanceController::class, 'setDisplayCurrencies']);
-    Route::get('/display-currencies', [BalanceController::class, 'getDisplayCurrencies']);
-    Route::post('/base-currency', [BalanceController::class, 'setBaseCurrency']);
-    Route::get('/base-currency', [BalanceController::class, 'getBaseCurrency']);
-    Route::post('/current-currency', [BalanceController::class, 'setCurrentCurrency']);
-    Route::get('/current-currency', [BalanceController::class, 'getCurrentCurrency']);
     Route::get('/{currency}', [BalanceController::class, 'show']);
 });
 

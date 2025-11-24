@@ -79,6 +79,10 @@
     {
       "name": "Invitation",
       "description": "邀请相关接口"
+    },
+    {
+      "name": "User",
+      "description": "用户相关接口"
     }
   ],
   "paths": {
@@ -428,11 +432,11 @@
         }
       }
     },
-    "/auth/mine": {
+    "/users/mine": {
       "get": {
-        "tags": ["Authentication"],
+        "tags": ["User"],
         "summary": "获取当前用户信息",
-        "description": "获取当前登录用户的详细信息",
+        "description": "获取当前登录用户的详细信息，包括货币偏好设置",
         "security": [{"bearerAuth": []}],
         "responses": {
           "200": {
@@ -449,7 +453,10 @@
                     "uid": "01ARZ3NDEKTSV4RRFFQ69G5FAV",
                     "name": "张三",
                     "phone": "13800138000",
-                    "email": "zhangsan@example.com"
+                    "email": "zhangsan@example.com",
+                    "display_currencies": ["USD", "EUR", "CNY"],
+                    "base_currency": "USD",
+                    "current_currency": "USD"
                   }
                 }
               }
@@ -466,6 +473,70 @@
                   "code": 1002,
                   "errmsg": "Unauthorized access",
                   "data": null
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/users/currency-preferences": {
+      "patch": {
+        "tags": ["User"],
+        "summary": "更新用户货币偏好设置",
+        "description": "统一更新用户的货币偏好设置，包括展示货币列表、基准币种和当前使用的币种。所有字段都是可选的，只更新提供的字段",
+        "security": [{"bearerAuth": []}],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateCurrencyPreferencesRequest"
+              },
+              "example": {
+                "display_currencies": ["USD", "EUR", "CNY"],
+                "base_currency": "USD",
+                "current_currency": "USD"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "更新成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CurrencyPreferencesResponse"
+                },
+                "example": {
+                  "code": 0,
+                  "errmsg": "Success",
+                  "data": {
+                    "display_currencies": ["USD", "EUR", "CNY"],
+                    "base_currency": "USD",
+                    "current_currency": "USD"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "未授权",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "参数验证失败",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
             }
@@ -783,291 +854,6 @@
           },
           "401": {
             "description": "未授权",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/balances/display-currencies": {
-      "get": {
-        "tags": ["Balance"],
-        "summary": "获取用户选择的展示货币列表",
-        "description": "获取当前用户选择的展示货币列表",
-        "security": [{"bearerAuth": []}],
-        "responses": {
-          "200": {
-            "description": "获取成功",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/DisplayCurrenciesResponse"
-                },
-                "example": {
-                  "code": 0,
-                  "errmsg": "Success",
-                  "data": {
-                    "currencies": ["USD", "EUR", "CNY"]
-                  }
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "未授权",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            }
-          }
-        }
-      },
-      "post": {
-        "tags": ["Balance"],
-        "summary": "设置用户选择的展示货币列表",
-        "description": "设置当前用户选择的展示货币列表，余额列表接口将只返回这些货币的余额",
-        "security": [{"bearerAuth": []}],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/SetDisplayCurrenciesRequest"
-              },
-              "example": {
-                "currencies": ["USD", "EUR", "CNY"]
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "设置成功",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/DisplayCurrenciesResponse"
-                },
-                "example": {
-                  "code": 0,
-                  "errmsg": "Success",
-                  "data": {
-                    "currencies": ["USD", "EUR", "CNY"]
-                  }
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "未授权",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            }
-          },
-          "422": {
-            "description": "参数验证失败",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/balances/base-currency": {
-      "get": {
-        "tags": ["Balance"],
-        "summary": "获取用户基准币种",
-        "description": "获取当前用户的基准币种，用于展示其他资产以基准币种的价值",
-        "security": [{"bearerAuth": []}],
-        "responses": {
-          "200": {
-            "description": "获取成功",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/BaseCurrencyResponse"
-                },
-                "example": {
-                  "code": 0,
-                  "errmsg": "Success",
-                  "data": {
-                    "base_currency": "USD"
-                  }
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "未授权",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            }
-          }
-        }
-      },
-      "post": {
-        "tags": ["Balance"],
-        "summary": "设置用户基准币种",
-        "description": "设置当前用户的基准币种，用于展示其他资产以基准币种的价值",
-        "security": [{"bearerAuth": []}],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/SetBaseCurrencyRequest"
-              },
-              "example": {
-                "currency": "USD"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "设置成功",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/BaseCurrencyResponse"
-                },
-                "example": {
-                  "code": 0,
-                  "errmsg": "Success",
-                  "data": {
-                    "base_currency": "USD"
-                  }
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "未授权",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            }
-          },
-          "422": {
-            "description": "参数验证失败",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/balances/current-currency": {
-      "get": {
-        "tags": ["Balance"],
-        "summary": "获取用户当前使用的币种",
-        "description": "获取当前用户当前使用的币种，用于交易、游戏等操作的默认币种",
-        "security": [{"bearerAuth": []}],
-        "responses": {
-          "200": {
-            "description": "获取成功",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/CurrentCurrencyResponse"
-                },
-                "example": {
-                  "code": 0,
-                  "errmsg": "Success",
-                  "data": {
-                    "current_currency": "USD"
-                  }
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "未授权",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            }
-          }
-        }
-      },
-      "post": {
-        "tags": ["Balance"],
-        "summary": "设置用户当前使用的币种",
-        "description": "设置当前用户当前使用的币种，用于交易、游戏等操作的默认币种",
-        "security": [{"bearerAuth": []}],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/SetCurrentCurrencyRequest"
-              },
-              "example": {
-                "currency": "USD"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "设置成功",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/CurrentCurrencyResponse"
-                },
-                "example": {
-                  "code": 0,
-                  "errmsg": "Success",
-                  "data": {
-                    "current_currency": "USD"
-                  }
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "未授权",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            }
-          },
-          "422": {
-            "description": "参数验证失败",
             "content": {
               "application/json": {
                 "schema": {
@@ -3771,8 +3557,118 @@
           }
         }
       },
+      "UpdateCurrencyPreferencesRequest": {
+        "type": "object",
+        "properties": {
+          "display_currencies": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "maxLength": 10
+            },
+            "description": "展示货币列表（可选）"
+          },
+          "base_currency": {
+            "type": "string",
+            "maxLength": 10,
+            "nullable": true,
+            "description": "基准币种（可选）"
+          },
+          "current_currency": {
+            "type": "string",
+            "maxLength": 10,
+            "nullable": true,
+            "description": "当前使用的币种（可选）"
+          }
+        }
+      },
+      "CurrencyPreferencesResponse": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "integer",
+            "description": "响应码，0表示成功"
+          },
+          "errmsg": {
+            "type": "string",
+            "description": "响应消息"
+          },
+          "data": {
+            "type": "object",
+            "properties": {
+              "display_currencies": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "用户选择的展示货币代码列表"
+              },
+              "base_currency": {
+                "type": "string",
+                "nullable": true,
+                "description": "用户基准币种代码"
+              },
+              "current_currency": {
+                "type": "string",
+                "nullable": true,
+                "description": "用户当前使用的币种代码"
+              }
+            }
+          }
+        }
+      },
       "UserResponse": {
-        "$ref": "#/components/schemas/User"
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "integer",
+            "description": "响应码，0表示成功"
+          },
+          "errmsg": {
+            "type": "string",
+            "description": "响应消息"
+          },
+          "data": {
+            "type": "object",
+            "properties": {
+              "uid": {
+                "type": "string",
+                "description": "用户唯一标识"
+              },
+              "name": {
+                "type": "string",
+                "description": "用户名称"
+              },
+              "phone": {
+                "type": "string",
+                "nullable": true,
+                "description": "手机号"
+              },
+              "email": {
+                "type": "string",
+                "nullable": true,
+                "description": "邮箱"
+              },
+              "display_currencies": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "用户选择的展示货币代码列表"
+              },
+              "base_currency": {
+                "type": "string",
+                "nullable": true,
+                "description": "用户基准币种代码"
+              },
+              "current_currency": {
+                "type": "string",
+                "nullable": true,
+                "description": "用户当前使用的币种代码"
+              }
+            }
+          }
+        }
       },
       "TokenResponse": {
         "type": "object",
