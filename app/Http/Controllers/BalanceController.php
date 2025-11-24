@@ -82,22 +82,26 @@ class BalanceController extends Controller
     public function setDisplayCurrencies(Request $request): JsonResponse
     {
         $request->validate([
-            'currencies' => 'required|array',
+            'currencies' => 'array',
             'currencies.*' => 'string|max:10',
         ]);
 
         $user = $request->user();
-        $currencies = $request->input('currencies');
+        $currencies = $request->input('currencies', []);
 
-        // 验证货币代码是否有效
-        $validCurrencies = \App\Models\Currency::whereIn('code', $currencies)
-            ->pluck('code')
-            ->toArray();
+        // 验证货币代码是否有效（如果不为空）
+        if (!empty($currencies)) {
+            $validCurrencies = \App\Models\Currency::whereIn('code', $currencies)
+                ->pluck('code')
+                ->toArray();
 
-        if (count($validCurrencies) !== count($currencies)) {
-            return $this->error(\App\Enums\ErrorCode::VALIDATION_ERROR, [
-                'currencies' => ['Some currency codes are invalid'],
-            ]);
+            if (count($validCurrencies) !== count($currencies)) {
+                return $this->error(\App\Enums\ErrorCode::VALIDATION_ERROR, [
+                    'currencies' => ['Some currency codes are invalid'],
+                ]);
+            }
+        } else {
+            $validCurrencies = [];
         }
 
         // 设置用户选择的展示货币
