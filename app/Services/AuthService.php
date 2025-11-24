@@ -10,6 +10,7 @@ use App\Exceptions\Exception;
 use Firebase\JWT\JWT;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Http;
 
 class AuthService
 {
@@ -204,6 +205,154 @@ class AuthService
             'token' => $token,
             'expires_in' => 60 * 60 * 24, // 24 hours in seconds
         ];
+    }
+
+    /**
+     * Google 登录/注册
+     *
+     * @param string $idToken Google ID Token
+     * @param string|null $inviteCode 邀请码
+     * @param string|null $ipAddress IP 地址
+     * @param string|null $userAgent User Agent
+     * @return array 包含用户和 token 的数组
+     * @throws Exception
+     */
+    public function loginWithGoogle(string $idToken, ?string $inviteCode = null, ?string $ipAddress = null, ?string $userAgent = null): array
+    {
+        try {
+            // 验证 Google ID Token
+            $googleUser = $this->verifyGoogleIdToken($idToken);
+            
+            if (!$googleUser) {
+                throw new Exception(ErrorCode::INVALID_CREDENTIALS, 'Invalid Google ID token');
+            }
+
+            $googleId = $googleUser['sub'];
+            $email = $googleUser['email'] ?? null;
+            $name = $googleUser['name'] ?? $googleUser['email'] ?? 'Google User';
+            $avatar = $googleUser['picture'] ?? null;
+
+            // 处理邀请关系
+            $inviter = null;
+            if (!empty($inviteCode)) {
+                $inviter = User::findByInviteCode($inviteCode);
+                if (!$inviter) {
+                    throw new Exception(ErrorCode::INVALID_INVITE_CODE, 'Invalid invite code');
+                }
+            }
+
+            // 查找或创建用户
+            return DB::transaction(function () use ($googleId, $email, $name, $inviter, $ipAddress, $userAgent) {
+                // 先通过 google_id 查找
+                $user = User::where('google_id', $googleId)->first();
+                
+                // 如果不存在，通过 email 查找（可能是已存在的用户绑定 Google）
+                if (!$user && $email) {
+                    $user = User::where('email', $email)->first();
+                    if ($user) {
+                        // 绑定 Google ID
+                        $user->google_id = $googleId;
+                        $user->save();
+                    }
+                }
+
+                // 如果还是不存在，创建新用户
+                if (!$user) {
+                    $user = User::create([
+                        'uid' => User::generateUid(),
+                        'name' => $name,
+                        'email' => $email,
+                        'google_id' => $googleId,
+                        'password' => null, // Google 登录不需要密码
+                        'status' => 'active',
+                        // invite_code 会在 boot 方法中自动生成
+                    ]);
+
+                    // 如果有邀请人，创建邀请关系
+                    if ($inviter) {
+                        Invitation::create([
+                            'inviter_id' => $inviter->id,
+                            'invitee_id' => $user->id,
+                        ]);
+                    }
+                } else {
+                    // 更新用户信息（如果 Google 信息有变化）
+                    $updateData = [];
+                    if ($name && $user->name !== $name) {
+                        $updateData['name'] = $name;
+                    }
+                    if ($email && $user->email !== $email) {
+                        $updateData['email'] = $email;
+                    }
+                    if (!empty($updateData)) {
+                        $user->update($updateData);
+                    }
+                }
+
+                // 检查用户状态
+                if ($user->status !== 'active') {
+                    throw new Exception(ErrorCode::ACCOUNT_DISABLED);
+                }
+
+                // 生成 token
+                $token = $user->createToken('auth_token')->plainTextToken;
+
+                // 触发登录事件
+                event(new UserLoggedIn($user, $ipAddress, $userAgent));
+
+                return [
+                    'user' => $user,
+                    'token' => $token,
+                    'token_type' => 'Bearer',
+                ];
+            });
+        } catch (\App\Exceptions\Exception $e) {
+            throw $e;
+        } catch (\Exception $e) {
+            throw new Exception(ErrorCode::INVALID_CREDENTIALS, 'Google authentication failed: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * 验证 Google ID Token
+     *
+     * @param string $idToken Google ID Token
+     * @return array|null 用户信息数组，验证失败返回 null
+     */
+    protected function verifyGoogleIdToken(string $idToken): ?array
+    {
+        try {
+            // 使用 Google 的 tokeninfo 端点验证
+            $response = Http::get('https://oauth2.googleapis.com/tokeninfo', [
+                'id_token' => $idToken,
+            ]);
+
+            if (!$response->successful()) {
+                return null;
+            }
+
+            $data = $response->json();
+
+            // 验证 audience (client_id)
+            $clientId = config('services.google.client_id');
+            if (isset($data['aud']) && $data['aud'] !== $clientId) {
+                return null;
+            }
+
+            // 验证 issuer
+            if (isset($data['iss']) && !in_array($data['iss'], ['accounts.google.com', 'https://accounts.google.com'])) {
+                return null;
+            }
+
+            // 验证过期时间
+            if (isset($data['exp']) && $data['exp'] < time()) {
+                return null;
+            }
+
+            return $data;
+        } catch (\Exception $e) {
+            return null;
+        }
     }
 }
 

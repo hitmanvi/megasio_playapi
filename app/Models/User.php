@@ -28,6 +28,7 @@ class User extends Authenticatable
         'area_code',
         'email',
         'password',
+        'google_id',
         'status',
         'ban_reason',
         'invite_code',
