@@ -53,6 +53,8 @@ Route::middleware('auth:sanctum')->prefix('balances')->group(function () {
     Route::get('/display-currencies', [BalanceController::class, 'getDisplayCurrencies']);
     Route::post('/base-currency', [BalanceController::class, 'setBaseCurrency']);
     Route::get('/base-currency', [BalanceController::class, 'getBaseCurrency']);
+    Route::post('/current-currency', [BalanceController::class, 'setCurrentCurrency']);
+    Route::get('/current-currency', [BalanceController::class, 'getCurrentCurrency']);
     Route::get('/{currency}', [BalanceController::class, 'show']);
 });
 

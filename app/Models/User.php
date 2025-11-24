@@ -33,6 +33,7 @@ class User extends Authenticatable
         'invite_code',
         'display_currencies',
         'base_currency',
+        'current_currency',
     ];
 
     /**
@@ -182,6 +183,23 @@ class User extends Authenticatable
     public function setBaseCurrency(string $currency): void
     {
         $this->base_currency = strtoupper($currency);
+        $this->save();
+    }
+
+    /**
+     * 获取用户当前使用的币种
+     */
+    public function getCurrentCurrency(): ?string
+    {
+        return $this->current_currency;
+    }
+
+    /**
+     * 设置用户当前使用的币种
+     */
+    public function setCurrentCurrency(string $currency): void
+    {
+        $this->current_currency = strtoupper($currency);
         $this->save();
     }
 }

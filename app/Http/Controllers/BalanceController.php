@@ -165,4 +165,45 @@ class BalanceController extends Controller
             'base_currency' => $baseCurrency,
         ]);
     }
+
+    /**
+     * 设置用户当前使用的币种
+     */
+    public function setCurrentCurrency(Request $request): JsonResponse
+    {
+        $request->validate([
+            'currency' => 'required|string|max:10',
+        ]);
+
+        $user = $request->user();
+        $currency = strtoupper($request->input('currency'));
+
+        // 验证货币代码是否有效
+        $currencyModel = \App\Models\Currency::where('code', $currency)->first();
+        if (!$currencyModel) {
+            return $this->error(\App\Enums\ErrorCode::VALIDATION_ERROR, [
+                'currency' => ['Currency not found'],
+            ]);
+        }
+
+        // 设置用户当前使用的币种
+        $user->setCurrentCurrency($currency);
+
+        return $this->responseItem([
+            'current_currency' => $currency,
+        ]);
+    }
+
+    /**
+     * 获取用户当前使用的币种
+     */
+    public function getCurrentCurrency(Request $request): JsonResponse
+    {
+        $user = $request->user();
+        $currentCurrency = $user->getCurrentCurrency();
+
+        return $this->responseItem([
+            'current_currency' => $currentCurrency,
+        ]);
+    }
 }
