@@ -124,4 +124,45 @@ class BalanceController extends Controller
             'currencies' => $currencies,
         ]);
     }
+
+    /**
+     * 设置用户基准币种
+     */
+    public function setBaseCurrency(Request $request): JsonResponse
+    {
+        $request->validate([
+            'currency' => 'required|string|max:10',
+        ]);
+
+        $user = $request->user();
+        $currency = strtoupper($request->input('currency'));
+
+        // 验证货币代码是否有效
+        $currencyModel = \App\Models\Currency::where('code', $currency)->first();
+        if (!$currencyModel) {
+            return $this->error(\App\Enums\ErrorCode::VALIDATION_ERROR, [
+                'currency' => ['Currency not found'],
+            ]);
+        }
+
+        // 设置用户基准币种
+        $user->setBaseCurrency($currency);
+
+        return $this->responseItem([
+            'base_currency' => $currency,
+        ]);
+    }
+
+    /**
+     * 获取用户基准币种
+     */
+    public function getBaseCurrency(Request $request): JsonResponse
+    {
+        $user = $request->user();
+        $baseCurrency = $user->getBaseCurrency();
+
+        return $this->responseItem([
+            'base_currency' => $baseCurrency,
+        ]);
+    }
 }

@@ -32,6 +32,7 @@ class User extends Authenticatable
         'ban_reason',
         'invite_code',
         'display_currencies',
+        'base_currency',
     ];
 
     /**
@@ -164,6 +165,23 @@ class User extends Authenticatable
     public function setDisplayCurrencies(array $currencies): void
     {
         $this->display_currencies = $currencies;
+        $this->save();
+    }
+
+    /**
+     * 获取用户基准币种
+     */
+    public function getBaseCurrency(): ?string
+    {
+        return $this->base_currency;
+    }
+
+    /**
+     * 设置用户基准币种
+     */
+    public function setBaseCurrency(string $currency): void
+    {
+        $this->base_currency = strtoupper($currency);
         $this->save();
     }
 }
