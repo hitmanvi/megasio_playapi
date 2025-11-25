@@ -10,7 +10,7 @@ use App\Exceptions\Exception;
 use Firebase\JWT\JWT;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Http;
+use Google\Client as GoogleClient;
 
 class AuthService
 {
@@ -314,7 +314,7 @@ class AuthService
     }
 
     /**
-     * 验证 Google ID Token
+     * 验证 Google ID Token（使用 Google Client Library）
      *
      * @param string $idToken Google ID Token
      * @return array|null 用户信息数组，验证失败返回 null
@@ -322,35 +322,39 @@ class AuthService
     protected function verifyGoogleIdToken(string $idToken): ?array
     {
         try {
-            // 使用 Google 的 tokeninfo 端点验证
-            $response = Http::get('https://oauth2.googleapis.com/tokeninfo', [
-                'id_token' => $idToken,
-            ]);
-
-            if (!$response->successful()) {
-                return null;
-            }
-
-            $data = $response->json();
-
-            // 验证 audience (client_id)
             $clientId = config('services.google.client_id');
-            if (isset($data['aud']) && $data['aud'] !== $clientId) {
+            
+            if (!$clientId) {
                 return null;
             }
 
-            // 验证 issuer
-            if (isset($data['iss']) && !in_array($data['iss'], ['accounts.google.com', 'https://accounts.google.com'])) {
+            // 创建 Google Client 实例
+            $client = new GoogleClient(['client_id' => $clientId]);
+            
+            // 验证 ID Token
+            // verifyIdToken 方法会验证签名、过期时间、audience、issuer 等
+            $payload = $client->verifyIdToken($idToken);
+
+            if (!$payload) {
                 return null;
             }
 
-            // 验证过期时间
-            if (isset($data['exp']) && $data['exp'] < time()) {
-                return null;
-            }
-
-            return $data;
+            // 返回用户信息
+            return [
+                'sub' => $payload['sub'] ?? null,
+                'email' => $payload['email'] ?? null,
+                'email_verified' => $payload['email_verified'] ?? false,
+                'name' => $payload['name'] ?? null,
+                'picture' => $payload['picture'] ?? null,
+                'given_name' => $payload['given_name'] ?? null,
+                'family_name' => $payload['family_name'] ?? null,
+                'iss' => $payload['iss'] ?? null,
+                'aud' => $payload['aud'] ?? null,
+                'exp' => $payload['exp'] ?? null,
+                'iat' => $payload['iat'] ?? null,
+            ];
         } catch (\Exception $e) {
+            // 验证失败时返回 null
             return null;
         }
     }
