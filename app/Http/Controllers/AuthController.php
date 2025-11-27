@@ -168,4 +168,28 @@ class AuthController extends Controller
 
         return $this->responseItem($result);
     }
+
+    /**
+     * Google 登录/注册
+     */
+    public function loginWithGoogle(Request $request): JsonResponse
+    {
+        $request->validate([
+            'id_token' => 'required|string',
+            'invite_code' => 'nullable|string|size:8',
+        ]);
+
+        try {
+            $result = $this->authService->loginWithGoogle(
+                $request->id_token,
+                $request->invite_code,
+                $request->ip(),
+                $request->userAgent()
+            );
+
+            return $this->responseItem($result);
+        } catch (\App\Exceptions\Exception $e) {
+            return $this->error($e->getErrorCode(), $e->getMessage());
+        }
+    }
 }

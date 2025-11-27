@@ -264,6 +264,90 @@
         }
       }
     },
+    "/auth/google": {
+      "post": {
+        "tags": ["Authentication"],
+        "summary": "Google 登录/注册",
+        "description": "使用 Google ID Token 进行登录或注册。如果用户已存在（通过 google_id 或 email 匹配），则直接登录；如果不存在，则创建新用户。支持邀请码绑定。",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GoogleLoginRequest"
+              },
+              "example": {
+                "id_token": "eyJhbGciOiJSUzI1NiIsImtpZCI6IjEyMzQ1Njc4OTAifQ.eyJpc3MiOiJodHRwczovL2FjY291bnRzLmdvb2dsZS5jb20iLCJhenAiOiIxMjM0NTY3ODkwLmFwcHMuZ29vZ2xldXNlcmNvbnRlbnQuY29tIiwiYXVkIjoiMTIzNDU2Nzg5MC5hcHBzLmdvb2dsZXVzZXJjb250ZW50LmNvbSIsInN1YiI6IjEyMzQ1Njc4OTAxMjM0NTY3ODkwMTIzNDU2Nzg5MCIsImVtYWlsIjoiZXhhbXBsZUBnb29nbGUuY29tIiwiZW1haWxfdmVyaWZpZWQiOnRydWUsIm5hbWUiOiJKb2huIERvZSIsInBpY3R1cmUiOiJodHRwczovL2xoMy5nb29nbGV1c2VyY29udGVudC5jb20vYS9leGFtcGxlIiwiaWF0IjoxNzEwMDAwMDAwLCJleHAiOjE3MTAwODY0MDB9.example_signature",
+                "invite_code": "ABC12345"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "登录/注册成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthResponse"
+                },
+                "example": {
+                  "code": 0,
+                  "errmsg": "Success",
+                  "data": {
+                    "user": {
+                      "uid": "01ARZ3NDEKTSV4RRFFQ69G5FAV",
+                      "name": "John Doe",
+                      "email": "example@google.com"
+                    },
+                    "token": "1|abcdef123456789",
+                    "token_type": "Bearer"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "请求参数错误",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "examples": {
+                  "invalid_token": {
+                    "summary": "无效的 ID Token",
+                    "value": {
+                      "code": 1001,
+                      "errmsg": "Invalid Google ID token",
+                      "data": null
+                    }
+                  },
+                  "invalid_invite_code": {
+                    "summary": "无效的邀请码",
+                    "value": {
+                      "code": 2003,
+                      "errmsg": "Invalid invite code",
+                      "data": null
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "参数验证失败",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/auth/send-verification-code": {
       "post": {
         "tags": ["Authentication"],
@@ -3443,6 +3527,23 @@
           "password": {
             "type": "string",
             "description": "密码"
+          }
+        }
+      },
+      "GoogleLoginRequest": {
+        "type": "object",
+        "required": ["id_token"],
+        "properties": {
+          "id_token": {
+            "type": "string",
+            "description": "Google ID Token，由前端通过 Google Sign-In SDK 获取"
+          },
+          "invite_code": {
+            "type": "string",
+            "maxLength": 8,
+            "minLength": 8,
+            "nullable": true,
+            "description": "邀请码（8位字符），可选"
           }
         }
       },
