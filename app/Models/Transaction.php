@@ -42,7 +42,8 @@ class Transaction extends Model
     const TYPE_TRANSFER_IN = 'TRANSFER_IN';
     const TYPE_TRANSFER_OUT = 'TRANSFER_OUT';
     const TYPE_REFUND = 'REFUND';
-
+    const TYPE_BET = 'BET';
+    const TYPE_PAYOUT = 'PAYOUT';
     /**
      * Transaction status constants.
      */
