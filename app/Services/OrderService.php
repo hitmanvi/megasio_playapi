@@ -5,7 +5,6 @@ namespace App\Services;
 use App\Models\Order;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Carbon\Carbon;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
 class OrderService
@@ -186,7 +185,7 @@ class OrderService
             return null;
         }
 
-        if ($order->status == Order::STATUS_COMPLETED) {
+        if ($order->status != Order::STATUS_PENDING) {
             return null;
         }
 
