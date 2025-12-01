@@ -5,6 +5,8 @@ namespace App\Services;
 use App\Models\Order;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
 class OrderService
 {
@@ -122,6 +124,77 @@ class OrderService
             ->where('order_id', $orderId)
             ->with(['user', 'game', 'brand'])
             ->first();
+    }
+
+    public function bet($userId, $amount, $currency, $game, $roundId)
+    {
+        $order = Order::where('user_id', $userId)
+            ->where('game_id', $game->id)
+            ->where('out_id', $roundId)
+            ->first();
+
+        if (!$order) {
+            $order = Order::create([
+                'order_id' => Str::ulid()->toString(),
+                'user_id' => $userId,
+                'amount' => $amount,
+                'currency' => $currency,
+                'game_id' => $game->id,
+                'brand_id' => $game->brand_id,
+                'status' => Order::STATUS_PENDING,
+                'out_id' => $roundId,
+            ]);
+        } else {
+            $order->amount += $amount;
+            $order->save();
+        }
+
+        return $order;
+    }
+
+    public function payout($userId, $amount, $game, $roundId, $isFinished)
+    {
+        $order = Order::where('user_id', $userId)
+            ->where('game_id', $game->id)
+            ->where('out_id', $roundId)
+            ->first();
+
+        if (!$order) {
+            return null;
+        }
+
+        if ($order->status != Order::STATUS_PENDING) {
+            return null;
+        }
+
+        $order->payout += $amount;
+        $order->status = $isFinished ? Order::STATUS_COMPLETED : Order::STATUS_PENDING;
+        $order->finished_at = $isFinished ? Carbon::now() : null;
+        $order->save();
+
+        return $order;
+    }
+
+    public function refund($userId, $game, $roundId)
+    {
+        $order = Order::where('user_id', $userId)
+            ->where('game_id', $game->id)
+            ->where('out_id', $roundId)
+            ->first();
+
+        if (!$order) {
+            return null;
+        }
+
+        if ($order->status == Order::STATUS_COMPLETED) {
+            return null;
+        }
+
+        $order->status = Order::STATUS_CANCELLED;
+        $order->finished_at = Carbon::now();
+        $order->save();
+
+        return $order;
     }
 }
 
