@@ -192,4 +192,51 @@ class AuthController extends Controller
             return $this->error($e->getErrorCode(), $e->getMessage());
         }
     }
+
+    /**
+     * 重置密码
+     */
+    public function resetPassword(Request $request): JsonResponse
+    {
+        $request->validate([
+            'account' => 'required|string', // 可以是手机号或邮箱
+            'code' => 'required|string|size:6',
+            'password' => 'required|string|min:8|confirmed',
+            'area_code' => 'nullable|string|max:10',
+        ]);
+
+        $account = $request->input('account');
+        $code = $request->input('code');
+        $password = $request->input('password');
+        $areaCode = $request->input('area_code');
+
+        // 判断是手机号还是邮箱
+        $isEmail = filter_var($account, FILTER_VALIDATE_EMAIL) !== false;
+
+        // 处理 area_code，移除 + 号
+        if ($areaCode && str_starts_with($areaCode, '+')) {
+            $areaCode = substr($areaCode, 1);
+        }
+
+        try {
+            // 验证验证码
+            $codeType = 'reset_password';
+            if ($isEmail) {
+                $isValid = $this->verificationCodeService->verifyEmailCode($account, $code, $codeType);
+            } else {
+                $isValid = $this->verificationCodeService->verifySmsCode($account, $code, $areaCode, $codeType);
+            }
+
+            if (!$isValid) {
+                return $this->error(ErrorCode::VERIFICATION_CODE_INVALID, 'Invalid verification code');
+            }
+
+            // 重置密码
+            $this->authService->resetPassword($account, $code, $password, $areaCode);
+
+            return $this->responseItem(null);
+        } catch (\App\Exceptions\Exception $e) {
+            return $this->error($e->getErrorCode(), $e->getMessage());
+        }
+    }
 }

@@ -756,6 +756,85 @@
         }
       }
     },
+    "/auth/reset-password": {
+      "post": {
+        "tags": ["Authentication"],
+        "summary": "重置密码",
+        "description": "通过验证码重置用户密码（无需登录）",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ResetPasswordRequest"
+              },
+              "example": {
+                "account": "13800138000",
+                "code": "123456",
+                "password": "newpassword123",
+                "password_confirmation": "newpassword123",
+                "area_code": "86"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "重置密码成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessResponse"
+                },
+                "example": {
+                  "code": 0,
+                  "errmsg": "Success",
+                  "data": null
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "验证失败",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "examples": {
+                  "invalid_verification_code": {
+                    "summary": "验证码无效",
+                    "value": {
+                      "code": 2010,
+                      "errmsg": "Invalid verification code",
+                      "data": null
+                    }
+                  },
+                  "user_not_found": {
+                    "summary": "用户不存在",
+                    "value": {
+                      "code": 3001,
+                      "errmsg": "User not found",
+                      "data": null
+                    }
+                  },
+                  "password_confirmation_mismatch": {
+                    "summary": "密码确认不匹配",
+                    "value": {
+                      "code": 1001,
+                      "errmsg": "Validation failed",
+                      "data": {
+                        "password": ["The password confirmation does not match."]
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/auth/jwt-token": {
       "post": {
         "tags": ["Authentication"],
@@ -3615,6 +3694,37 @@
           "password_confirmation": {
             "type": "string",
             "description": "新密码确认"
+          }
+        }
+      },
+      "ResetPasswordRequest": {
+        "type": "object",
+        "required": ["account", "code", "password"],
+        "properties": {
+          "account": {
+            "type": "string",
+            "description": "登录凭据（手机号或邮箱）"
+          },
+          "code": {
+            "type": "string",
+            "minLength": 6,
+            "maxLength": 6,
+            "description": "验证码（6位数字）"
+          },
+          "password": {
+            "type": "string",
+            "minLength": 8,
+            "description": "新密码（至少8位）"
+          },
+          "password_confirmation": {
+            "type": "string",
+            "description": "新密码确认"
+          },
+          "area_code": {
+            "type": "string",
+            "maxLength": 10,
+            "nullable": true,
+            "description": "区号/国家代码（仅用于手机号，不需要+号，如：86）"
           }
         }
       },

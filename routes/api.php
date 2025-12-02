@@ -29,6 +29,7 @@ Route::prefix('auth')->group(function () {
     Route::post('/login', [AuthController::class, 'login']);
     Route::post('/google', [AuthController::class, 'loginWithGoogle']);
     Route::post('/send-verification-code', [AuthController::class, 'sendVerificationCode']);
+    Route::post('/reset-password', [AuthController::class, 'resetPassword']);
     
     // 需要认证的路由
     Route::middleware('auth:sanctum')->group(function () {
