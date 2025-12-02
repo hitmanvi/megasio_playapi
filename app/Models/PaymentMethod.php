@@ -172,4 +172,26 @@ class PaymentMethod extends Model
 
         return true;
     }
+
+    /**
+     * Get the fields attribute, returning empty array if null.
+     *
+     * @param mixed $value
+     * @return array
+     */
+    public function getFieldsAttribute($value): array
+    {
+        if ($value === null) {
+            return [];
+        }
+
+        // If already an array (from cast), return as is
+        if (is_array($value)) {
+            return $value;
+        }
+
+        // If JSON string, decode it
+        $decoded = json_decode($value, true);
+        return is_array($decoded) ? $decoded : [];
+    }
 }
