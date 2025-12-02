@@ -232,7 +232,7 @@ class AuthController extends Controller
             }
 
             // 重置密码
-            $this->authService->resetPassword($account, $code, $password, $areaCode);
+            $this->authService->resetPassword($account, $password);
 
             return $this->responseItem(null);
         } catch (\App\Exceptions\Exception $e) {

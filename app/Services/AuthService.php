@@ -183,13 +183,11 @@ class AuthService
      * 重置密码（通过验证码）
      *
      * @param string $login 登录凭证（手机号或邮箱）
-     * @param string $code 验证码
      * @param string $newPassword 新密码
-     * @param string|null $areaCode 区号（仅用于手机号）
      * @return void
      * @throws Exception
      */
-    public function resetPassword(string $login, string $code, string $newPassword, ?string $areaCode = null): void
+    public function resetPassword(string $login, string $newPassword): void
     {
         // 判断是手机号还是邮箱
         $isEmail = filter_var($login, FILTER_VALIDATE_EMAIL) !== false;
@@ -201,9 +199,6 @@ class AuthService
         if (!$user) {
             throw new Exception(ErrorCode::USER_NOT_FOUND, 'User not found');
         }
-
-        // 验证验证码（在 Controller 中验证，这里只负责更新密码）
-        // 验证码验证逻辑在 Controller 中处理
         
         // 更新密码
         $user->update([
