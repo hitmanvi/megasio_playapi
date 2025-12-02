@@ -2,8 +2,13 @@
 
 namespace App\Services;
 
+use App\Contracts\GameProviderInterface;
+use App\Enums\ErrorCode;
+use App\Exceptions\Exception;
+use App\GameProviders\GameProviderFactory;
 use App\Models\Game;
 use App\Models\Translation;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Pagination\LengthAwarePaginator;
 
@@ -155,7 +160,7 @@ class GameService
     /**
      * 应用排序
      *
-     * @param \Illuminate\Database\Eloquent\Builder $query
+     * @param Builder $query
      * @param string $sort
      * @return void
      */
@@ -199,9 +204,10 @@ class GameService
      * 获取游戏demo地址
      *
      * @param int $gameId
+     * @param string $currency
      * @return string|null
      */
-    public function getGameDemoUrl(int $gameId): ?string
+    public function getGameDemoUrl(int $gameId, string $currency): ?string
     {
         $game = Game::with('brand')->find($gameId);
         if (!$game || !$game->brand) {
@@ -214,10 +220,46 @@ class GameService
         }
 
         try {
-            $provider = \App\GameProviders\GameProviderFactory::create($providerName);
-            return $provider->demo($game->out_id, ['language' => 'en']);
+            // 创建 provider 实例，传入 currency
+            $provider = GameProviderFactory::create($providerName, $currency);
+            return $provider->demo($game->out_id);
         } catch (\InvalidArgumentException $e) {
             return null;
+        }
+    }
+
+    /**
+     * 获取游戏 session 地址
+     *
+     * @param int $gameId
+     * @param int $userId
+     * @param string $currency
+     * @return string
+     * @throws \Exception
+     */
+    public function getGameSessionUrl(int $gameId, int $userId, string $currency): string
+    {
+        $game = Game::with('brand')->find($gameId);
+        if (!$game || !$game->brand) {
+            throw new Exception(ErrorCode::NOT_FOUND, 'Game not found');
+        }
+
+        $providerName = $game->brand->provider;
+        if (!$providerName) {
+            throw new Exception(ErrorCode::NOT_FOUND, 'Game provider not configured');
+        }
+
+        try {
+            // 创建 provider 实例，传入 currency
+            /** @var GameProviderInterface $provider */
+            $provider = GameProviderFactory::create($providerName, $currency);
+            /** @var string $sessionUrl */
+            $sessionUrl = $provider->session((string) $userId, (string) $game->out_id);
+            return $sessionUrl;
+        } catch (\InvalidArgumentException $e) {
+            throw new Exception(ErrorCode::NOT_FOUND, 'Game provider not found: ' . $e->getMessage());
+        } catch (\Exception $e) {
+            throw new Exception(ErrorCode::INTERNAL_ERROR, 'Failed to create game session: ' . $e->getMessage());
         }
     }
 }

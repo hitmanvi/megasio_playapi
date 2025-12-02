@@ -2,9 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\ErrorCode;
+use App\Exceptions\Exception;
 use App\Services\GameService;
-use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
+use Illuminate\Pagination\LengthAwarePaginator;
 
 class GameController extends Controller
 {
@@ -54,7 +57,7 @@ class GameController extends Controller
         $result = $this->gameService->formatGamesList($games, $locale);
         
         // 创建新的分页器，使用格式化后的数据
-        $formattedPaginator = new \Illuminate\Pagination\LengthAwarePaginator(
+        $formattedPaginator = new LengthAwarePaginator(
             $result,
             $gamesPaginator->total(),
             $gamesPaginator->perPage(),
@@ -99,7 +102,7 @@ class GameController extends Controller
         $result = $this->gameService->formatGamesList($games, $locale);
         
         // 创建新的分页器，使用格式化后的数据
-        $formattedPaginator = new \Illuminate\Pagination\LengthAwarePaginator(
+        $formattedPaginator = new LengthAwarePaginator(
             $result,
             $gamesPaginator->total(),
             $gamesPaginator->perPage(),
@@ -108,5 +111,51 @@ class GameController extends Controller
         );
 
         return $this->responseListWithPaginator($formattedPaginator);
+    }
+
+    /**
+     * 获取游戏 demo 地址
+     */
+    public function demo(Request $request, int $id): JsonResponse
+    {
+        $request->validate([
+            'currency' => 'required|string|size:3',
+        ]);
+
+        $currency = strtoupper($request->input('currency'));
+        $demoUrl = $this->gameService->getGameDemoUrl($id, $currency);
+
+        if (!$demoUrl) {
+            return $this->error(ErrorCode::NOT_FOUND, 'Game demo not available');
+        }
+
+        return $this->responseItem([
+            'url' => $demoUrl,
+        ]);
+    }
+
+    /**
+     * 获取游戏 session 地址（需要认证）
+     */
+    public function session(Request $request, int $id): JsonResponse
+    {
+        $request->validate([
+            'currency' => 'required|string|size:3',
+        ]);
+
+        $user = $request->user();
+        $currency = strtoupper($request->input('currency'));
+
+        try {
+            $sessionUrl = $this->gameService->getGameSessionUrl($id, $user->id, $currency);
+
+            return $this->responseItem([
+                'url' => $sessionUrl,
+            ]);
+        } catch (Exception $e) {
+            return $this->error($e->getErrorCode(), $e->getMessage());
+        } catch (\Exception $e) {
+            return $this->error(ErrorCode::INTERNAL_ERROR, $e->getMessage());
+        }
     }
 }

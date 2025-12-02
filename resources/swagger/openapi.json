@@ -3080,6 +3080,185 @@
         }
       }
     },
+    "/games/{id}/demo": {
+      "get": {
+        "tags": ["Game"],
+        "summary": "获取游戏 demo 地址",
+        "description": "获取指定游戏的 demo 地址",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "游戏ID",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "currency",
+            "in": "query",
+            "required": true,
+            "description": "货币类型（3位代码，如：USD）",
+            "schema": {
+              "type": "string",
+              "minLength": 3,
+              "maxLength": 3,
+              "pattern": "^[A-Z]{3}$"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "获取 demo 地址成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GameUrlResponse"
+                },
+                "example": {
+                  "code": 0,
+                  "errmsg": "Success",
+                  "data": {
+                    "url": "https://demo.example.com/game/123"
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "游戏不存在或 demo 不可用",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "code": 1004,
+                  "errmsg": "Game demo not available",
+                  "data": null
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "验证失败",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/games/{id}/session": {
+      "get": {
+        "tags": ["Game"],
+        "summary": "获取游戏 session 地址",
+        "description": "获取指定游戏的 session 地址（需要认证）",
+        "security": [{"bearerAuth": []}],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "游戏ID",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "currency",
+            "in": "query",
+            "required": true,
+            "description": "货币类型（3位代码，如：USD）",
+            "schema": {
+              "type": "string",
+              "minLength": 3,
+              "maxLength": 3,
+              "pattern": "^[A-Z]{3}$"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "获取 session 地址成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GameUrlResponse"
+                },
+                "example": {
+                  "code": 0,
+                  "errmsg": "Success",
+                  "data": {
+                    "url": "https://game.example.com/session/abc123?token=xyz789"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "未授权",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "code": 1002,
+                  "errmsg": "Unauthorized access",
+                  "data": null
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "游戏不存在或 provider 未配置",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "code": 1004,
+                  "errmsg": "Game not found",
+                  "data": null
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "验证失败",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "服务器错误",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "code": 1005,
+                  "errmsg": "Failed to create game session",
+                  "data": null
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/games/recommend": {
       "get": {
         "tags": ["Game"],
@@ -5068,6 +5247,29 @@
           },
           "data": {
             "$ref": "#/components/schemas/GameDetail"
+          }
+        }
+      },
+      "GameUrlResponse": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "integer",
+            "description": "响应码，0表示成功"
+          },
+          "errmsg": {
+            "type": "string",
+            "description": "响应消息"
+          },
+          "data": {
+            "type": "object",
+            "properties": {
+              "url": {
+                "type": "string",
+                "description": "游戏 URL（demo 或 session 地址）"
+              }
+            },
+            "required": ["url"]
           }
         }
       },

@@ -113,11 +113,18 @@ Route::get('/currencies', [CurrencyController::class, 'index']);
 // 汇率相关路由（只读）
 Route::get('/exchange-rates', [ExchangeRateController::class, 'index']);
 
-// 游戏相关路由（只读）
+// 游戏相关路由
 Route::prefix('games')->group(function () {
+    // 公开路由
     Route::get('/', [GameController::class, 'index']);
     Route::get('/recommend', [GameController::class, 'recommend']);
     Route::get('/{id}', [GameController::class, 'show']);
+    Route::get('/{id}/demo', [GameController::class, 'demo']);
+    
+    // 需要认证的路由
+    Route::middleware('auth:sanctum')->group(function () {
+        Route::get('/{id}/session', [GameController::class, 'session']);
+    });
 });
 
 // 游戏群组相关路由（只读）

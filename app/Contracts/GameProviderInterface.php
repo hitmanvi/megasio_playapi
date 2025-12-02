@@ -24,7 +24,6 @@ interface GameProviderInterface
      * @param string $gameId 游戏ID（提供商端的游戏标识）
      * @param array $params 会话参数，通常包含：
      *                      - user_id: 用户ID
-     *                      - currency: 货币类型
      *                      - language: 语言代码
      *                      - 其他提供商特定参数
      * @return array 会话信息，通常包含：
@@ -34,5 +33,5 @@ interface GameProviderInterface
      *              - 其他提供商特定的返回值
      * @throws \Exception 当创建会话失败时抛出异常
      */
-    public function session(string $gameId, array $params = []): array;
+    public function session(string $userId, string $gameId, array $params = []): string;
 }
