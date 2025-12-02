@@ -10,6 +10,8 @@ use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;
 use App\Exceptions\Exception;
 use App\Enums\ErrorCode;
+use App\Services\BalanceService;
+use App\Services\ProviderTransactionService;
 
 class FunkyProvider implements GameProviderInterface
 {
@@ -22,10 +24,13 @@ class FunkyProvider implements GameProviderInterface
     public $currency;
 
     protected $tokenService;
-
+    protected $balanceService;
+    protected $providerTransactionService;
     public function __construct(string $currency)
     {
         $this->tokenService = new GameProviderTokenService();
+        $this->balanceService = new BalanceService();
+        $this->providerTransactionService = new ProviderTransactionService();
         $this->loadCurrencyConfig($currency);
     }
 
@@ -91,6 +96,28 @@ class FunkyProvider implements GameProviderInterface
         $url = $resp['data']['gameUrl'] . '?token=' . $resp['data']['token'];
 
         return $url;
+    }
+
+    public function getBalance(int $userId, string $currency): float
+    {
+        $balance = $this->balanceService->getBalance($userId, $currency);
+        return floatval($balance['available']);
+    }
+
+    public function bet($userId, $gameId, $data, $currency=null)
+    {
+        // $action = $this->providerTransactionService->findByProviderAndTxid(GameProviderEnum::FUNKY->value, $data['refNo']);
+        // if ($action) {
+        //     throw new Exception(ErrorCode::BET_DUP);
+        // }
+        // $action = $this->providerTransactionService->create(GameProviderEnum::FUNKY->value, $gameId, $userId, $data['refNo'], $data['roundId'], $data, $data);
+
+        // $this->balanceService->bet($userId, $data['stake'], $gameId, $data['refNo']);
+        // $order = $this->orderService->bet($gameId, $userId, Game::PROVIDER_FUNKY, $data['stake'], $data['refNo']);
+
+        // $action->update(['order_id' => $order->id]);
+
+        // return $action;
     }
 
     public function postRequest($path, $data)

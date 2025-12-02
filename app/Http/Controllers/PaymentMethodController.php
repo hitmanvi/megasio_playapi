@@ -51,6 +51,7 @@ class PaymentMethodController extends Controller
                 'min_amount' => $method->min_amount ? (float)$method->min_amount : null,
                 'sort_id' => $method->sort_id,
                 'crypto_info' => $method->crypto_info,
+                'fields' => $method->fields,
             ];
         });
 

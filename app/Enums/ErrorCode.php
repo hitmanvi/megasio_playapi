@@ -50,6 +50,9 @@ enum ErrorCode: int
     case PAY_INVALID_PARAM = 5007;
     case PAY_IFSC = 5008;
     case PAY_EXPIRED = 5009;
+
+    // 游戏提供商错误 (6000-6999)
+    case BET_DUP = 6001;
     /**
      * 获取错误消息
      */

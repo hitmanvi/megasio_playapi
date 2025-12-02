@@ -16,13 +16,17 @@ class GameProviderFactory
      * 创建游戏提供商实例
      * 
      * @param string $providerName provider名称（如：funky, netflix）
-     * @param string|null $currency 货币类型（某些 provider 需要，如 FunkyProvider）
+     * @param string $currency 货币类型（必须传）
      * @param array $config 其他配置参数
      * @return GameProviderInterface
-     * @throws \InvalidArgumentException 当provider不存在时
+     * @throws \InvalidArgumentException 当provider不存在时或currency未传时
      */
-    public static function create(string $providerName, ?string $currency = null, array $config = []): GameProviderInterface
+    public static function create(string $providerName, string $currency, array $config = []): GameProviderInterface
     {
+        if (empty($currency)) {
+            throw new \InvalidArgumentException("Currency is required for creating a GameProvider instance.");
+        }
+
         $providerName = strtolower($providerName);
         
         // 根据provider名称构建类名
@@ -32,17 +36,9 @@ class GameProviderFactory
             throw new \InvalidArgumentException("Game provider '{$providerName}' not found. Class '{$className}' does not exist.");
         }
         
-        // 实例化provider
-        // 如果提供了 currency，优先使用 currency；否则使用 config 数组
-        if ($currency !== null) {
-            $provider = new $className($currency);
-        } elseif (isset($config['currency'])) {
-            $provider = new $className($config['currency']);
-        } else {
-            // 对于不需要 currency 的 provider，使用 config 数组
-            $provider = new $className($config);
-        }
-        
+        // 所有provider实例都必须使用currency
+        $provider = new $className($currency);
+
         if (!($provider instanceof GameProviderInterface)) {
             throw new \InvalidArgumentException("Provider {$className} must implement GameProviderInterface");
         }
