@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Events\BalanceChanged;
 use App\Exceptions\Exception;
+use App\Exceptions\InsufficientBalanceException;
 use App\Models\Balance;
 use App\Models\Transaction;
 use App\Enums\ErrorCode;
@@ -35,27 +36,13 @@ class BalanceService
         $balance = $this->getBalance($userId, $currency);
         
         if (!$balance) {
-            // Create new balance record
-            $data = [
+            $balance = Balance::create([
                 'user_id' => $userId,
                 'currency' => $currency,
                 'available' => 0,
                 'frozen' => 0,
                 'version' => 0,
-            ];
-            
-            if ($type === 'available') {
-                $data['available'] = $operation === 'add' ? $amount : -$amount;
-            } else {
-                $data['frozen'] = $operation === 'add' ? $amount : -$amount;
-            }
-            
-            $newBalance = Balance::create($data);
-            
-            // 触发余额变动事件（传递 user_id，查询延迟到监听器）
-            event(new BalanceChanged($userId, $newBalance, $amount, $operation, $type));
-            
-            return $newBalance;
+            ]);
         }
 
         // Update existing balance with optimistic locking
@@ -63,10 +50,16 @@ class BalanceService
         $newFrozen = $balance->frozen;
         
         if ($type === 'available') {
+            if ($operation === 'subtract' && $balance->available < $amount) {
+                throw new InsufficientBalanceException();
+            }
             $newAvailable = $operation === 'add' 
                 ? $balance->available + $amount 
                 : $balance->available - $amount;
         } else {
+            if ($operation === 'subtract' && $balance->frozen < $amount) {
+                throw new InsufficientBalanceException();
+            }
             $newFrozen = $operation === 'add' 
                 ? $balance->frozen + $amount 
                 : $balance->frozen - $amount;
@@ -81,7 +74,7 @@ class BalanceService
                          ]);
 
         if (!$updated) {
-            throw new \Exception('Balance update failed due to concurrent modification');
+            throw new Exception(ErrorCode::BALANCE_UPDATE_FAILED);
         }
 
         // 重新加载余额
@@ -94,6 +87,22 @@ class BalanceService
     }
 
     /**
+     * Increment available balance.
+     */
+    public function increment(int $userId, string $currency, float $amount, string $type = 'available'): Balance
+    {
+        return $this->updateBalance($userId, $currency, $amount, 'add', $type);
+    }
+
+    /**
+     * Decrement available balance.
+     */
+    public function decrement(int $userId, string $currency, float $amount, string $type = 'available'): Balance
+    {
+        return $this->updateBalance($userId, $currency, $amount, 'subtract', $type);
+    }
+
+    /**
      * Freeze amount from available balance.
      */
     public function freezeAmount(int $userId, string $currency, float $amount): bool
@@ -101,7 +110,7 @@ class BalanceService
         $balance = $this->getBalance($userId, $currency);
         
         if (!$balance || $balance->available < $amount) {
-            throw new \Exception('Insufficient available balance');
+            throw new InsufficientBalanceException();
         }
 
         return $this->updateBalance($userId, $currency, $amount, 'subtract', 'available') &&
@@ -116,7 +125,7 @@ class BalanceService
         $balance = $this->getBalance($userId, $currency);
         
         if (!$balance || $balance->frozen < $amount) {
-            throw new \Exception('Insufficient frozen balance');
+            throw new InsufficientBalanceException();
         }
 
         return $this->updateBalance($userId, $currency, $amount, 'subtract', 'frozen') &&
@@ -158,7 +167,7 @@ class BalanceService
         return DB::transaction(function () use ($userId, $currency, $amount, $notes, $relatedEntityId) {
             // Check if user has sufficient available balance
             if (!$this->hasSufficientAvailableBalance($userId, $currency, $amount)) {
-                throw new Exception(ErrorCode::INSUFFICIENT_BALANCE);
+                throw new InsufficientBalanceException();
             }
 
             // Freeze amount from available balance

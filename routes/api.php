@@ -19,6 +19,7 @@ use App\Http\Controllers\PaymentMethodController;
 use App\Http\Controllers\ThemeController;
 use App\Http\Controllers\TranslationExampleController;
 use App\Http\Controllers\UtilsController;
+use App\Http\Controllers\GameProviders\FunkyController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -138,3 +139,15 @@ Route::prefix('game-groups')->group(function () {
 // 工具类路由
 Route::get('/timestamp', [UtilsController::class, 'timestamp']);
 Route::get('/settings', [UtilsController::class, 'settings']);
+
+// 游戏提供商回调路由（需要 IP 白名单验证）
+Route::prefix('gp')->group(function () {
+    // Funky 提供商回调
+    Route::prefix('funky')->middleware(['provider.ip:funky'])->group(function () {
+        Route::post('/Funky/User/GetBalance', [FunkyController::class, 'getBalance']);
+        Route::post('/Funky/Bet/CheckBet', [FunkyController::class, 'checkBet']);
+        Route::post('/Funky/Bet/PlaceBet', [FunkyController::class, 'bet']);
+        Route::post('/Funky/Bet/SettleBet', [FunkyController::class, 'settle']);
+        Route::post('/Funky/Bet/CancelBet', [FunkyController::class, 'cancel']);
+    });
+});

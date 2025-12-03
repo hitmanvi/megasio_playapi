@@ -11,6 +11,7 @@ use Illuminate\Support\Str;
 use App\Exceptions\Exception;
 use App\Enums\ErrorCode;
 use App\Services\BalanceService;
+use App\Services\ProviderCallbackService;
 use App\Services\ProviderTransactionService;
 
 class FunkyProvider implements GameProviderInterface
@@ -25,12 +26,13 @@ class FunkyProvider implements GameProviderInterface
 
     protected $tokenService;
     protected $balanceService;
-    protected $providerTransactionService;
+    protected $providerCallbackService;
+
     public function __construct(string $currency)
     {
         $this->tokenService = new GameProviderTokenService();
         $this->balanceService = new BalanceService();
-        $this->providerTransactionService = new ProviderTransactionService();
+        $this->providerCallbackService = new ProviderCallbackService();
         $this->loadCurrencyConfig($currency);
     }
 
@@ -98,26 +100,27 @@ class FunkyProvider implements GameProviderInterface
         return $url;
     }
 
-    public function getBalance(int $userId, string $currency): float
+    public function getBalance(string $token): float
     {
+        $userInfo = $this->providerCallbackService->getUserInfoByToken($token);
+        $userId = $userInfo['user_id'];
+        $currency = $userInfo['currency'];
         $balance = $this->balanceService->getBalance($userId, $currency);
         return floatval($balance['available']);
     }
 
-    public function bet($userId, $gameId, $data, $currency=null)
+    public function bet($userId, $gameId, $data, $currency)
     {
-        // $action = $this->providerTransactionService->findByProviderAndTxid(GameProviderEnum::FUNKY->value, $data['refNo']);
-        // if ($action) {
-        //     throw new Exception(ErrorCode::BET_DUP);
-        // }
-        // $action = $this->providerTransactionService->create(GameProviderEnum::FUNKY->value, $gameId, $userId, $data['refNo'], $data['roundId'], $data, $data);
-
-        // $this->balanceService->bet($userId, $data['stake'], $gameId, $data['refNo']);
-        // $order = $this->orderService->bet($gameId, $userId, Game::PROVIDER_FUNKY, $data['stake'], $data['refNo']);
-
-        // $action->update(['order_id' => $order->id]);
-
-        // return $action;
+        return $this->providerCallbackService->handleBet(
+            GameProviderEnum::FUNKY->value,
+            $gameId,
+            $userId,
+            $data['refNo'],
+            $data['roundId'],
+            $data['stake'],
+            $currency,
+            $data
+        );
     }
 
     public function postRequest($path, $data)
@@ -132,5 +135,10 @@ class FunkyProvider implements GameProviderInterface
         $resp = Http::withHeaders($headers)->post($url, $data);
 
         return $resp->json();
+    }
+
+    public function checkFunkyHeader($funkyId, $funkySecret)
+    {
+        return $funkyId == $this->funkyId && $funkySecret == $this->funkySecret;
     }
 }

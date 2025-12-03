@@ -40,6 +40,7 @@ enum ErrorCode: int
     case RESOURCE_LOCKED = 4002;
     case OPERATION_NOT_ALLOWED = 4003;
     case INSUFFICIENT_BALANCE = 4004;
+    case BALANCE_UPDATE_FAILED = 4005;
     // 支付错误 (5000-5999)
     case PAY_DEPOSIT_FAILED = 5001;
     case PAY_WITHDRAW_FAILED = 5002;
@@ -93,6 +94,7 @@ enum ErrorCode: int
             self::INSUFFICIENT_PERMISSIONS => 'Insufficient permissions',
             self::RESOURCE_LOCKED => 'Resource is locked',
             self::OPERATION_NOT_ALLOWED => 'Operation not allowed',
+            self::INSUFFICIENT_BALANCE => 'Insufficient balance',
         };
     }
 
