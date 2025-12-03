@@ -33,10 +33,10 @@ class FunkyController extends Controller
      * 检查下注
      * POST /gp/funky/Funky/Bet/CheckBet
      */
-    public function checkBet(Request $request): JsonResponse
+    public function checkBet(Request $request)
     {
-        // TODO: 实现检查下注逻辑
-        return response()->json([]);
+        $id = $req->get('id');
+
     }
 
     /**

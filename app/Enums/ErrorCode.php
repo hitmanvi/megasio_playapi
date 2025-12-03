@@ -61,14 +61,14 @@ enum ErrorCode: int
     {
         return match($this) {
             self::SUCCESS => 'Success',
-            
+
             // 通用错误
             self::VALIDATION_ERROR => 'Validation failed',
             self::UNAUTHORIZED => 'Unauthorized access',
             self::FORBIDDEN => 'Access forbidden',
             self::NOT_FOUND => 'Resource not found',
             self::INTERNAL_ERROR => 'Internal server error',
-            
+
             // 认证相关错误
             self::INVALID_CREDENTIALS => 'The provided credentials are incorrect',
             self::ACCOUNT_DISABLED => 'Account has been disabled. Please contact administrator',
@@ -81,7 +81,7 @@ enum ErrorCode: int
             self::SMS_SEND_TOO_FREQUENT => 'SMS sending too frequent, please try again later',
             self::VERIFICATION_CODE_INVALID => 'Invalid verification code',
             self::VERIFICATION_CODE_EXPIRED => 'Verification code has expired',
-            
+
             // 用户相关错误
             self::USER_NOT_FOUND => 'User not found',
             self::USER_ALREADY_EXISTS => 'User already exists',
@@ -89,12 +89,29 @@ enum ErrorCode: int
             self::EMAIL_ALREADY_EXISTS => 'This email has already been registered',
             self::PHONE_EMAIL_REQUIRED => 'Please provide either phone number or email',
             self::INVALID_INVITE_CODE => 'Invalid invite code',
-            
+
             // 业务逻辑错误
             self::INSUFFICIENT_PERMISSIONS => 'Insufficient permissions',
             self::RESOURCE_LOCKED => 'Resource is locked',
             self::OPERATION_NOT_ALLOWED => 'Operation not allowed',
             self::INSUFFICIENT_BALANCE => 'Insufficient balance',
+            self::BALANCE_UPDATE_FAILED => 'Balance update failed',
+
+            // 支付错误
+            self::PAY_DEPOSIT_FAILED => 'Deposit failed',
+            self::PAY_WITHDRAW_FAILED => 'Withdraw failed',
+            self::PAY_INVALID_TIME => 'Invalid payment time',
+            self::PAY_ATTEMPT_TOO_MANY => 'Too many payment attempts',
+            self::PAY_INVALID_AMOUNT => 'Invalid payment amount',
+            self::PAY_UNAVAILABLE => 'Payment unavailable',
+            self::PAY_INVALID_PARAM => 'Invalid payment parameter',
+            self::PAY_IFSC => 'Invalid IFSC code',
+            self::PAY_EXPIRED => 'Payment expired',
+
+            // 游戏提供商错误
+            self::BET_DUP => 'Duplicate bet transaction',
+
+            default => 'Unknown error',
         };
     }
 
