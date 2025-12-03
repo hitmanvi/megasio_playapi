@@ -262,4 +262,9 @@ class GameService
             throw new Exception(ErrorCode::INTERNAL_ERROR, 'Failed to create game session: ' . $e->getMessage());
         }
     }
+
+    public function getGameByProviderAndOutId(string $provider, string $outId): Game
+    {
+        return Game::where('provider', $provider)->where('out_id', $outId)->first();
+    }
 }

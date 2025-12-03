@@ -80,14 +80,28 @@ class FunkyProvider implements GameProviderInterface
 
     /**
      * 根据 currency 加载配置
+     * 优先使用币种特定配置，如果没有则使用通用配置
      *
      * @param string $currency
      * @return void
      */
     protected function loadCurrencyConfig(string $currency): void
     {
-        // 直接以 currency 为 key 加载配置
+        // 先尝试加载币种特定配置
         $currencyConfig = config("providers.funky.{$currency}", []);
+        
+        // 如果没有币种特定配置，使用通用配置（default 或直接在 funky 下的配置）
+        if (empty($currencyConfig)) {
+            $defaultConfig = config("providers.funky.default", []);
+            // 如果 default 也没有，尝试直接使用 funky 下的配置（排除 ip_whitelist）
+            if (empty($defaultConfig)) {
+                $allConfig = config("providers.funky", []);
+                unset($allConfig['ip_whitelist']); // 排除 ip_whitelist
+                $currencyConfig = $allConfig;
+            } else {
+                $currencyConfig = $defaultConfig;
+            }
+        }
 
         // 加载所有配置
         $this->apiUrl = $currencyConfig['api_url'] ?? null;
@@ -151,16 +165,15 @@ class FunkyProvider implements GameProviderInterface
         return floatval($balance['available']);
     }
 
-    public function bet($userId, $gameId, $data, $currency)
+    public function bet($token, $gameOutId, $data)
     {
         return $this->providerCallbackService->handleBet(
             GameProviderEnum::FUNKY->value,
-            $gameId,
-            $userId,
+            $gameOutId,
+            $token,
             $data['refNo'],
-            $data['roundId'],
+            $data['roundId'] ?? $data['refNo'],
             $data['stake'],
-            $currency,
             $data
         );
     }

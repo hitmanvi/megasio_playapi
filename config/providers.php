@@ -28,10 +28,29 @@ return [
 
         /*
         |--------------------------------------------------------------------------
-        | Funky Provider Currency Configuration
+        | Funky Provider Default Configuration
         |--------------------------------------------------------------------------
         |
-        | 不同货币的配置，直接以 currency 为 key
+        | 通用配置，所有币种共享（如果某个币种没有特定配置，则使用此配置）
+        | 可以通过环境变量 FUNKY_API_URL, FUNKY_CLIENT_ID 等配置
+        |
+        */
+        'default' => [
+            'api_url' => env('FUNKY_API_URL', 'https://api.funky.com'),
+            'client_id' => env('FUNKY_CLIENT_ID'),
+            'client_secret' => env('FUNKY_CLIENT_SECRET'),
+            'lang' => env('FUNKY_LANG', 'en'),
+            'funky_id' => env('FUNKY_ID'),
+            'funky_secret' => env('FUNKY_SECRET'),
+        ],
+
+        /*
+        |--------------------------------------------------------------------------
+        | Funky Provider Currency-Specific Configuration
+        |--------------------------------------------------------------------------
+        |
+        | 币种特定配置（可选），如果某个币种需要特殊配置，可以在这里定义
+        | 如果某个币种没有特定配置，则使用上面的 default 配置
         |
         */
         'USD' => [

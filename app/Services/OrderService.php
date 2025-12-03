@@ -151,17 +151,16 @@ class OrderService
         return $order;
     }
 
-    public function payout($userId, $amount, $game, $roundId, $isFinished)
+    /**
+     * 更新订单的 payout
+     *
+     * @param Order $order 订单对象
+     * @param float $amount 赔付金额
+     * @param bool $isFinished 是否完成
+     * @return Order|null 更新后的订单，如果订单状态不是 PENDING 则返回 null
+     */
+    public function payout(Order $order, float $amount, bool $isFinished): ?Order
     {
-        $order = Order::where('user_id', $userId)
-            ->where('game_id', $game->id)
-            ->where('out_id', $roundId)
-            ->first();
-
-        if (!$order) {
-            return null;
-        }
-
         if ($order->status != Order::STATUS_PENDING) {
             return null;
         }
@@ -174,17 +173,14 @@ class OrderService
         return $order;
     }
 
-    public function refund($userId, $game, $roundId)
+    /**
+     * 取消订单（退款）
+     *
+     * @param Order $order 订单对象
+     * @return Order|null 更新后的订单，如果订单状态不是 PENDING 则返回 null
+     */
+    public function refund(Order $order): ?Order
     {
-        $order = Order::where('user_id', $userId)
-            ->where('game_id', $game->id)
-            ->where('out_id', $roundId)
-            ->first();
-
-        if (!$order) {
-            return null;
-        }
-
         if ($order->status != Order::STATUS_PENDING) {
             return null;
         }
