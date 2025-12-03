@@ -9,7 +9,7 @@ use App\Exceptions\Exception;
 class SopayService
 {
     const ErrorCode = [
-        0 => 0,
+        0 => ErrorCode::SUCCESS,
         10000 => ErrorCode::PAY_DEPOSIT_FAILED,
         10500 => ErrorCode::PAY_DEPOSIT_FAILED,
         10501 => ErrorCode::PAY_DEPOSIT_FAILED,
