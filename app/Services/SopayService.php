@@ -9,7 +9,6 @@ use App\Exceptions\Exception;
 class SopayService
 {
     const ErrorCode = [
-        0 => ErrorCode::SUCCESS,
         10000 => ErrorCode::PAY_DEPOSIT_FAILED,
         10500 => ErrorCode::PAY_DEPOSIT_FAILED,
         10501 => ErrorCode::PAY_DEPOSIT_FAILED,
@@ -176,7 +175,7 @@ class SopayService
         $url  = $this->endpoint . '/api/orders/deposit';
         $resp = Http::post($url, $data);
         $res  = $resp->json();
-
+        
         if (!$res) {
             return null;
         }
