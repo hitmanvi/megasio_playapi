@@ -17,11 +17,10 @@ use App\Http\Controllers\GameController;
 use App\Http\Controllers\GameGroupController;
 use App\Http\Controllers\PaymentMethodController;
 use App\Http\Controllers\ThemeController;
-use App\Http\Controllers\TranslationExampleController;
 use App\Http\Controllers\UtilsController;
 use App\Http\Controllers\GameProviders\FunkyController;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\SopayController;
 
 // 认证相关路由
 Route::prefix('auth')->group(function () {
@@ -151,3 +150,6 @@ Route::prefix('gp')->group(function () {
         Route::post('/Funky/Bet/CancelBet', [FunkyController::class, 'cancel']);
     });
 });
+
+// Sopay 回调路由
+Route::post('/sopay/callback', [SopayController::class, 'callback']);
