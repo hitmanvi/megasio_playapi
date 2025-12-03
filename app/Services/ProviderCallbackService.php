@@ -6,6 +6,7 @@ use App\Exceptions\DuplicateTransactionException;
 use App\Exceptions\GameNotFoundException;
 use App\Exceptions\GameNotEnabledException;
 use App\Exceptions\InvalidTokenException;
+use App\Exceptions\ProviderTransactionNotFoundException;
 use App\Models\Game;
 use App\Models\ProviderTransaction;
 use Illuminate\Support\Facades\DB;
@@ -249,9 +250,23 @@ class ProviderCallbackService
         return floatval($balance->available);
     }
 
+    /**
+     * 根据 provider 和 txid 获取 Provider Transaction
+     *
+     * @param string $provider 提供商标识
+     * @param string $txid 交易ID
+     * @return ProviderTransaction
+     * @throws ProviderTransactionNotFoundException 当交易记录不存在时抛出异常
+     */
     public function getProviderTransactionById(string $provider, string $txid): ProviderTransaction
     {
-        return $this->providerTransactionService->findByProviderAndTxid($provider, $txid);
+        $transaction = $this->providerTransactionService->findByProviderAndTxid($provider, $txid);
+        
+        if (!$transaction) {
+            throw new ProviderTransactionNotFoundException('Provider transaction not found');
+        }
+        
+        return $transaction;
     }
 }
 

@@ -6,9 +6,14 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use App\Services\ProviderCallbackService;
+use App\Enums\GameProvider;
+use App\GameProviders\FunkyProvider;
+use App\Exceptions\ProviderTransactionNotFoundException;
+use App\Exceptions\InvalidTokenException;
 
 class FunkyController extends Controller
 {
+    
     protected $funkyProvider;
     protected $providerCallbackService;
 
@@ -23,10 +28,14 @@ class FunkyController extends Controller
      */
     public function getBalance(Request $request): JsonResponse
     {
-        $token = $request->get('sessionId'); 
-        $balance = $this->providerCallbackService->getBalance($token);
-
-        return $this->resp(['balance' => $balance]);
+        try {
+            $token = $request->get('sessionId'); 
+            $balance = $this->providerCallbackService->getBalance($token);
+    
+            return $this->success(['balance' => $balance]);
+        } catch (InvalidTokenException $e) {
+            return FunkyProvider::errorResp(FunkyProvider::ERR_AUTH);
+        }
     }
 
     /**
@@ -35,8 +44,20 @@ class FunkyController extends Controller
      */
     public function checkBet(Request $request)
     {
-        $id = $req->get('id');
-
+        try {
+            $id = $request->get('id');
+            $transaction = $this->providerCallbackService->getProviderTransactionById(GameProvider::FUNKY->value, $id);
+            $order = $transaction->order;
+    
+            return $this->success([
+                'stake'         => $order->amount,
+                'winAmount'     => $order->payout,
+                'status'        => FunkyProvider::getStatus($order->amount, $order->payout),
+                'statementDate' => $order->finished_at->format('Y-m-d H:i:s'),
+            ]);
+        } catch (ProviderTransactionNotFoundException $e) {
+            return FunkyProvider::errorResp(FunkyProvider::ERR_BET_404);
+        }
     }
 
     /**
@@ -69,7 +90,7 @@ class FunkyController extends Controller
         return response()->json([]);
     }
 
-    private function resp($data)
+    private function success($data)
     {
         return response()->json([
             'errorCode' => 0,
