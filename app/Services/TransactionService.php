@@ -17,8 +17,8 @@ class TransactionService
         string $currency,
         float $amount,
         string $type,
-        string $notes = null,
-        int $relatedEntityId = null
+        string $relatedEntityId,
+        string $notes = ''
     ): Transaction {
         return Transaction::create([
             'user_id' => $userId,
@@ -26,8 +26,8 @@ class TransactionService
             'amount' => $amount,
             'type' => $type,
             'status' => Transaction::STATUS_COMPLETED, // 固定为完成状态
-            'notes' => $notes,
             'related_entity_id' => $relatedEntityId,
+            'notes' => $notes,
             'transaction_time' => now(),
         ]);
     }

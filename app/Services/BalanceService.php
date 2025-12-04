@@ -147,8 +147,8 @@ class BalanceService
                 $currency,
                 $amount,
                 Transaction::TYPE_DEPOSIT,
-                $notes,
-                $relatedEntityId
+                $relatedEntityId,
+                $notes
             );
 
             return [
@@ -180,8 +180,8 @@ class BalanceService
                 $currency,
                 $amount,
                 Transaction::TYPE_WITHDRAWAL,
-                $notes,
-                $relatedEntityId
+                $relatedEntityId,
+                $notes
             );
 
             return [
@@ -235,7 +235,7 @@ class BalanceService
         return DB::transaction(function () use ($userId, $amount, $currency, $gameId, $txid) {
             $balance = $this->updateBalance($userId, $currency, $amount, 'subtract', 'available');
             $entityId = $gameId."_".$txid;
-            $transaction = $this->transactionService->createTransaction($userId, $currency, $amount, Transaction::TYPE_BET, null, $entityId);
+            $transaction = $this->transactionService->createTransaction($userId, $currency, $amount, Transaction::TYPE_BET, $entityId);
             return [
                 'balance' => $balance,
                 'transaction' => $transaction,
@@ -248,7 +248,7 @@ class BalanceService
         return DB::transaction(function () use ($userId, $amount, $currency, $gameId, $txid) {
             $balance = $this->updateBalance($userId, $currency, $amount, 'add', 'available');
             $entityId = $gameId."_".$txid;
-            $transaction = $this->transactionService->createTransaction($userId, $currency, $amount, Transaction::TYPE_PAYOUT, null, $entityId);
+            $transaction = $this->transactionService->createTransaction($userId, $currency, $amount, Transaction::TYPE_PAYOUT, $entityId);
             return [
                 'balance' => $balance,
                 'transaction' => $transaction,
@@ -261,7 +261,7 @@ class BalanceService
         return DB::transaction(function () use ($userId, $amount, $currency, $gameId, $txid) {
             $balance = $this->updateBalance($userId, $currency, $amount, 'add', 'available');
             $entityId = $gameId."_".$txid;
-            $transaction = $this->transactionService->createTransaction($userId, $currency, $amount, Transaction::TYPE_REFUND, null, $entityId);
+            $transaction = $this->transactionService->createTransaction($userId, $currency, $amount, Transaction::TYPE_REFUND, $entityId);
             return [
                 'balance' => $balance,
                 'transaction' => $transaction,
