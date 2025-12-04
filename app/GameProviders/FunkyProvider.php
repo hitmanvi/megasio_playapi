@@ -144,11 +144,11 @@ class FunkyProvider implements GameProviderInterface
             'currency'    => $this->currency,
             'gameCode'    => $gameId,
             'language'    => $this->lang,
-            'playerId'    => $user->user_id,
+            'playerId'    => $user->uid,
             'playerIp'    => request()->ip(),
             'redirectUrl' => config('providers.return_url'),
             'sessionId'   => $token,
-            'userName'    => $user->user_id,
+            'userName'    => $user->uid,
         ];
 
         $resp = $this->postRequest($path, $data);
