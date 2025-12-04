@@ -36,7 +36,7 @@ return [
         |
         */
         'default' => [
-            'api_url' => env('FUNKY_API_URL', 'https://api.funky.com'),
+            'api_url' => env('FUNKY_API_URL'),
             'client_id' => env('FUNKY_CLIENT_ID'),
             'client_secret' => env('FUNKY_CLIENT_SECRET'),
             'lang' => env('FUNKY_LANG', 'en'),
