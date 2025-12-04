@@ -13,7 +13,7 @@ use App\Enums\ErrorCode;
 use App\Services\BalanceService;
 use App\Services\ProviderCallbackService;
 use App\Models\Game;
-
+use Illuminate\Support\Facades\Log;
 class FunkyProvider implements GameProviderInterface
 {
     protected $apiUrl;
@@ -167,7 +167,13 @@ class FunkyProvider implements GameProviderInterface
         ];
 
         $resp = Http::withHeaders($headers)->post($url, $data);
-
+        Log::error('FunkyProvider postRequest', [
+            'url' => $url,
+            'headers' => $headers,
+            'data' => $data,
+            'response_status' => $resp->status(),
+            'response_body' => $resp->body(),
+        ]);
         return $resp->json();
     }
 
