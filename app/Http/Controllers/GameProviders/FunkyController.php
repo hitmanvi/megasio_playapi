@@ -111,6 +111,10 @@ class FunkyController extends Controller
             return FunkyProvider::errorResp(FunkyProvider::ERR_GAME_403);
         } catch (\Throwable $th) {
             DB::rollBack();
+            Log::error('FunkyController bet error', [
+                'error' => $th->getMessage(),
+                'trace' => $th->getTraceAsString(),
+            ]);
             return FunkyProvider::errorResp(FunkyProvider::ERR_SERVER_ERROR);
         }
     }
@@ -150,6 +154,10 @@ class FunkyController extends Controller
             return FunkyProvider::errorResp(FunkyProvider::ERR_GAME_403);
         } catch (\Throwable $th) {
             DB::rollBack();
+            Log::error('FunkyController settle error', [
+                'error' => $th->getMessage(),
+                'trace' => $th->getTraceAsString(),
+            ]);
             return FunkyProvider::errorResp(FunkyProvider::ERR_SERVER_ERROR);
         }
         return $this->success([
