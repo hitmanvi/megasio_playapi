@@ -114,6 +114,7 @@ class GameService
                     ];
                 }),
                 'created_at' => $game->created_at,
+                'has_demo' => $game->has_demo,
             ];
         })->toArray();
     }
