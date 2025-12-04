@@ -48,7 +48,7 @@ class ImportFunkyGame extends Command
         $brand = Brand::firstOrCreate(['name' => 'funky', 'provider' => GameProviderEnum::FUNKY->value]);
 
         // 使用默认货币创建 FunkyProvider（getGameList 不依赖货币）
-        $service = new FunkyProvider('USD');
+        $service = new FunkyProvider();
         $games = $service->getGameList();
         
         $this->info('从 Funky 获取到 ' . count($games) . ' 个游戏');
