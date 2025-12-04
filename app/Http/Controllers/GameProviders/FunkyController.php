@@ -17,6 +17,7 @@ use App\Exceptions\GameNotFoundException;
 use App\Exceptions\GameNotEnabledException;
 use Illuminate\Support\Facades\DB;
 use App\Exceptions\OrderNotFoundException;
+use Illuminate\Support\Facades\Log;
 class FunkyController extends Controller
 {
     
@@ -193,6 +194,10 @@ class FunkyController extends Controller
             return FunkyProvider::errorResp(FunkyProvider::ERR_GAME_403);
         } catch (\Throwable $th) {
             DB::rollBack();
+            Log::error('FunkyController cancel error', [
+                'error' => $th->getMessage(),
+                'trace' => $th->getTraceAsString(),
+            ]);
             return FunkyProvider::errorResp(FunkyProvider::ERR_SERVER_ERROR);
         }
 
