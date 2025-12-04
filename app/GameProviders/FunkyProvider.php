@@ -166,13 +166,15 @@ class FunkyProvider implements GameProviderInterface
             'X-Request-ID'   => Str::random(),
         ];
 
-        $resp = Http::withHeaders($headers)->post($url, $data);
         Log::error('FunkyProvider postRequest', [
             'url' => $url,
             'headers' => $headers,
             'data' => $data,
-            'response_status' => $resp->status(),
-            'response_body' => $resp->body(),
+        ]);
+        $resp = Http::withHeaders($headers)->post($url, $data);
+        Log::error('FunkyProvider postRequest response', [
+            'status' => $resp->status(),
+            'body' => $resp->body(),
         ]);
         return $resp->json();
     }
