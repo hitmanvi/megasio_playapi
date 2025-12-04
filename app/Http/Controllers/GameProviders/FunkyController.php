@@ -127,7 +127,7 @@ class FunkyController extends Controller
     {
         $detail = $request->get('betResultReq');
         $txid = $request->header('X-Request-ID');
-        $roundId = $request->get('roundId');
+        $roundId = $request->get('refNo');
         $amount = $detail['winAmount'];
         
         DB::beginTransaction();
