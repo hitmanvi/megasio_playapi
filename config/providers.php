@@ -54,22 +54,14 @@ return [
         |
         */
         'USD' => [
-            'api_url' => env('FUNKY_USD_API_URL', 'https://api.funky.com'),
-            'client_id' => env('FUNKY_USD_CLIENT_ID'),
-            'client_secret' => env('FUNKY_USD_CLIENT_SECRET'),
-            'lang' => env('FUNKY_USD_LANG', 'en'),
-            'funky_id' => env('FUNKY_USD_ID'),
-            'funky_secret' => env('FUNKY_USD_SECRET'),
+            'api_url' => env('FUNKY_API_URL'),
+            'client_id' => env('FUNKY_CLIENT_ID'),
+            'client_secret' => env('FUNKY_CLIENT_SECRET'),
+            'lang' => env('FUNKY_LANG', 'en'),
+            'funky_id' => env('FUNKY_ID'),
+            'funky_secret' => env('FUNKY_SECRET'),
         ],
 
-        'EUR' => [
-            'api_url' => env('FUNKY_EUR_API_URL', 'https://api.funky.com'),
-            'client_id' => env('FUNKY_EUR_CLIENT_ID'),
-            'client_secret' => env('FUNKY_EUR_CLIENT_SECRET'),
-            'lang' => env('FUNKY_EUR_LANG', 'en'),
-            'funky_id' => env('FUNKY_EUR_ID'),
-            'funky_secret' => env('FUNKY_EUR_SECRET'),
-        ],
     ],
 ];
 

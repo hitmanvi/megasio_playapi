@@ -71,7 +71,7 @@ class FunkyProvider implements GameProviderInterface
         9999  => 'Internal Server Error',
     ];
 
-    public function __construct(string $currency='default')
+    public function __construct(string $currency='USD')
     {
         $this->tokenService = new GameProviderTokenService();
         $this->balanceService = new BalanceService();
