@@ -119,11 +119,11 @@ Route::prefix('games')->group(function () {
     Route::get('/', [GameController::class, 'index']);
     Route::get('/recommend', [GameController::class, 'recommend']);
     Route::get('/{id}', [GameController::class, 'show']);
-    Route::get('/{id}/demo', [GameController::class, 'demo']);
+    Route::post('/{id}/demo', [GameController::class, 'demo']);
     
     // 需要认证的路由
     Route::middleware('auth:sanctum')->group(function () {
-        Route::get('/{id}/session', [GameController::class, 'session']);
+        Route::post('/{id}/session', [GameController::class, 'session']);
     });
 });
 

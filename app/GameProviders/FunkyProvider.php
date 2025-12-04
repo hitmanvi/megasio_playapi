@@ -179,9 +179,9 @@ class FunkyProvider implements GameProviderInterface
         return $resp->json();
     }
 
-    public function checkFunkyHeader($funkyId, $funkySecret)
+    public static function checkFunkyHeader($funkyId, $funkySecret)
     {
-        return $funkyId == $this->funkyId && $funkySecret == $this->funkySecret;
+        return $funkyId == config('providers.funky.funky_id') && $funkySecret == config('providers.funky.funky_secret');
     }
 
     /**

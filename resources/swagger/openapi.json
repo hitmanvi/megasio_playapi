@@ -3081,7 +3081,7 @@
       }
     },
     "/games/{id}/demo": {
-      "get": {
+      "post": {
         "tags": ["Game"],
         "summary": "获取游戏 demo 地址",
         "description": "获取指定游戏的 demo 地址",
@@ -3094,20 +3094,28 @@
             "schema": {
               "type": "integer"
             }
-          },
-          {
-            "name": "currency",
-            "in": "query",
-            "required": true,
-            "description": "货币类型（3位代码，如：USD）",
-            "schema": {
-              "type": "string",
-              "minLength": 3,
-              "maxLength": 3,
-              "pattern": "^[A-Z]{3}$"
-            }
           }
         ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["currency"],
+                "properties": {
+                  "currency": {
+                    "type": "string",
+                    "minLength": 3,
+                    "maxLength": 3,
+                    "pattern": "^[A-Z]{3}$",
+                    "description": "货币类型（3位代码，如：USD）"
+                  }
+                }
+              }
+            }
+          }
+        },
         "responses": {
           "200": {
             "description": "获取 demo 地址成功",
@@ -3155,7 +3163,7 @@
       }
     },
     "/games/{id}/session": {
-      "get": {
+      "post": {
         "tags": ["Game"],
         "summary": "获取游戏 session 地址",
         "description": "获取指定游戏的 session 地址（需要认证）",
@@ -3169,20 +3177,28 @@
             "schema": {
               "type": "integer"
             }
-          },
-          {
-            "name": "currency",
-            "in": "query",
-            "required": true,
-            "description": "货币类型（3位代码，如：USD）",
-            "schema": {
-              "type": "string",
-              "minLength": 3,
-              "maxLength": 3,
-              "pattern": "^[A-Z]{3}$"
-            }
           }
         ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["currency"],
+                "properties": {
+                  "currency": {
+                    "type": "string",
+                    "minLength": 3,
+                    "maxLength": 3,
+                    "pattern": "^[A-Z]{3}$",
+                    "description": "货币类型（3位代码，如：USD）"
+                  }
+                }
+              }
+            }
+          }
+        },
         "responses": {
           "200": {
             "description": "获取 session 地址成功",
