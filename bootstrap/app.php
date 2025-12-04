@@ -7,6 +7,7 @@ use Illuminate\Foundation\Configuration\Middleware;
 use App\Exceptions\Exception;
 use Illuminate\Support\Facades\Log;
 use App\Http\Middleware\VerifyProviderIpWhitelist;
+use App\Http\Middleware\LogRequestResponse;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -18,6 +19,7 @@ return Application::configure(basePath: dirname(__DIR__))
         // 注册游戏提供商 IP 白名单验证中间件别名
         $middleware->alias([
             'provider.ip' => VerifyProviderIpWhitelist::class,
+            'log.request' => LogRequestResponse::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

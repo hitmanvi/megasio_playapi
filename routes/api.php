@@ -142,7 +142,7 @@ Route::get('/settings', [UtilsController::class, 'settings']);
 // 游戏提供商回调路由（需要 IP 白名单验证）
 Route::prefix('gp')->group(function () {
     // Funky 提供商回调
-    Route::prefix('funky')->middleware(['provider.ip:funky'])->group(function () {
+    Route::prefix('funky')->middleware(['provider.ip:funky', 'log.request'])->group(function () {
         Route::post('/Funky/User/GetBalance', [FunkyController::class, 'getBalance']);
         Route::post('/Funky/Bet/CheckBet', [FunkyController::class, 'checkBet']);
         Route::post('/Funky/Bet/PlaceBet', [FunkyController::class, 'bet']);

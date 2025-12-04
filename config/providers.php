@@ -10,7 +10,7 @@ return [
     |
     */
 
-    'return_url' => env('PROVIDER_RETURN_URL', 'https://your-domain.com/return'),
+    'return_url' => env('PROVIDER_RETURN_URL'),
 
     'funky' => [
         /*
