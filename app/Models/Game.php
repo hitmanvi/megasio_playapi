@@ -10,6 +10,13 @@ use Illuminate\Database\Eloquent\Relations\MorphMany;
 class Game extends Model
 {
     /**
+     * 游戏在提供商的状态常量
+     */
+    const PROVIDER_STATUS_AVAILABLE = 'available';    // 可用
+    const PROVIDER_STATUS_MAINTENANCE = 'maintenance'; // 维护
+    const PROVIDER_STATUS_DELETED = 'deleted';        // 删除
+
+    /**
      * The attributes that are mass assignable.
      *
      * @var array<int, string>
@@ -20,8 +27,10 @@ class Game extends Model
         'out_id',
         'name',
         'thumbnail',
+        'demo_url',
         'sort_id',
         'enabled',
+        'provider_status',
         'memo',
         'languages',
     ];

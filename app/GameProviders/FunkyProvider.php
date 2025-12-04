@@ -12,6 +12,7 @@ use App\Exceptions\Exception;
 use App\Enums\ErrorCode;
 use App\Services\BalanceService;
 use App\Services\ProviderCallbackService;
+use App\Models\Game;
 
 class FunkyProvider implements GameProviderInterface
 {
@@ -70,7 +71,7 @@ class FunkyProvider implements GameProviderInterface
         9999  => 'Internal Server Error',
     ];
 
-    public function __construct(string $currency)
+    public function __construct(string $currency='default')
     {
         $this->tokenService = new GameProviderTokenService();
         $this->balanceService = new BalanceService();
@@ -117,7 +118,7 @@ class FunkyProvider implements GameProviderInterface
     {
         $path = '/Funky/Game/GetGameList';
         $data = [
-            'language' => $this->lang,
+            'gameType' => 0,
         ];
 
         $resp = $this->postRequest($path, $data);
@@ -154,28 +155,6 @@ class FunkyProvider implements GameProviderInterface
         $url = $resp['data']['gameUrl'] . '?token=' . $resp['data']['token'];
 
         return $url;
-    }
-
-    public function getBalance(string $token): float
-    {
-        $userInfo = $this->providerCallbackService->getUserInfoByToken($token);
-        $userId = $userInfo['user_id'];
-        $currency = $userInfo['currency'];
-        $balance = $this->balanceService->getBalance($userId, $currency);
-        return floatval($balance['available']);
-    }
-
-    public function bet($token, $gameOutId, $data)
-    {
-        return $this->providerCallbackService->handleBet(
-            GameProviderEnum::FUNKY->value,
-            $gameOutId,
-            $token,
-            $data['refNo'],
-            $data['roundId'] ?? $data['refNo'],
-            $data['stake'],
-            $data
-        );
     }
 
     public function postRequest($path, $data)

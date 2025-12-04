@@ -214,6 +214,11 @@ class GameService
             return null;
         }
 
+        // 如果游戏有直接配置的 demo_url，优先使用
+        if ($game->demo_url) {
+            return $game->demo_url;
+        }
+
         $providerName = $game->brand->provider;
         if (!$providerName) {
             return null;
