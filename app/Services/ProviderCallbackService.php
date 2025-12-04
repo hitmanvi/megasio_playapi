@@ -124,7 +124,7 @@ class ProviderCallbackService
         float $amount,
         array $detail,
         bool $isFinished = true
-    ): ProviderTransaction {
+    ): array {
         // 检查是否已存在
         $existing = $this->providerTransactionService->findByProviderAndTxid($provider, $txid);
         if ($existing) {
