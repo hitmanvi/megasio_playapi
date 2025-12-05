@@ -30,18 +30,39 @@ class FunkyController extends Controller
     }
 
     /**
+     * 验证 Funky 请求头
+     */
+    protected function checkFunkyHeader(Request $request): void
+    {
+        // 获取配置中的 funkyId 和 funkySecret
+        $funkyId = config('providers.funky.funky_id');
+        $funkySecret = config('providers.funky.funky_secret');
+        
+        $userAgent = $request->header('User-Agent');
+        $authentication = $request->header('Authentication');
+        
+        if ($userAgent !== $funkyId || $authentication !== $funkySecret) {
+            throw new \Exception('Invalid Funky headers');
+        }
+    }
+
+    /**
      * 获取用户余额
      * POST /gp/funky/Funky/User/GetBalance
      */
     public function getBalance(Request $request): JsonResponse
     {
         try {
+            $this->checkFunkyHeader($request);
+            
             $token = $request->get('sessionId'); 
             $balance = $this->providerCallbackService->getBalance($token);
     
             return $this->success(['balance' => $balance]);
         } catch (InvalidTokenException $e) {
             return FunkyProvider::errorResp(FunkyProvider::ERR_AUTH);
+        } catch (\Exception $e) {
+            return FunkyProvider::errorResp(FunkyProvider::ERR_SERVER_ERROR);
         }
     }
 
@@ -52,6 +73,8 @@ class FunkyController extends Controller
     public function checkBet(Request $request)
     {
         try {
+            $this->checkFunkyHeader($request);
+            
             $id = $request->get('id');
             $transaction = $this->providerCallbackService->getProviderTransactionById(GameProviderEnum::FUNKY->value, $id);
             $order = $transaction->order;
@@ -64,6 +87,8 @@ class FunkyController extends Controller
             ]);
         } catch (ProviderTransactionNotFoundException $e) {
             return FunkyProvider::errorResp(FunkyProvider::ERR_BET_404);
+        } catch (\Exception $e) {
+            return FunkyProvider::errorResp(FunkyProvider::ERR_SERVER_ERROR);
         }
     }
 
@@ -73,6 +98,12 @@ class FunkyController extends Controller
      */
     public function bet(Request $request): JsonResponse
     {
+        try {
+            $this->checkFunkyHeader($request);
+        } catch (\Exception $e) {
+            return FunkyProvider::errorResp(FunkyProvider::ERR_SERVER_ERROR);
+        }
+        
         $token = $request->get('sessionId');
         $detail = $request->get('bet');
         $txid = $request->header('X-Request-ID');
@@ -125,6 +156,12 @@ class FunkyController extends Controller
      */
     public function settle(Request $request): JsonResponse
     {
+        try {
+            $this->checkFunkyHeader($request);
+        } catch (\Exception $e) {
+            return FunkyProvider::errorResp(FunkyProvider::ERR_SERVER_ERROR);
+        }
+        
         $detail = $request->get('betResultReq');
         $txid = $request->header('X-Request-ID');
         $roundId = $request->get('refNo');
@@ -175,6 +212,12 @@ class FunkyController extends Controller
      */
     public function cancel(Request $request): JsonResponse
     {
+        try {
+            $this->checkFunkyHeader($request);
+        } catch (\Exception $e) {
+            return FunkyProvider::errorResp(FunkyProvider::ERR_SERVER_ERROR);
+        }
+        
         $txid = $request->header('X-Request-ID');
         $roundId = $request->get('refNo');
 

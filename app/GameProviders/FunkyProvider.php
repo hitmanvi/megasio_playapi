@@ -178,12 +178,6 @@ class FunkyProvider implements GameProviderInterface
         ]);
         return $resp->json();
     }
-
-    public static function checkFunkyHeader($funkyId, $funkySecret)
-    {
-        return $funkyId == config('providers.funky.funky_id') && $funkySecret == config('providers.funky.funky_secret');
-    }
-
     /**
      * 返回 Funky 格式的错误响应（静态方法）
      *
