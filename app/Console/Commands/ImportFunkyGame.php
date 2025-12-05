@@ -7,6 +7,7 @@ use Illuminate\Console\Command;
 use App\GameProviders\FunkyProvider;
 use App\Enums\GameProvider as GameProviderEnum;
 use App\Models\Brand;
+use App\Models\GameSyncLog;
 
 class ImportFunkyGame extends Command
 {
@@ -43,15 +44,27 @@ class ImportFunkyGame extends Command
     {
         $this->info('开始同步 Funky 游戏列表...');
 
-        // 首次插入/创建时 brand name、provider 都是 'funky'
-        // 注意：brand 字段和 provider 字段都赋值为 'funky'
-        $brand = Brand::firstOrCreate(['name' => 'funky', 'provider' => GameProviderEnum::FUNKY->value]);
+        $startedAt = now();
+        $syncLog = null;
 
-        // 使用默认货币创建 FunkyProvider（getGameList 不依赖货币）
-        $service = new FunkyProvider();
-        $games = $service->getGameList();
-        
-        $this->info('从 Funky 获取到 ' . count($games) . ' 个游戏');
+        try {
+            // 首次插入/创建时 brand name、provider 都是 'funky'
+            // 注意：brand 字段和 provider 字段都赋值为 'funky'
+            $brand = Brand::firstOrCreate(['name' => 'funky', 'provider' => GameProviderEnum::FUNKY->value]);
+
+            // 创建同步记录
+            $syncLog = GameSyncLog::create([
+                'provider' => GameProviderEnum::FUNKY->value,
+                'brand_id' => $brand->id,
+                'status' => GameSyncLog::STATUS_SUCCESS,
+                'started_at' => $startedAt,
+            ]);
+
+            // 使用默认货币创建 FunkyProvider（getGameList 不依赖货币）
+            $service = new FunkyProvider();
+            $games = $service->getGameList();
+            
+            $this->info('从 Funky 获取到 ' . count($games) . ' 个游戏');
         $languageCodes = [
             'EN',     // English
             'ZH_TW',  // ZH_TW
@@ -121,6 +134,34 @@ class ImportFunkyGame extends Command
         $deletedCount = $query->count();
         $query->update(['enabled' => false, 'provider_status' => Game::PROVIDER_STATUS_DELETED]);
         
+        // 更新同步记录
+        if ($syncLog) {
+            $syncLog->update([
+                'total_count' => count($games),
+                'available_count' => $availableCount,
+                'maintenance_count' => $maintenanceCount,
+                'deleted_count' => $deletedCount,
+                'created_count' => $createdCount,
+                'updated_count' => $updatedCount,
+                'status' => GameSyncLog::STATUS_SUCCESS,
+                'finished_at' => now(),
+            ]);
+        }
+
+        // 更新同步记录
+        if ($syncLog) {
+            $syncLog->update([
+                'total_count' => count($games),
+                'available_count' => $availableCount,
+                'maintenance_count' => $maintenanceCount,
+                'deleted_count' => $deletedCount,
+                'created_count' => $createdCount,
+                'updated_count' => $updatedCount,
+                'status' => GameSyncLog::STATUS_SUCCESS,
+                'finished_at' => now(),
+            ]);
+        }
+
         // 输出同步结果
         $this->info('');
         $this->info('=== 同步完成 ===');
@@ -130,5 +171,20 @@ class ImportFunkyGame extends Command
         $this->info("总计处理: " . count($games) . " 个游戏");
         
         return 0;
+        } catch (\Exception $e) {
+            // 更新同步记录为失败状态
+            if ($syncLog) {
+                $syncLog->update([
+                    'status' => GameSyncLog::STATUS_FAILED,
+                    'error_message' => $e->getMessage(),
+                    'finished_at' => now(),
+                ]);
+            }
+            
+            $this->error('同步失败: ' . $e->getMessage());
+            $this->error($e->getTraceAsString());
+            
+            return 1;
+        }
     }
 }
