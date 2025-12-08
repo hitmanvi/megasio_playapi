@@ -12,6 +12,21 @@ return [
 
     'return_url' => env('PROVIDER_RETURN_URL'),
 
+    /*
+    |--------------------------------------------------------------------------
+    | Game Provider Rate Limit Configuration
+    |--------------------------------------------------------------------------
+    |
+    | 游戏提供商回调接口的频率限制配置
+    | max_attempts: 每分钟最大请求次数
+    | decay_minutes: 限制周期（分钟）
+    |
+    */
+    'rate_limit' => [
+        'max_attempts' => env('GP_RATE_LIMIT_MAX_ATTEMPTS', 1000),
+        'decay_minutes' => env('GP_RATE_LIMIT_DECAY_MINUTES', 1),
+    ],
+
     'funky' => [
         /*
         |--------------------------------------------------------------------------

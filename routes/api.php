@@ -139,8 +139,8 @@ Route::prefix('game-groups')->group(function () {
 Route::get('/timestamp', [UtilsController::class, 'timestamp']);
 Route::get('/settings', [UtilsController::class, 'settings']);
 
-// 游戏提供商回调路由（需要 IP 白名单验证）
-Route::prefix('gp')->group(function () {
+// 游戏提供商回调路由（需要 IP 白名单验证和独立的 rate limit）
+Route::prefix('gp')->middleware(['throttle:gp'])->group(function () {
     // Funky 提供商回调
     Route::prefix('funky')->middleware(['provider.ip:funky', 'log.request'])->group(function () {
         Route::post('/Funky/User/GetBalance', [FunkyController::class, 'getBalance']);

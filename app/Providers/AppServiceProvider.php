@@ -2,6 +2,9 @@
 
 namespace App\Providers;
 
+use Illuminate\Cache\RateLimiting\Limit;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -19,6 +22,21 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //
+        $this->configureRateLimiting();
+    }
+
+    /**
+     * Configure the rate limiters for the application.
+     */
+    protected function configureRateLimiting(): void
+    {
+        // 游戏提供商回调接口的频率限制
+        RateLimiter::for('gp', function (Request $request) {
+            $maxAttempts = config('providers.rate_limit.max_attempts', 1000);
+            $decayMinutes = config('providers.rate_limit.decay_minutes', 1);
+
+            return Limit::perMinutes($decayMinutes, $maxAttempts)
+                ->by($request->ip());
+        });
     }
 }
