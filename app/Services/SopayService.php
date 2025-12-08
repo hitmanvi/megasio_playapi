@@ -41,6 +41,7 @@ class SopayService
     protected $appKey;
     protected $appId;
     protected $callbackUrl;
+    protected $returnUrl;
 
     public function __construct()
     {
@@ -48,6 +49,7 @@ class SopayService
         $this->appId       = config('services.sopay.app_id');
         $this->appKey      = config('services.sopay.app_key');
         $this->callbackUrl = config('services.sopay.callback_url');
+        $this->returnUrl   = config('services.sopay.return_url');
     }
 
     public function getDepositInfo($amount, $paymentMethod)
@@ -283,8 +285,7 @@ class SopayService
 
     private function getReturnUrl($deposit)
     {
-        // TODO: 获取返回URL
-        return '';
+        return $this->returnUrl;
     }
 
     private function trimValue(array $info)
