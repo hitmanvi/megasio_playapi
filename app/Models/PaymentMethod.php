@@ -127,6 +127,14 @@ class PaymentMethod extends Model
     }
 
     /**
+     * Scope to filter by is_fiat value.
+     */
+    public function scopeByIsFiat($query, bool $isFiat)
+    {
+        return $query->where('is_fiat', $isFiat);
+    }
+
+    /**
      * Check if the payment method is enabled.
      */
     public function isEnabled(): bool

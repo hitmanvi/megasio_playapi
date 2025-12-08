@@ -11,26 +11,26 @@ class PaymentMethodController extends Controller
     /**
      * 获取支付方式列表
      * 
-     * 支持根据currency和type进行筛选
-     * currency和type必须同时提供
+     * 支持根据 currency, type, is_fiat 进行筛选（均为可选参数）
      */
     public function index(Request $request): JsonResponse
     {
-        // 验证：currency和type必须同时存在
-        if (!$request->has('currency') || !$request->has('type')) {
-            return $this->error(\App\Enums\ErrorCode::VALIDATION_ERROR, [
-                'currency' => ['Currency and type parameters are required'],
-                'type' => ['Currency and type parameters are required'],
-            ]);
-        }
-
         $query = PaymentMethod::query();
 
-        // 筛选：货币类型
-        $query->byCurrency($request->input('currency'));
+        // 筛选：货币类型（可选）
+        if ($request->has('currency')) {
+            $query->byCurrency($request->input('currency'));
+        }
 
-        // 筛选：支付类型 (deposit/withdraw)
-        $query->byType($request->input('type'));
+        // 筛选：支付类型 (deposit/withdraw)（可选）
+        if ($request->has('type')) {
+            $query->byType($request->input('type'));
+        }
+
+        // 筛选：是否法币（可选）
+        if ($request->has('is_fiat')) {
+            $query->byIsFiat(filter_var($request->input('is_fiat'), FILTER_VALIDATE_BOOLEAN));
+        }
 
         // 默认只返回启用的支付方式，并按sort_id排序
         $query->enabled()->ordered();

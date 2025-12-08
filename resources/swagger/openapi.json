@@ -2664,26 +2664,35 @@
       "get": {
         "tags": ["PaymentMethod"],
         "summary": "获取支付方式列表",
-        "description": "获取支付方式列表，支持根据currency和type进行筛选。注意：currency和type参数必须同时提供。",
+        "description": "获取支付方式列表，支持根据 currency、type、is_fiat 进行筛选（均为可选参数）。",
         "parameters": [
           {
             "name": "currency",
             "in": "query",
-            "description": "货币类型（如：USD, EUR）。必须与type参数同时提供。",
+            "description": "货币类型（如：USD, EUR）",
             "schema": {
               "type": "string"
             },
-            "required": true
+            "required": false
           },
           {
             "name": "type",
             "in": "query",
-            "description": "支付类型：deposit（存款）或withdraw（提款）。必须与currency参数同时提供。",
+            "description": "支付类型：deposit（存款）或 withdraw（提款）",
             "schema": {
               "type": "string",
               "enum": ["deposit", "withdraw"]
             },
-            "required": true
+            "required": false
+          },
+          {
+            "name": "is_fiat",
+            "in": "query",
+            "description": "是否法币：true（法币）或 false（加密货币）",
+            "schema": {
+              "type": "boolean"
+            },
+            "required": false
           }
         ],
         "responses": {
