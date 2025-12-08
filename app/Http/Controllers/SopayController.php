@@ -31,6 +31,15 @@ class SopayController extends Controller
             'body' => $request->all(),
         ]);
         
+        if(!$this->sopayService->verifySign($signData, $signature)) {
+            Log::error('Sopay Callback Signature Verification Failed', [
+                'sign_data' => $signData,
+                'signature' => $signature,
+            ]);
+            return '';
+        }
+
+
         // if($this->sopayService->verifySign($signData, $signature)) {
         //     $data = $request->all();
         //     if(isset($data['subject']) && $data['subject'] == 'deposit') {
