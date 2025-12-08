@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 use App\Enums\ErrorCode;
 use App\Exceptions\Exception;
 
@@ -173,13 +174,41 @@ class SopayService
     {
         $data = $this->getDepositData($deposit, $payment, $nativeApp);
         $url  = $this->endpoint . '/api/orders/deposit';
+
+        // 记录请求日志（隐藏敏感信息）
+        Log::info('Sopay deposit request', [
+            'url' => $url,
+            'order_no' => $deposit->order_no,
+            'amount' => $deposit->amount,
+            'currency' => $payment->currency,
+            'payment_key' => $payment->key,
+            'user_id' => $deposit->user_id,
+        ]);
+
         $resp = Http::post($url, $data);
         $res  = $resp->json();
+
+        // 记录响应日志
+        Log::info('Sopay deposit response', [
+            'order_no' => $deposit->order_no,
+            'status_code' => $resp->status(),
+            'response' => $res,
+        ]);
         
         if (!$res) {
+            Log::error('Sopay deposit response empty', [
+                'order_no' => $deposit->order_no,
+                'status_code' => $resp->status(),
+                'body' => $resp->body(),
+            ]);
             return null;
         }
         if ($res['code'] != 0) {
+            Log::error('Sopay deposit failed', [
+                'order_no' => $deposit->order_no,
+                'code' => $res['code'],
+                'message' => $res['msg'] ?? null,
+            ]);
             throw new Exception(self::ErrorCode[$res['code']]);
         }
 
