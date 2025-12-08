@@ -260,7 +260,7 @@ class SopayService
             'method'         => 'deposit',
             'callback_url'   => $this->callbackUrl,
             'ua' => request()->header('User-Agent'),
-            'user_id' => $deposit->user->user_id,
+            'user_id' => $deposit->user->uid,
         ];
 
         if ($payment->is_fiat) {
