@@ -100,7 +100,7 @@ class DepositController extends Controller
             $request->input('deposit_info', []),
             $request->input('extra_info', []),
             $request->ip(),
-            $request->input('native_app', '')
+            $request->input('native_app', 0),
         );
 
         // 返回创建的存款订单信息
