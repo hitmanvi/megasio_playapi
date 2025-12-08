@@ -155,7 +155,8 @@ class DepositService
      * @param array $extraInfo
      * @param string $userIp
      * @param int|null $expireMinutes
-     * @return Deposit
+     * @param string $nativeApp
+     * @return array Sopay response with url, extra_info, datetime, html, order_no
      */
     public function createDeposit(
         int $userId,
@@ -167,7 +168,7 @@ class DepositService
         string $userIp = '',
         ?int $expireMinutes = 30,
         string $nativeApp = ''
-    ): Deposit {
+    ): array {
         // Generate unique order number
         $orderNo = 'DEP' . strtoupper(Str::ulid()->toString());
 
@@ -194,7 +195,8 @@ class DepositService
             throw new Exception(ErrorCode::PAY_DEPOSIT_FAILED);
         }
 
-        return $deposit;
+        // Return sopay response with order_no
+        return $res;
     }
 
     public function deposit(Deposit $deposit, PaymentMethod $paymentMethod, string $nativeApp)
