@@ -302,6 +302,7 @@ class SopayService
     public function verifySign(string $signData, string $signature): bool
     {
         if (!file_exists($this->publicKeyPath)) {
+            Log::error('Sopay public key file not found', ['path' => $this->publicKeyPath]);
             return false;
         }
 
