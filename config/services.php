@@ -41,6 +41,7 @@ return [
         'app_key'      => env('SOPAY_APP_KEY'),
         'callback_url' => env('SOPAY_CALLBACK_URL'),
         'return_url'   => env('SOPAY_RETURN_URL'),
+        'public_key'   => storage_path('keys/sopay.pem'),
     ],
 
     'exchange_rate' => [

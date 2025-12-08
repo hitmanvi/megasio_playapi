@@ -42,14 +42,16 @@ class SopayService
     protected $appId;
     protected $callbackUrl;
     protected $returnUrl;
+    protected $publicKeyPath;
 
     public function __construct()
     {
-        $this->endpoint    = config('services.sopay.endpoint');
-        $this->appId       = config('services.sopay.app_id');
-        $this->appKey      = config('services.sopay.app_key');
-        $this->callbackUrl = config('services.sopay.callback_url');
-        $this->returnUrl   = config('services.sopay.return_url');
+        $this->endpoint      = config('services.sopay.endpoint');
+        $this->appId         = config('services.sopay.app_id');
+        $this->appKey        = config('services.sopay.app_key');
+        $this->callbackUrl   = config('services.sopay.callback_url');
+        $this->returnUrl     = config('services.sopay.return_url');
+        $this->publicKeyPath = config('services.sopay.public_key');
     }
 
     public function getDepositInfo($amount, $paymentMethod)
@@ -295,5 +297,24 @@ class SopayService
             $data[$k] = trim($v);
         }
         return $data;
+    }
+
+    public function verifySign(string $signData, string $signature): bool
+    {
+        if (!file_exists($this->publicKeyPath)) {
+            return false;
+        }
+
+        $decodedSignature = base64_decode($signature);
+        $publicKey = openssl_get_publickey(file_get_contents($this->publicKeyPath));
+        
+        if (!$publicKey) {
+            Log::error('Sopay public key invalid', ['path' => $this->publicKeyPath]);
+            return false;
+        }
+
+        $result = openssl_verify($signData, $decodedSignature, $publicKey, OPENSSL_ALGO_SHA256);
+        
+        return $result === 1;
     }
 }
