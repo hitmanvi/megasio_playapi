@@ -173,7 +173,7 @@ class SopayService
     public function deposit($deposit, $payment, $nativeApp)
     {
         $data = $this->getDepositData($deposit, $payment, $nativeApp);
-        $url  = $this->endpoint . '/api/orders/deposit';
+        $url  = $this->endpoint . '/api/v2/orders/deposit';
 
         // 记录请求日志（隐藏敏感信息）
         Log::info('Sopay deposit request', [
