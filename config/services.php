@@ -40,6 +40,7 @@ return [
         'app_id'       => env('SOPAY_APP_ID'),
         'app_key'      => env('SOPAY_APP_KEY'),
         'callback_url' => env('SOPAY_CALLBACK_URL'),
+        'return_url'   => env('SOPAY_RETURN_URL'),
     ],
 
     'exchange_rate' => [
