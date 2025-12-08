@@ -187,7 +187,14 @@ class SopayService
 
         $resp = Http::post($url, $data);
         $res  = $resp->json();
-
+        // 记录请求的完整内容
+        Log::info('Sopay deposit HTTP request', [
+            'order_no' => $deposit->order_no,
+            'http_request' => [
+                'url' => $url,
+                'data' => $data,
+            ],
+        ]);
         // 记录响应日志
         Log::info('Sopay deposit response', [
             'order_no' => $deposit->order_no,
