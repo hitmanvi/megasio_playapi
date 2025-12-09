@@ -36,6 +36,16 @@ class SopayService
         10523 => ErrorCode::PAY_EXPIRED,
     ];
 
+    const SOPAY_STATUS_PREPARING    = 0; // 准备中
+	const SOPAY_STATUS_PAYING       = 1; // 支付中
+	const SOPAY_STATUS_CONFIRMING   = 2; // 确认中
+	const SOPAY_STATUS_SUCCEED      = 3; // 已完成
+	const SOPAY_STATUS_FAILED       = 4; // 失败
+	const SOPAY_STATUS_EXPIRED      = 5; // 已过期
+	const SOPAY_STATUS_DELAYED      = 6; // 延迟支付
+	const SOPAY_STATUS_INSUFFICIENT = 7; // 已支付 但是金额小于订单金额
+	const SOPAY_STATUS_REJECT       = 8; // 订单已拒绝
+
 
     protected $endpoint;
     protected $appKey;

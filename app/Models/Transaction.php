@@ -38,6 +38,7 @@ class Transaction extends Model
      */
     const TYPE_DEPOSIT = 'DEPOSIT';
     const TYPE_WITHDRAWAL = 'WITHDRAWAL';
+    const TYPE_WITHDRAWAL_UNFREEZE = 'WITHDRAWAL_UNFREEZE';
     const TYPE_FEE = 'FEE';
     const TYPE_TRANSFER_IN = 'TRANSFER_IN';
     const TYPE_TRANSFER_OUT = 'TRANSFER_OUT';

@@ -9,14 +9,15 @@ use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
 use App\Exceptions\Exception;
 use App\Enums\ErrorCode;
+use Carbon\Carbon;
 
 class WithdrawService
 {
-    protected BalanceService $balanceService;
+    protected $balanceService;
 
-    public function __construct(BalanceService $balanceService)
+    public function __construct()
     {
-        $this->balanceService = $balanceService;
+        $this->balanceService = new BalanceService();
     }
 
     /**
@@ -261,6 +262,23 @@ class WithdrawService
         $fields = $sopayService->getWithdrawInfo($amount, $paymentMethod);
  
         return $fields;
+    }
+
+    public function finishWithdraw($orderId, $outId, $amount)
+    {
+        $withdraw = Withdraw::where('order_no', $orderId)->where('out_id', $outId)->first();
+        if(!$withdraw) {
+            return false;
+        }
+        return DB::transaction(function () use ($withdraw, $amount) {
+            $withdraw->update([
+                'status' => Withdraw::STATUS_COMPLETED,
+                'pay_status' => Withdraw::PAY_STATUS_PAID,
+                'completed_at' => Carbon::now(),
+            ]);
+            $this->balanceService->finishWithdraw($withdraw->user_id, $withdraw->currency, $amount, 'Withdraw', $withdraw->id);
+            return true;
+        });
     }
 }
 

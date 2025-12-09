@@ -158,6 +158,14 @@ class BalanceService
         });
     }
 
+    public function finishWithdraw(int $userId, string $currency, float $amount, string $notes, int $relatedEntityId): array
+    {
+        return DB::transaction(function () use ($userId, $currency, $amount, $notes, $relatedEntityId) {
+            $this->updateBalance($userId, $currency, $amount, 'subtract', 'frozen');
+            $this->transactionService->createTransaction($userId, $currency, $amount, Transaction::TYPE_WITHDRAWAL_UNFREEZE, $relatedEntityId, $notes);
+        });
+    }
+
     /**
      * Request withdraw - freeze amount from available balance.
      * This is called when a withdraw order is created.

@@ -3,19 +3,22 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use Illuminate\Http\JsonResponse;
-use Illuminate\Support\Facades\Validator;
-use App\Enums\ErrorCode;
 use App\Services\SopayService;
 use Illuminate\Support\Facades\Log;
+use App\Services\DepositService;
+use App\Services\WithdrawService;
 
 class SopayController extends Controller
 {
     protected SopayService $sopayService;
-
-    public function __construct(SopayService $sopayService)
+    protected DepositService $depositService;
+    protected WithdrawService $withdrawService;
+    
+    public function __construct()
     {
-        $this->sopayService = $sopayService;
+        $this->sopayService = new SopayService();
+        $this->depositService = new DepositService();
+        $this->withdrawService = new WithdrawService();
     }
 
     public function callback(Request $request)
@@ -39,23 +42,40 @@ class SopayController extends Controller
             return '';
         }
 
+        if(isset($data['subject']) && $data['subject'] == 'deposit') {
+            return $this->handleDeposit($data);
+        } elseif(isset($data['subject']) && $data['subject'] == 'withdraw') {
+            return $this->handleWithdraw($data);
+        }
+    }
 
-        // if($this->sopayService->verifySign($signData, $signature)) {
-        //     $data = $request->all();
-        //     if(isset($data['subject']) && $data['subject'] == 'deposit') {
-        //         $this->sopayService->depositSopay($data);
-        //         return 'ok';
-        //     }
-        //     if(isset($data['subject']) && $data['subject'] == 'withdraw') {
-        //         $result = CallbackService::withdrawSopay($data);
-        //         if(!$result) {
-        //             return '';
-        //         } else {
-        //             return 'ok';
-        //         }
-        //     }
-        // }
-        // return '';
+    private function handleDeposit($data)
+    {
+        $status = $data['status'];
+        $orderId = $data['out_trade_no'];
+        $outId = $data['order_id'];
+        $amount = $data['amount'];
+        $result = $this->depositService->finishDeposit($status, $orderId, $outId, $amount);
+        if(!$result) {
+            return '';
+        }
         return 'ok';
+    }
+
+    private function handleWithdraw($data)
+    {
+        $status = $data['status'];
+        if($status == SopayService::SOPAY_STATUS_SUCCEED) {
+            $orderId = $data['out_trade_no'];
+            $outId = $data['order_id'];
+            $amount = $data['amount'];
+            $result = $this->withdrawService->finishWithdraw($orderId, $outId, $amount);
+            if(!$result) {
+                return '';
+            }
+            return 'ok';
+        } else {
+            return '';
+        }
     }
 }

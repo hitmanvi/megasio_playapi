@@ -9,9 +9,17 @@ use Carbon\Carbon;
 use Illuminate\Pagination\LengthAwarePaginator;
 use App\Exceptions\Exception;
 use App\Enums\ErrorCode;
+use Illuminate\Support\Facades\DB;
 
 class DepositService
 {
+    protected $balanceService;
+
+    public function __construct()
+    {
+        $this->balanceService = new BalanceService();
+    }
+
     /**
      * Get user deposits with filters and pagination.
      *
@@ -259,6 +267,52 @@ class DepositService
         $fields = $sopayService->getDepositInfo($amount, $paymentMethod);
  
         return $fields;
+    }
+
+    public function finishDeposit($status, $orderId, $outId, $amount)
+    {
+        $deposit = Deposit::where('order_id', $orderId)
+            ->where('out_id', $outId)
+            ->first();
+
+        if (!$deposit) {
+            return false;
+        }
+
+        if ($deposit->status !== Deposit::STATUS_PENDING) {
+            return true;
+        }
+
+        $updateData = [
+            'pay_status' => $status,
+            'finished_at' => Carbon::now(),
+        ];
+
+        switch ($status) {
+            case SopayService::SOPAY_STATUS_SUCCEED:
+            case (SopayService::SOPAY_STATUS_DELAYED && $deposit->amount <= $amount):
+                $updateData['status'] = Deposit::STATUS_COMPLETED;
+                $updateData['amount'] = $amount;
+                $deposit->update($updateData);
+                $this->balanceService->deposit(
+                    $deposit->user_id,
+                    $deposit->currency,
+                    $amount,
+                    'Deposit',
+                    $deposit->id
+                );
+                break;
+            case SopayService::SOPAY_STATUS_FAILED:
+                $updateData['status'] = Deposit::STATUS_FAILED;
+                $deposit->update($updateData);
+                break;
+            case SopayService::SOPAY_STATUS_EXPIRED:
+                $updateData['status'] = Deposit::STATUS_EXPIRED;
+                $deposit->update($updateData);
+                break;
+        }
+
+        return true;
     }
 }
 
