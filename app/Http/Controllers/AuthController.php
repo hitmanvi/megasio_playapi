@@ -199,19 +199,18 @@ class AuthController extends Controller
     public function resetPassword(Request $request): JsonResponse
     {
         $request->validate([
-            'account' => 'required|string', // 可以是手机号或邮箱
+            'email' => 'required_without:phone|nullable|string|email',
+            'phone' => 'required_without:email|nullable|string',
+            'area_code' => 'nullable|string|max:10|required_with:phone',
             'code' => 'required|string|size:6',
-            'password' => 'required|string|min:8',
-            'area_code' => 'nullable|string|max:10',
+            'password' => 'required|string|min:6',
         ]);
 
-        $account = $request->input('account');
+        $email = $request->input('email');
+        $phone = $request->input('phone');
         $code = $request->input('code');
         $password = $request->input('password');
         $areaCode = $request->input('area_code');
-
-        // 判断是手机号还是邮箱
-        $isEmail = filter_var($account, FILTER_VALIDATE_EMAIL) !== false;
 
         // 处理 area_code，移除 + 号
         if ($areaCode && str_starts_with($areaCode, '+')) {
@@ -221,10 +220,12 @@ class AuthController extends Controller
         try {
             // 验证验证码
             $codeType = 'reset_password';
-            if ($isEmail) {
-                $isValid = $this->verificationCodeService->verifyEmailCode($account, $code, $codeType);
+            if (!empty($email)) {
+                $isValid = $this->verificationCodeService->verifyEmailCode($email, $code, $codeType);
+                $account = $email;
             } else {
-                $isValid = $this->verificationCodeService->verifySmsCode($account, $code, $areaCode, $codeType);
+                $isValid = $this->verificationCodeService->verifySmsCode($phone, $code, $areaCode, $codeType);
+                $account = $phone;
             }
 
             if (!$isValid) {

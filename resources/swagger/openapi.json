@@ -768,12 +768,24 @@
               "schema": {
                 "$ref": "#/components/schemas/ResetPasswordRequest"
               },
-              "example": {
-                "account": "13800138000",
-                "code": "123456",
-                "password": "newpassword123",
-                "password_confirmation": "newpassword123",
-                "area_code": "86"
+              "examples": {
+                "reset_by_phone": {
+                  "summary": "使用手机号重置密码",
+                  "value": {
+                    "phone": "13800138000",
+                    "area_code": "86",
+                    "code": "123456",
+                    "password": "newpassword123"
+                  }
+                },
+                "reset_by_email": {
+                  "summary": "使用邮箱重置密码",
+                  "value": {
+                    "email": "user@example.com",
+                    "code": "123456",
+                    "password": "newpassword123"
+                  }
+                }
               }
             }
           }
@@ -3903,11 +3915,24 @@
       },
       "ResetPasswordRequest": {
         "type": "object",
-        "required": ["account", "code", "password"],
+        "required": ["code", "password"],
         "properties": {
-          "account": {
+          "email": {
             "type": "string",
-            "description": "登录凭据（手机号或邮箱）"
+            "format": "email",
+            "nullable": true,
+            "description": "邮箱地址（与 phone 二选一）"
+          },
+          "phone": {
+            "type": "string",
+            "nullable": true,
+            "description": "手机号（与 email 二选一）"
+          },
+          "area_code": {
+            "type": "string",
+            "maxLength": 10,
+            "nullable": true,
+            "description": "区号/国家代码（使用手机号时必填，不需要+号，如：86）"
           },
           "code": {
             "type": "string",
@@ -3917,18 +3942,8 @@
           },
           "password": {
             "type": "string",
-            "minLength": 8,
-            "description": "新密码（至少8位）"
-          },
-          "password_confirmation": {
-            "type": "string",
-            "description": "新密码确认"
-          },
-          "area_code": {
-            "type": "string",
-            "maxLength": 10,
-            "nullable": true,
-            "description": "区号/国家代码（仅用于手机号，不需要+号，如：86）"
+            "minLength": 6,
+            "description": "新密码（至少6位）"
           }
         }
       },
