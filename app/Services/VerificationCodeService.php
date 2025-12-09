@@ -55,6 +55,7 @@ class VerificationCodeService
      */
     public function sendEmailCode(string $email, string $type = 'default'): array
     {
+        
         // 验证邮箱格式
         if (!$this->validateEmail($email)) {
             throw new Exception(ErrorCode::VALIDATION_ERROR, 'Invalid email format');
@@ -223,6 +224,10 @@ class VerificationCodeService
      */
     protected function generateCode(): string
     {
+        // 非正式环境直接返回111111
+        if (app()->environment(['local', 'development', 'testing', 'staging'])) {
+            return '111111';
+        }
         return str_pad((string)random_int(0, 999999), self::CODE_LENGTH, '0', STR_PAD_LEFT);
     }
 
