@@ -201,7 +201,7 @@ class AuthController extends Controller
         $request->validate([
             'account' => 'required|string', // 可以是手机号或邮箱
             'code' => 'required|string|size:6',
-            'password' => 'required|string|min:8|confirmed',
+            'password' => 'required|string|min:8',
             'area_code' => 'nullable|string|max:10',
         ]);
 
