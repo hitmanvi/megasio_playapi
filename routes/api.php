@@ -138,6 +138,7 @@ Route::prefix('game-groups')->group(function () {
 // 工具类路由
 Route::get('/timestamp', [UtilsController::class, 'timestamp']);
 Route::get('/settings', [UtilsController::class, 'settings']);
+Route::middleware('auth:sanctum')->post('/upload', [UtilsController::class, 'uploadImage']);
 
 // 游戏提供商回调路由（需要 IP 白名单验证和独立的 rate limit）
 Route::prefix('gp')->middleware(['throttle:gp'])->group(function () {

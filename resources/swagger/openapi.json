@@ -3754,6 +3754,108 @@
           }
         }
       }
+    },
+    "/upload": {
+      "post": {
+        "tags": ["Utils"],
+        "summary": "上传图片",
+        "description": "上传图片到 S3 存储，支持 jpg、png、gif、webp 格式，最大 5MB",
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "required": ["file"],
+                "properties": {
+                  "file": {
+                    "type": "string",
+                    "format": "binary",
+                    "description": "图片文件（支持 jpg、png、gif、webp，最大 5MB）"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "上传成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessResponse"
+                },
+                "example": {
+                  "code": 0,
+                  "errmsg": "Success",
+                  "data": {
+                    "url": "https://s3.amazonaws.com/bucket/uploads/20231201/550e8400-e29b-41d4-a716-446655440000.jpg"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "未认证",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "code": 1000,
+                  "errmsg": "Unauthenticated",
+                  "data": null
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "验证失败",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "examples": {
+                  "file_required": {
+                    "summary": "文件必填",
+                    "value": {
+                      "code": 1001,
+                      "errmsg": "Validation failed",
+                      "data": {
+                        "file": ["The file field is required."]
+                      }
+                    }
+                  },
+                  "invalid_type": {
+                    "summary": "文件类型不支持",
+                    "value": {
+                      "code": 1001,
+                      "errmsg": "Validation failed",
+                      "data": {
+                        "file": ["The file field must be a file of type: jpg, jpeg, png, gif, webp."]
+                      }
+                    }
+                  },
+                  "file_too_large": {
+                    "summary": "文件过大",
+                    "value": {
+                      "code": 1001,
+                      "errmsg": "Validation failed",
+                      "data": {
+                        "file": ["The file field must not be greater than 5120 kilobytes."]
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
