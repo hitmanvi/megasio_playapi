@@ -203,4 +203,36 @@ class User extends Authenticatable
         $this->current_currency = strtoupper($currency);
         $this->save();
     }
+
+    /**
+     * 获取用户的 meta 数据
+     */
+    public function metas(): HasMany
+    {
+        return $this->hasMany(UserMeta::class);
+    }
+
+    /**
+     * 添加用户的 meta 值
+     */
+    public function addMeta(string $key, string $value): UserMeta
+    {
+        return UserMeta::addValue($this->id, $key, $value);
+    }
+
+    /**
+     * 获取用户某个 key 的最新 meta 值
+     */
+    public function getLatestMeta(string $key): ?string
+    {
+        return UserMeta::getLatest($this->id, $key);
+    }
+
+    /**
+     * 获取用户某个 key 的所有 meta 值
+     */
+    public function getAllMeta(string $key): array
+    {
+        return UserMeta::getAll($this->id, $key);
+    }
 }
