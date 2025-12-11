@@ -118,12 +118,7 @@ class GameController extends Controller
      */
     public function demo(Request $request, int $id): JsonResponse
     {
-        $request->validate([
-            'currency' => 'required|string|size:3',
-        ]);
-
-        $currency = strtoupper($request->input('currency'));
-        $demoUrl = $this->gameService->getGameDemoUrl($id, $currency);
+        $demoUrl = $this->gameService->getGameDemoUrl($id, 'USD');
 
         if (!$demoUrl) {
             return $this->error(ErrorCode::NOT_FOUND, 'Game demo not available');

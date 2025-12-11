@@ -3238,7 +3238,7 @@
       "post": {
         "tags": ["Game"],
         "summary": "获取游戏 demo 地址",
-        "description": "获取指定游戏的 demo 地址",
+        "description": "获取指定游戏的 demo 地址（使用 USD 货币）",
         "parameters": [
           {
             "name": "id",
@@ -3250,26 +3250,6 @@
             }
           }
         ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "required": ["currency"],
-                "properties": {
-                  "currency": {
-                    "type": "string",
-                    "minLength": 3,
-                    "maxLength": 3,
-                    "pattern": "^[A-Z]{3}$",
-                    "description": "货币类型（3位代码，如：USD）"
-                  }
-                }
-              }
-            }
-          }
-        },
         "responses": {
           "200": {
             "description": "获取 demo 地址成功",
