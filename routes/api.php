@@ -44,6 +44,7 @@ Route::prefix('auth')->group(function () {
 // 用户相关路由（需要认证）
 Route::middleware('auth:sanctum')->prefix('users')->group(function () {
     Route::get('/mine', [UserController::class, 'show']);
+    Route::patch('/mine', [UserController::class, 'update']);
     Route::patch('/currency-preferences', [UserController::class, 'updateCurrencyPreferences']);
 });
 

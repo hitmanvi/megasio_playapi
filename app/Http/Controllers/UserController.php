@@ -111,4 +111,20 @@ class UserController extends Controller
             'current_currency' => $user->getCurrentCurrency(),
         ]);
     }
+
+    /**
+     * 更新用户信息
+     */
+    public function update(Request $request): JsonResponse
+    {
+        $request->validate([
+            'name' => 'required|string|max:255',
+        ]);
+
+        $user = $request->user();
+        $user->name = $request->input('name');
+        $user->save();
+
+        return $this->responseItem(true);
+    }
 }
