@@ -136,7 +136,7 @@ class FunkyProvider implements GameProviderInterface
 
         $path = '/Funky/Game/LaunchGame';
         $user = User::find($userId);
-        $token = $this->tokenService->issue(GameProviderEnum::FUNKY->value, $userId, $this->currency);
+        $token = $this->tokenService->issue(GameProviderEnum::FUNKY->value, $userId, $this->currency, 60*24);
         if (!$token) {
             throw new Exception(ErrorCode::TOKEN_INVALID);
         }
