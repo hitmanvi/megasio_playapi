@@ -33,6 +33,7 @@ class Game extends Model
         'provider_status',
         'memo',
         'languages',
+        'has_demo',
     ];
 
     /**
@@ -43,6 +44,7 @@ class Game extends Model
     protected $casts = [
         'enabled' => 'boolean',
         'languages' => 'array',
+        'has_demo' => 'boolean',
     ];
 
     /**
