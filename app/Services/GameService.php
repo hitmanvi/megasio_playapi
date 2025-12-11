@@ -155,6 +155,7 @@ class GameService
             }),
             'created_at' => $game->created_at,
             'updated_at' => $game->updated_at,
+            'has_demo' => $game->has_demo,
         ];
     }
 
