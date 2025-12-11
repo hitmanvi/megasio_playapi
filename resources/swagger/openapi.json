@@ -3114,6 +3114,7 @@
                         "name": "The Matrix",
                         "thumbnail": "https://example.com/thumbnails/matrix.jpg",
                         "sort_id": 1,
+                        "has_demo": true,
                         "brand": {
                           "id": 1,
                           "name": "Netflix",
@@ -3188,6 +3189,7 @@
                     "thumbnail": "https://example.com/thumbnails/matrix.jpg",
                     "out_id": "netflix_001",
                     "sort_id": 1,
+                    "has_demo": true,
                     "memo": "Classic sci-fi action movie",
                     "languages": ["en", "zh-CN", "ja", "ko"],
                     "brand": {
@@ -3816,7 +3818,8 @@
                         "id": 1,
                         "name": "The Matrix",
                         "thumbnail": "https://example.com/thumbnails/matrix.jpg",
-                        "sort_id": 1
+                        "sort_id": 1,
+                        "has_demo": true
                       }
                     ],
                     "meta": {
@@ -4890,6 +4893,10 @@
           "sort_id": {
             "type": "integer",
             "description": "排序ID"
+          },
+          "has_demo": {
+            "type": "boolean",
+            "description": "是否支持试玩"
           }
         }
       },
