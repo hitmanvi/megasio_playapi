@@ -102,6 +102,7 @@ class ImportFunkyGame extends Command
                             'demo_url' => $d['demoGameUrl'] ?? null,
                             'languages' => $languageCodes,
                             'provider_status' => Game::PROVIDER_STATUS_AVAILABLE,
+                            'has_demo' => $d['demoGameUrl'] ? true : false,
                         ]
                     );
 
