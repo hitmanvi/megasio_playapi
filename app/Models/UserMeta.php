@@ -9,14 +9,6 @@ use Illuminate\Support\Collection;
 class UserMeta extends Model
 {
     /**
-     * 常用 key 常量
-     */
-    const KEY_LOGIN_IP = 'login_ip';               // 登录 IP
-    const KEY_LOGIN_UA = 'login_ua';               // 登录 User-Agent
-    const KEY_REGISTER_IP = 'register_ip';         // 注册 IP
-    const KEY_REGISTER_UA = 'register_ua';         // 注册 User-Agent
-
-    /**
      * The attributes that are mass assignable.
      *
      * @var array<int, string>
