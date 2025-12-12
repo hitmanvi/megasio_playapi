@@ -2320,8 +2320,8 @@
       },
       "post": {
         "tags": ["KYC"],
-        "summary": "提交/更新 KYC 信息",
-        "description": "提交或更新 KYC 认证信息。每个用户只能有一个 KYC 记录，提交后允许修改，不允许删除。如果之前被拒绝，修改后会重置为待审核状态。",
+        "summary": "提交/更新 KYC 基本信息（初审）",
+        "description": "提交或更新 KYC 基本信息（不含自拍）。初审通过后才能提交自拍进行二次认证。状态流程：pending -> approved/rejected -> selfie_pending -> selfie_approved/selfie_rejected",
         "security": [{"bearerAuth": []}],
         "requestBody": {
           "required": true,
@@ -2335,8 +2335,7 @@
                 "birthdate": "1990-01-01",
                 "document_front": "https://s3.amazonaws.com/bucket/uploads/doc_front.jpg",
                 "document_back": "https://s3.amazonaws.com/bucket/uploads/doc_back.jpg",
-                "document_number": "123456789012345678",
-                "selfie": "https://s3.amazonaws.com/bucket/uploads/selfie.jpg"
+                "document_number": "123456789012345678"
               }
             }
           }
@@ -2384,6 +2383,104 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/kyc/selfie": {
+      "post": {
+        "tags": ["KYC"],
+        "summary": "提交自拍（二次认证）",
+        "description": "提交自拍进行二次认证。仅在初审通过（status=approved）或自拍被拒绝（status=selfie_rejected）时可提交。",
+        "security": [{"bearerAuth": []}],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["selfie"],
+                "properties": {
+                  "selfie": {
+                    "type": "string",
+                    "format": "uri",
+                    "maxLength": 500,
+                    "description": "自拍照片 URL"
+                  }
+                }
+              },
+              "example": {
+                "selfie": "https://s3.amazonaws.com/bucket/uploads/selfie.jpg"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "提交成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessResponse"
+                },
+                "example": {
+                  "code": 0,
+                  "errmsg": "Success",
+                  "data": {
+                    "name": "张三",
+                    "birthdate": "1990-01-01",
+                    "document_front": "https://s3.amazonaws.com/bucket/uploads/doc_front.jpg",
+                    "document_back": "https://s3.amazonaws.com/bucket/uploads/doc_back.jpg",
+                    "document_number": "123456789012345678",
+                    "selfie": "https://s3.amazonaws.com/bucket/uploads/selfie.jpg",
+                    "status": "selfie_pending",
+                    "reject_reason": null,
+                    "created_at": "2024-01-01T00:00:00.000000Z",
+                    "updated_at": "2024-01-01T00:00:00.000000Z"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "未授权",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "当前状态不允许提交自拍",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "code": 4003,
+                  "errmsg": "Cannot submit selfie at current status",
+                  "data": null
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "未找到 KYC 记录",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "code": 1004,
+                  "errmsg": "KYC not found, please submit basic info first",
+                  "data": null
                 }
               }
             }
@@ -4266,13 +4363,6 @@
             "maxLength": 100,
             "nullable": true,
             "description": "证件号码"
-          },
-          "selfie": {
-            "type": "string",
-            "format": "uri",
-            "maxLength": 500,
-            "nullable": true,
-            "description": "自拍照片 URL"
           }
         }
       },

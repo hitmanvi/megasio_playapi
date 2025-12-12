@@ -94,6 +94,7 @@ Route::middleware('auth:sanctum')->prefix('invitations')->group(function () {
 Route::middleware('auth:sanctum')->prefix('kyc')->group(function () {
     Route::get('/', [KycController::class, 'show']);
     Route::post('/', [KycController::class, 'store']);
+    Route::post('/selfie', [KycController::class, 'submitSelfie']);
 });
 
 // 品牌相关路由（只读）

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\ErrorCode;
 use App\Models\Kyc;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
@@ -23,7 +24,7 @@ class KycController extends Controller
     }
 
     /**
-     * 提交或更新 KYC 信息
+     * 提交或更新 KYC 基本信息（初审）
      */
     public function store(Request $request): JsonResponse
     {
@@ -33,7 +34,6 @@ class KycController extends Controller
             'document_front' => 'nullable|string|url|max:500',
             'document_back' => 'nullable|string|url|max:500',
             'document_number' => 'nullable|string|max:100',
-            'selfie' => 'nullable|string|url|max:500',
         ]);
 
         $user = $request->user();
@@ -49,7 +49,6 @@ class KycController extends Controller
             'document_front' => $request->input('document_front', $kyc->document_front),
             'document_back' => $request->input('document_back', $kyc->document_back),
             'document_number' => $request->input('document_number', $kyc->document_number),
-            'selfie' => $request->input('selfie', $kyc->selfie),
         ]);
 
         // 如果是更新且之前被拒绝，重置为待审核状态
@@ -58,6 +57,34 @@ class KycController extends Controller
             $kyc->reject_reason = null;
         }
 
+        $kyc->save();
+
+        return $this->responseItem($kyc);
+    }
+
+    /**
+     * 提交自拍（初审通过后）
+     */
+    public function submitSelfie(Request $request): JsonResponse
+    {
+        $request->validate([
+            'selfie' => 'required|string|url|max:500',
+        ]);
+
+        $user = $request->user();
+        $kyc = Kyc::where('user_id', $user->id)->first();
+
+        if (!$kyc) {
+            return $this->error(ErrorCode::NOT_FOUND, 'KYC not found, please submit basic info first');
+        }
+
+        if (!$kyc->canSubmitSelfie()) {
+            return $this->error(ErrorCode::OPERATION_NOT_ALLOWED, 'Cannot submit selfie at current status');
+        }
+
+        $kyc->selfie = $request->input('selfie');
+        $kyc->status = Kyc::STATUS_SELFIE_PENDING;
+        $kyc->reject_reason = null;
         $kyc->save();
 
         return $this->responseItem($kyc);

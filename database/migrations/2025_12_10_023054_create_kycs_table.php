@@ -22,7 +22,9 @@ return new class extends Migration
             $table->string('selfie')->nullable();
             
             // 审核相关字段
-            $table->enum('status', ['pending', 'approved', 'rejected'])->default('pending');
+            // pending: 初审待审核, approved: 初审通过, rejected: 初审拒绝
+            // selfie_pending: 自拍待审核, selfie_approved: 自拍通过(完成), selfie_rejected: 自拍拒绝
+            $table->enum('status', ['pending', 'approved', 'rejected', 'selfie_pending', 'selfie_approved', 'selfie_rejected'])->default('pending');
             $table->text('reject_reason')->nullable(); // 拒绝原因
             
             $table->timestamps();
