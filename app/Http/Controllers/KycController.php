@@ -63,9 +63,9 @@ class KycController extends Controller
     }
 
     /**
-     * 提交自拍（初审通过后）
+     * 提交高级认证（初审通过后）
      */
-    public function submitSelfie(Request $request): JsonResponse
+    public function submitAdvanced(Request $request): JsonResponse
     {
         $request->validate([
             'selfie' => 'required|string|url|max:500',
@@ -78,12 +78,12 @@ class KycController extends Controller
             return $this->error(ErrorCode::NOT_FOUND, 'KYC not found, please submit basic info first');
         }
 
-        if (!$kyc->canSubmitSelfie()) {
-            return $this->error(ErrorCode::OPERATION_NOT_ALLOWED, 'Cannot submit selfie at current status');
+        if (!$kyc->canSubmitAdvanced()) {
+            return $this->error(ErrorCode::OPERATION_NOT_ALLOWED, 'Cannot submit advanced verification at current status');
         }
 
         $kyc->selfie = $request->input('selfie');
-        $kyc->status = Kyc::STATUS_SELFIE_PENDING;
+        $kyc->status = Kyc::STATUS_ADVANCED_PENDING;
         $kyc->reject_reason = null;
         $kyc->save();
 

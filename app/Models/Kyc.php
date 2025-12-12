@@ -12,15 +12,15 @@ class Kyc extends Model
      * 
      * 流程：
      * 1. pending -> approved/rejected (初审)
-     * 2. approved -> selfie_pending (提交自拍)
-     * 3. selfie_pending -> selfie_approved/selfie_rejected (自拍审核)
+     * 2. approved -> advanced_pending (提交高级认证)
+     * 3. advanced_pending -> advanced_approved/advanced_rejected (高级认证审核)
      */
-    const STATUS_PENDING = 'pending';                 // 初审待审核
-    const STATUS_APPROVED = 'approved';               // 初审通过（可提交自拍）
-    const STATUS_REJECTED = 'rejected';               // 初审拒绝
-    const STATUS_SELFIE_PENDING = 'selfie_pending';   // 自拍待审核
-    const STATUS_SELFIE_APPROVED = 'selfie_approved'; // 自拍通过（完成）
-    const STATUS_SELFIE_REJECTED = 'selfie_rejected'; // 自拍拒绝
+    const STATUS_PENDING = 'pending';                     // 初审待审核
+    const STATUS_APPROVED = 'approved';                   // 初审通过（可提交高级认证）
+    const STATUS_REJECTED = 'rejected';                   // 初审拒绝
+    const STATUS_ADVANCED_PENDING = 'advanced_pending';   // 高级认证待审核
+    const STATUS_ADVANCED_APPROVED = 'advanced_approved'; // 高级认证通过（完成）
+    const STATUS_ADVANCED_REJECTED = 'advanced_rejected'; // 高级认证拒绝
 
     /**
      * The attributes that are mass assignable.
@@ -82,35 +82,35 @@ class Kyc extends Model
     }
 
     /**
-     * Check if selfie is pending.
+     * Check if advanced verification is pending.
      */
-    public function isSelfiePending(): bool
+    public function isAdvancedPending(): bool
     {
-        return $this->status === self::STATUS_SELFIE_PENDING;
+        return $this->status === self::STATUS_ADVANCED_PENDING;
     }
 
     /**
-     * Check if selfie is approved (full KYC complete).
+     * Check if advanced verification is approved (full KYC complete).
      */
-    public function isSelfieApproved(): bool
+    public function isAdvancedApproved(): bool
     {
-        return $this->status === self::STATUS_SELFIE_APPROVED;
+        return $this->status === self::STATUS_ADVANCED_APPROVED;
     }
 
     /**
-     * Check if selfie is rejected.
+     * Check if advanced verification is rejected.
      */
-    public function isSelfieRejected(): bool
+    public function isAdvancedRejected(): bool
     {
-        return $this->status === self::STATUS_SELFIE_REJECTED;
+        return $this->status === self::STATUS_ADVANCED_REJECTED;
     }
 
     /**
-     * Check if can submit selfie (initial KYC approved).
+     * Check if can submit advanced verification (initial KYC approved).
      */
-    public function canSubmitSelfie(): bool
+    public function canSubmitAdvanced(): bool
     {
-        return in_array($this->status, [self::STATUS_APPROVED, self::STATUS_SELFIE_REJECTED]);
+        return in_array($this->status, [self::STATUS_APPROVED, self::STATUS_ADVANCED_REJECTED]);
     }
 
     /**
@@ -118,7 +118,7 @@ class Kyc extends Model
      */
     public function isFullyVerified(): bool
     {
-        return $this->status === self::STATUS_SELFIE_APPROVED;
+        return $this->status === self::STATUS_ADVANCED_APPROVED;
     }
 
     /**

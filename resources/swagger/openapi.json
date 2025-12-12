@@ -2321,7 +2321,7 @@
       "post": {
         "tags": ["KYC"],
         "summary": "提交/更新 KYC 基本信息（初审）",
-        "description": "提交或更新 KYC 基本信息（不含自拍）。初审通过后才能提交自拍进行二次认证。状态流程：pending -> approved/rejected -> selfie_pending -> selfie_approved/selfie_rejected",
+        "description": "提交或更新 KYC 基本信息（不含自拍）。初审通过后才能提交高级认证。状态流程：pending -> approved/rejected -> advanced_pending -> advanced_approved/advanced_rejected",
         "security": [{"bearerAuth": []}],
         "requestBody": {
           "required": true,
@@ -2390,11 +2390,11 @@
         }
       }
     },
-    "/kyc/selfie": {
+    "/kyc/advanced": {
       "post": {
         "tags": ["KYC"],
-        "summary": "提交自拍（二次认证）",
-        "description": "提交自拍进行二次认证。仅在初审通过（status=approved）或自拍被拒绝（status=selfie_rejected）时可提交。",
+        "summary": "提交自拍（高级认证）",
+        "description": "提交自拍进行高级认证。仅在初审通过（status=approved）或高级认证被拒绝（status=advanced_rejected）时可提交。",
         "security": [{"bearerAuth": []}],
         "requestBody": {
           "required": true,
@@ -2436,7 +2436,7 @@
                     "document_back": "https://s3.amazonaws.com/bucket/uploads/doc_back.jpg",
                     "document_number": "123456789012345678",
                     "selfie": "https://s3.amazonaws.com/bucket/uploads/selfie.jpg",
-                    "status": "selfie_pending",
+                    "status": "advanced_pending",
                     "reject_reason": null,
                     "created_at": "2024-01-01T00:00:00.000000Z",
                     "updated_at": "2024-01-01T00:00:00.000000Z"
@@ -2456,7 +2456,7 @@
             }
           },
           "403": {
-            "description": "当前状态不允许提交自拍",
+            "description": "当前状态不允许提交高级认证",
             "content": {
               "application/json": {
                 "schema": {
@@ -2464,7 +2464,7 @@
                 },
                 "example": {
                   "code": 4003,
-                  "errmsg": "Cannot submit selfie at current status",
+                  "errmsg": "Cannot submit advanced verification at current status",
                   "data": null
                 }
               }
