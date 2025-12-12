@@ -62,6 +62,10 @@ class FunkyController extends Controller
         } catch (InvalidTokenException $e) {
             return FunkyProvider::errorResp(FunkyProvider::ERR_AUTH);
         } catch (\Exception $e) {
+            Log::error('FunkyController getBalance error', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
             return FunkyProvider::errorResp(FunkyProvider::ERR_SERVER_ERROR);
         }
     }
