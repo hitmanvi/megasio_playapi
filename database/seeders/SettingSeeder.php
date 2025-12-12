@@ -35,6 +35,13 @@ class SettingSeeder extends Seeder
                 'group' => 'app',
                 'description' => 'Web 端分页限制',
             ],
+            [
+                'key' => 'app_version',
+                'value' => '1.0.0',
+                'type' => 'string',
+                'group' => 'app',
+                'description' => 'APP 版本号',
+            ],
         ];
 
         foreach ($settings as $setting) {
