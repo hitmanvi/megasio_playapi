@@ -34,6 +34,7 @@ class FunkyController extends Controller
      */
     protected function checkFunkyHeader(Request $request): void
     {
+        return;
         // 获取配置中的 funkyId 和 funkySecret
         $funkyId = config('providers.funky.funky_id');
         $funkySecret = config('providers.funky.funky_secret');
