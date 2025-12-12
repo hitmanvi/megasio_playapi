@@ -23,8 +23,9 @@ return new class extends Migration
             
             // 审核相关字段
             // pending: 初审待审核, approved: 初审通过, rejected: 初审拒绝
-            // advanced_pending: 高级认证待审核, advanced_approved: 高级认证通过(完成), advanced_rejected: 高级认证拒绝
-            $table->enum('status', ['pending', 'approved', 'rejected', 'advanced_pending', 'advanced_approved', 'advanced_rejected'])->default('pending');
+            // advanced_pending: 高级认证待审核, advanced_approved: 高级认证通过, advanced_rejected: 高级认证拒绝
+            // enhanced_pending: 增强认证待审核, enhanced_approved: 增强认证通过, enhanced_rejected: 增强认证拒绝
+            $table->enum('status', ['pending', 'approved', 'rejected', 'advanced_pending', 'advanced_approved', 'advanced_rejected', 'enhanced_pending', 'enhanced_approved', 'enhanced_rejected'])->default('pending');
             $table->text('reject_reason')->nullable(); // 拒绝原因
             
             $table->timestamps();
