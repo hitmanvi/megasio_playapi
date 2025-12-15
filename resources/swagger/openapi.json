@@ -2321,7 +2321,7 @@
       "post": {
         "tags": ["KYC"],
         "summary": "提交/更新 KYC 基本信息（初审）",
-        "description": "提交或更新 KYC 基本信息（不含自拍）。初审通过后才能提交高级认证。状态流程：pending -> approved/rejected -> advanced_pending -> advanced_approved/advanced_rejected",
+        "description": "提交或更新 KYC 基本信息。初审通过后才能提交高级认证。状态流程：pending -> approved/rejected（初审）-> advanced_pending -> advanced_approved/advanced_rejected（高级）-> enhanced_pending -> enhanced_approved/enhanced_rejected（增强）",
         "security": [{"bearerAuth": []}],
         "requestBody": {
           "required": true,
@@ -2393,8 +2393,8 @@
     "/kyc/advanced": {
       "post": {
         "tags": ["KYC"],
-        "summary": "提交自拍（高级认证）",
-        "description": "提交自拍进行高级认证。仅在初审通过（status=approved）或高级认证被拒绝（status=advanced_rejected）时可提交。",
+        "summary": "提交高级认证",
+        "description": "提交高级认证（如自拍等）。仅在初审通过（status=approved）或高级认证被拒绝（status=advanced_rejected）时可提交。状态：pending/approved/rejected（初审）-> advanced_pending/advanced_approved/advanced_rejected（高级）-> enhanced_pending/enhanced_approved/enhanced_rejected（增强）",
         "security": [{"bearerAuth": []}],
         "requestBody": {
           "required": true,
