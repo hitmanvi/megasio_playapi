@@ -15,18 +15,65 @@ use App\Exceptions\InsufficientBalanceException;
 use App\Exceptions\DuplicateTransactionException;
 use App\Exceptions\GameNotFoundException;
 use App\Exceptions\GameNotEnabledException;
-use Illuminate\Support\Facades\DB;
 use App\Exceptions\OrderNotFoundException;
 use Illuminate\Support\Facades\Log;
+
 class FunkyController extends Controller
 {
-    
-    protected $providerCallbackService;
-    protected $gameService;
+    protected ProviderCallbackService $providerCallbackService;
+    protected GameService $gameService;
+
+    /**
+     * 异常与错误码映射
+     */
+    protected array $exceptionMap = [
+        InvalidTokenException::class => FunkyProvider::ERR_AUTH,
+        InsufficientBalanceException::class => FunkyProvider::ERR_BALANCE,
+        DuplicateTransactionException::class => FunkyProvider::ERR_BET_DUP,
+        GameNotFoundException::class => FunkyProvider::ERR_GAME_403,
+        GameNotEnabledException::class => FunkyProvider::ERR_GAME_403,
+        OrderNotFoundException::class => FunkyProvider::ERR_BET_404,
+        ProviderTransactionNotFoundException::class => FunkyProvider::ERR_BET_404,
+    ];
+
     public function __construct()
     {
         $this->providerCallbackService = new ProviderCallbackService();
         $this->gameService = new GameService();
+    }
+
+    /**
+     * 统一异常处理
+     */
+    protected function handleException(\Throwable $e, string $action = ''): JsonResponse
+    {
+        foreach ($this->exceptionMap as $exceptionClass => $errorCode) {
+            if ($e instanceof $exceptionClass) {
+                return FunkyProvider::errorResp($errorCode);
+            }
+        }
+
+        // 未知异常记录日志
+        Log::error('FunkyController error', [
+            'action' => $action,
+            'error' => $e->getMessage(),
+            'trace' => $e->getTraceAsString(),
+        ]);
+
+        return FunkyProvider::errorResp(FunkyProvider::ERR_SERVER_ERROR);
+    }
+
+    /**
+     * 执行回调操作并统一处理异常
+     */
+    protected function executeCallback(callable $callback, string $action): JsonResponse
+    {
+        try {
+            $this->checkFunkyHeader(request());
+            return $callback();
+        } catch (\Throwable $e) {
+            return $this->handleException($e, $action);
+        }
     }
 
     /**
@@ -53,48 +100,32 @@ class FunkyController extends Controller
      */
     public function getBalance(Request $request): JsonResponse
     {
-        try {
-            $this->checkFunkyHeader($request);
-            
-            $token = $request->get('sessionId'); 
+        return $this->executeCallback(function () use ($request) {
+            $token = $request->get('sessionId');
             $balance = $this->providerCallbackService->getBalance($token);
-    
+
             return $this->success(['balance' => $balance]);
-        } catch (InvalidTokenException $e) {
-            return FunkyProvider::errorResp(FunkyProvider::ERR_AUTH);
-        } catch (\Exception $e) {
-            Log::error('FunkyController getBalance error', [
-                'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString(),
-            ]);
-            return FunkyProvider::errorResp(FunkyProvider::ERR_SERVER_ERROR);
-        }
+        }, 'getBalance');
     }
 
     /**
      * 检查下注
      * POST /gp/funky/Funky/Bet/CheckBet
      */
-    public function checkBet(Request $request)
+    public function checkBet(Request $request): JsonResponse
     {
-        try {
-            $this->checkFunkyHeader($request);
-            
+        return $this->executeCallback(function () use ($request) {
             $id = $request->get('id');
             $transaction = $this->providerCallbackService->getProviderTransactionById(GameProviderEnum::FUNKY->value, $id);
             $order = $transaction->order;
-    
+
             return $this->success([
                 'stake'         => $order->amount,
                 'winAmount'     => $order->payout,
                 'status'        => FunkyProvider::getStatus($order->amount, $order->payout),
                 'statementDate' => $order->finished_at->format('Y-m-d H:i:s'),
             ]);
-        } catch (ProviderTransactionNotFoundException $e) {
-            return FunkyProvider::errorResp(FunkyProvider::ERR_BET_404);
-        } catch (\Exception $e) {
-            return FunkyProvider::errorResp(FunkyProvider::ERR_SERVER_ERROR);
-        }
+        }, 'checkBet');
     }
 
     /**
@@ -103,56 +134,25 @@ class FunkyController extends Controller
      */
     public function bet(Request $request): JsonResponse
     {
-        try {
-            $this->checkFunkyHeader($request);
-        } catch (\Exception $e) {
-            return FunkyProvider::errorResp(FunkyProvider::ERR_SERVER_ERROR);
-        }
-        
-        $token = $request->get('sessionId');
-        $detail = $request->get('bet');
-        $txid = $request->header('X-Request-ID');
+        return $this->executeCallback(function () use ($request) {
+            $token = $request->get('sessionId');
+            $detail = $request->get('bet');
+            $txid = $request->header('X-Request-ID');
 
-        $gameOutId = $detail['gameCode'];
-        $roundId = $detail['refNo'];
-        $amount = $detail['stake'];
-        
-        DB::beginTransaction();
-        try {
             $result = $this->providerCallbackService->handleBet(
                 GameProviderEnum::FUNKY->value,
-                $gameOutId,
+                $detail['gameCode'],
                 $token,
                 $txid,
-                $roundId,
-                $amount,
+                $detail['refNo'],
+                $detail['stake'],
                 $request->all(),
             );
 
-            DB::commit();
             return $this->success([
                 'balance' => $result['balance'],
             ]);
-        } catch (InsufficientBalanceException $e) {
-            DB::rollBack();
-            return FunkyProvider::errorResp(FunkyProvider::ERR_BALANCE);
-        } catch (DuplicateTransactionException $e) {
-            DB::rollBack();
-            return FunkyProvider::errorResp(FunkyProvider::ERR_BET_DUP);
-        } catch (GameNotFoundException $e) {
-            DB::rollBack();
-            return FunkyProvider::errorResp(FunkyProvider::ERR_GAME_403);
-        } catch (GameNotEnabledException $e) {
-            DB::rollBack();
-            return FunkyProvider::errorResp(FunkyProvider::ERR_GAME_403);
-        } catch (\Throwable $th) {
-            DB::rollBack();
-            Log::error('FunkyController bet error', [
-                'error' => $th->getMessage(),
-                'trace' => $th->getTraceAsString(),
-            ]);
-            return FunkyProvider::errorResp(FunkyProvider::ERR_SERVER_ERROR);
-        }
+        }, 'bet');
     }
 
     /**
@@ -161,54 +161,27 @@ class FunkyController extends Controller
      */
     public function settle(Request $request): JsonResponse
     {
-        try {
-            $this->checkFunkyHeader($request);
-        } catch (\Exception $e) {
-            return FunkyProvider::errorResp(FunkyProvider::ERR_SERVER_ERROR);
-        }
-        
-        $detail = $request->get('betResultReq');
-        $txid = $request->header('X-Request-ID');
-        $roundId = $request->get('refNo');
-        $amount = $detail['winAmount'];
-        
-        DB::beginTransaction();
-        try {
+        return $this->executeCallback(function () use ($request) {
+            $detail = $request->get('betResultReq');
+            $txid = $request->header('X-Request-ID');
+            $roundId = $request->get('refNo');
+
             $result = $this->providerCallbackService->handlePayout(
                 GameProviderEnum::FUNKY->value,
                 $txid,
                 $roundId,
-                $amount,
+                $detail['winAmount'],
                 $request->all(),
             );
-            DB::commit();
-        } catch (DuplicateTransactionException $e) {
-            DB::rollBack();
-            return FunkyProvider::errorResp(FunkyProvider::ERR_BET_DUP);
-        } catch (OrderNotFoundException $e) {
-            DB::rollBack();
-            return FunkyProvider::errorResp(FunkyProvider::ERR_BET_404);
-        } catch (GameNotFoundException $e) {
-            DB::rollBack();
-            return FunkyProvider::errorResp(FunkyProvider::ERR_GAME_403);
-        } catch (GameNotEnabledException $e) {
-            DB::rollBack();
-            return FunkyProvider::errorResp(FunkyProvider::ERR_GAME_403);
-        } catch (\Throwable $th) {
-            DB::rollBack();
-            Log::error('FunkyController settle error', [
-                'error' => $th->getMessage(),
-                'trace' => $th->getTraceAsString(),
+
+            return $this->success([
+                'refNo'         => $roundId,
+                'balance'       => $result['balance'],
+                'player_id'     => $detail['playerId'],
+                'currency'      => $result['order']->currency,
+                'statementDate' => $result['order']->finished_at,
             ]);
-            return FunkyProvider::errorResp(FunkyProvider::ERR_SERVER_ERROR);
-        }
-        return $this->success([
-            'refNo'         => $roundId,
-            'balance'       => $result['balance'],
-            'player_id' => $detail['playerId'],
-            'currency' => $result['order']->currency,
-            'statementDate' => $result['order']->finished_at,
-        ]);
+        }, 'settle');
     }
 
     /**
@@ -217,17 +190,10 @@ class FunkyController extends Controller
      */
     public function cancel(Request $request): JsonResponse
     {
-        try {
-            $this->checkFunkyHeader($request);
-        } catch (\Exception $e) {
-            return FunkyProvider::errorResp(FunkyProvider::ERR_SERVER_ERROR);
-        }
-        
-        $txid = $request->header('X-Request-ID');
-        $roundId = $request->get('refNo');
+        return $this->executeCallback(function () use ($request) {
+            $txid = $request->header('X-Request-ID');
+            $roundId = $request->get('refNo');
 
-        DB::beginTransaction();
-        try {
             $this->providerCallbackService->handleRefund(
                 GameProviderEnum::FUNKY->value,
                 $txid,
@@ -235,31 +201,11 @@ class FunkyController extends Controller
                 0,
                 $request->all(),
             );
-            DB::commit();
-        } catch (DuplicateTransactionException $e) {
-            DB::rollBack();
-            return FunkyProvider::errorResp(FunkyProvider::ERR_BET_DUP);
-        } catch (OrderNotFoundException $e) {
-            DB::rollBack();
-            return FunkyProvider::errorResp(FunkyProvider::ERR_BET_404);
-        } catch (GameNotFoundException $e) {
-            DB::rollBack();
-            return FunkyProvider::errorResp(FunkyProvider::ERR_GAME_403);
-        } catch (GameNotEnabledException $e) {
-            DB::rollBack();
-            return FunkyProvider::errorResp(FunkyProvider::ERR_GAME_403);
-        } catch (\Throwable $th) {
-            DB::rollBack();
-            Log::error('FunkyController cancel error', [
-                'error' => $th->getMessage(),
-                'trace' => $th->getTraceAsString(),
-            ]);
-            return FunkyProvider::errorResp(FunkyProvider::ERR_SERVER_ERROR);
-        }
 
-        return $this->success([
-            'refNo'         => $roundId,
-        ]);
+            return $this->success([
+                'refNo' => $roundId,
+            ]);
+        }, 'cancel');
     }
 
     private function success($data)
