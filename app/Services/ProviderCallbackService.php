@@ -65,8 +65,8 @@ class ProviderCallbackService
         $userId = $userInfo['user_id'];
         $currency = $userInfo['currency'];
 
-        // 根据 gameOutId 查询游戏
-        $game = Game::where('out_id', $gameOutId)->first();
+        // 根据 gameOutId 查询游戏（带缓存）
+        $game = Game::findByOutId($gameOutId);
         if (!$game) {
             throw new GameNotFoundException();
         }

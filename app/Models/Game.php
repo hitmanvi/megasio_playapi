@@ -6,9 +6,19 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
+use Illuminate\Support\Facades\Cache;
 
 class Game extends Model
 {
+    /**
+     * 缓存前缀
+     */
+    protected const CACHE_PREFIX = 'game:';
+
+    /**
+     * 缓存时间（秒）- 1小时
+     */
+    protected const CACHE_TTL = 3600;
     /**
      * 游戏在提供商的状态常量
      */
@@ -118,5 +128,52 @@ class Game extends Model
     public function scopeOrdered($query)
     {
         return $query->orderBy('sort_id', 'asc')->orderBy('id', 'asc');
+    }
+
+    /**
+     * 根据 out_id 获取游戏（带缓存）
+     */
+    public static function findByOutId(string $outId): ?self
+    {
+        $cacheKey = self::CACHE_PREFIX . 'out_id:' . $outId;
+
+        return Cache::remember($cacheKey, self::CACHE_TTL, function () use ($outId) {
+            return static::where('out_id', $outId)->first();
+        });
+    }
+
+    /**
+     * 根据 ID 获取游戏（带缓存）
+     */
+    public static function findCached(int $id): ?self
+    {
+        $cacheKey = self::CACHE_PREFIX . 'id:' . $id;
+
+        return Cache::remember($cacheKey, self::CACHE_TTL, function () use ($id) {
+            return static::find($id);
+        });
+    }
+
+    /**
+     * 清除游戏缓存
+     */
+    public function clearCache(): void
+    {
+        Cache::forget(self::CACHE_PREFIX . 'id:' . $this->id);
+        Cache::forget(self::CACHE_PREFIX . 'out_id:' . $this->out_id);
+    }
+
+    /**
+     * 保存时自动清除缓存
+     */
+    protected static function booted(): void
+    {
+        static::saved(function (Game $game) {
+            $game->clearCache();
+        });
+
+        static::deleted(function (Game $game) {
+            $game->clearCache();
+        });
     }
 }
