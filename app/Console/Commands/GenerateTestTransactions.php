@@ -304,10 +304,13 @@ class GenerateTestTransactions extends Command
     {
         $deposit = $this->deposits->random();
 
+        // 添加随机后缀避免唯一约束冲突
+        $relatedEntityId = $deposit->id . '_' . Str::random(6);
+
         return [
             'currency' => $deposit->currency,
             'amount' => (float) $deposit->amount,
-            'related_entity_id' => (string) $deposit->id,
+            'related_entity_id' => $relatedEntityId,
         ];
     }
 
@@ -318,10 +321,13 @@ class GenerateTestTransactions extends Command
     {
         $withdraw = $this->withdraws->random();
 
+        // 添加随机后缀避免唯一约束冲突
+        $relatedEntityId = $withdraw->id . '_' . Str::random(6);
+
         return [
             'currency' => $withdraw->currency,
             'amount' => (float) $withdraw->amount,
-            'related_entity_id' => (string) $withdraw->id,
+            'related_entity_id' => $relatedEntityId,
         ];
     }
 
@@ -342,7 +348,9 @@ class GenerateTestTransactions extends Command
         };
 
         // related_entity_id 格式: gameId_txid
-        $relatedEntityId = $providerTx->game_id . '_' . $providerTx->txid;
+        // 使用唯一的 txid 避免重复
+        $uniqueTxid = $providerTx->txid . '_' . Str::random(8);
+        $relatedEntityId = $providerTx->game_id . '_' . $uniqueTxid;
 
         return [
             'currency' => $order->currency,

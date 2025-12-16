@@ -106,7 +106,9 @@ class Transaction extends Model
 
         switch ($this->type) {
             case self::TYPE_DEPOSIT:
-                $deposit = Deposit::find($this->related_entity_id);
+                // 支持格式: "123" 或 "123_suffix"
+                $depositId = explode('_', $this->related_entity_id)[0];
+                $deposit = Deposit::find($depositId);
                 if ($deposit) {
                     return [
                         'type' => 'deposit',
@@ -124,7 +126,9 @@ class Transaction extends Model
 
             case self::TYPE_WITHDRAWAL:
             case self::TYPE_WITHDRAWAL_UNFREEZE:
-                $withdraw = Withdraw::find($this->related_entity_id);
+                // 支持格式: "123" 或 "123_suffix"
+                $withdrawId = explode('_', $this->related_entity_id)[0];
+                $withdraw = Withdraw::find($withdrawId);
                 if ($withdraw) {
                     return [
                         'type' => 'withdraw',
@@ -143,14 +147,22 @@ class Transaction extends Model
             case self::TYPE_BET:
             case self::TYPE_PAYOUT:
             case self::TYPE_REFUND:
-                // related_entity_id 格式: gameId_txid
+                // related_entity_id 格式: gameId_txid 或 gameId_txid_suffix
                 $parts = explode('_', $this->related_entity_id, 2);
                 if (count($parts) === 2) {
                     $gameId = $parts[0];
-                    $txid = $parts[1];
+                    $txidPart = $parts[1];
+                    
+                    // txid 可能带有后缀 (txid_suffix)，尝试提取原始 txid
+                    // 先尝试完整匹配，再尝试前缀匹配
+                    $providerTx = ProviderTransaction::where('txid', $txidPart)->first();
+                    if (!$providerTx) {
+                        // 尝试用 LIKE 查询（针对测试数据带后缀的情况）
+                        $providerTx = ProviderTransaction::where('txid', 'like', explode('_', $txidPart)[0] . '%')
+                            ->where('game_id', $gameId)
+                            ->first();
+                    }
 
-                    // 通过 ProviderTransaction 查找订单
-                    $providerTx = ProviderTransaction::where('txid', $txid)->first();
                     if ($providerTx && $providerTx->order_id) {
                         $order = Order::with('game')->find($providerTx->order_id);
                         if ($order) {
