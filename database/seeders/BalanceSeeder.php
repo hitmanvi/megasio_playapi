@@ -94,13 +94,6 @@ class BalanceSeeder extends Seeder
                 'notes' => 'Refund USD',
                 'days_ago' => 5,
             ],
-            [
-                'currency' => 'USD',
-                'amount' => -100.00000000,
-                'type' => Transaction::TYPE_FEE,
-                'notes' => 'Service fee',
-                'days_ago' => 2,
-            ],
             // EUR 交易记录
             [
                 'currency' => 'EUR',

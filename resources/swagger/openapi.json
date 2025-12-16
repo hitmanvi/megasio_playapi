@@ -1866,7 +1866,7 @@
             "description": "交易类型筛选",
             "schema": {
               "type": "string",
-              "enum": ["DEPOSIT", "WITHDRAWAL", "FEE", "TRANSFER_IN", "TRANSFER_OUT", "REFUND"]
+              "enum": ["DEPOSIT", "WITHDRAWAL", "WITHDRAWAL_UNFREEZE", "REFUND", "BET", "PAYOUT"]
             }
           },
           {
@@ -6443,7 +6443,7 @@
           },
           "type": {
             "type": "string",
-            "enum": ["DEPOSIT", "WITHDRAWAL", "FEE", "TRANSFER_IN", "TRANSFER_OUT", "REFUND"],
+            "enum": ["DEPOSIT", "WITHDRAWAL", "WITHDRAWAL_UNFREEZE", "REFUND", "BET", "PAYOUT"],
             "description": "交易类型"
           },
           "status": {
