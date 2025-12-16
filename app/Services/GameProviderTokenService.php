@@ -8,9 +8,20 @@ use App\Enums\ErrorCode;
 use App\Exceptions\Exception;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Cache;
 
 class GameProviderTokenService
 {
+    /**
+     * 缓存前缀
+     */
+    protected const CACHE_PREFIX = 'gp_token:';
+
+    /**
+     * 默认缓存时间（秒）- 10分钟
+     */
+    protected const CACHE_TTL = 600;
+
     /**
      * 生成游戏提供商用户 Token
      *
@@ -37,6 +48,8 @@ class GameProviderTokenService
             ->first();
 
         if ($existingToken) {
+            // 写入缓存
+            $this->cacheToken($existingToken);
             return $existingToken->token;
         }
 
@@ -45,7 +58,7 @@ class GameProviderTokenService
         $expiresAt = $expiresInMinutes ? now()->addMinutes($expiresInMinutes) : null;
 
         // 创建 token 记录
-        GameProviderToken::create([
+        $tokenRecord = GameProviderToken::create([
             'user_id' => $userId,
             'provider' => $provider,
             'currency' => $currency,
@@ -53,29 +66,62 @@ class GameProviderTokenService
             'expires_at' => $expiresAt,
         ]);
 
+        // 写入缓存
+        $this->cacheToken($tokenRecord);
+
         return $token;
     }
 
     /**
-     * 验证 Token 是否有效
+     * 验证 Token 是否有效（带缓存）
      *
      * @param string $token Token值
      * @return GameProviderToken|null 如果有效返回 token 记录，否则返回 null
      */
     public function verify(string $token): ?GameProviderToken
     {
+        $cacheKey = $this->getCacheKey($token);
+
+        // 尝试从缓存获取
+        $cached = Cache::get($cacheKey);
+        if ($cached !== null) {
+            // 缓存命中，检查是否过期
+            if ($cached === false) {
+                // 缓存了无效标记
+                return null;
+            }
+
+            $tokenRecord = new GameProviderToken($cached);
+            $tokenRecord->exists = true;
+            $tokenRecord->id = $cached['id'];
+
+            if ($tokenRecord->isExpired()) {
+                $this->forgetToken($token);
+                return null;
+            }
+
+            return $tokenRecord;
+        }
+
+        // 缓存未命中，查询数据库
         $tokenRecord = GameProviderToken::where('token', $token)
             ->valid()
             ->first();
 
         if (!$tokenRecord) {
+            // 缓存无效标记，防止缓存穿透
+            Cache::put($cacheKey, false, 60);
             return null;
         }
 
         // 检查是否过期
         if ($tokenRecord->isExpired()) {
+            Cache::put($cacheKey, false, 60);
             return null;
         }
+
+        // 写入缓存
+        $this->cacheToken($tokenRecord);
 
         return $tokenRecord;
     }
@@ -117,6 +163,9 @@ class GameProviderTokenService
             return false;
         }
 
+        // 清除缓存
+        $this->forgetToken($token);
+
         return $tokenRecord->delete();
     }
 
@@ -140,6 +189,12 @@ class GameProviderTokenService
             $query->where('currency', $currency);
         }
 
+        // 先获取要删除的 token 以清除缓存
+        $tokens = (clone $query)->pluck('token');
+        foreach ($tokens as $token) {
+            $this->forgetToken($token);
+        }
+
         return $query->delete();
     }
 
@@ -150,6 +205,12 @@ class GameProviderTokenService
      */
     public function cleanExpired(): int
     {
+        // 获取过期的 token 以清除缓存
+        $tokens = GameProviderToken::where('expires_at', '<=', now())->pluck('token');
+        foreach ($tokens as $token) {
+            $this->forgetToken($token);
+        }
+
         return GameProviderToken::where('expires_at', '<=', now())->delete();
     }
 
@@ -166,6 +227,41 @@ class GameProviderTokenService
         } while (GameProviderToken::where('token', $token)->exists());
 
         return $token;
+    }
+
+    /**
+     * 获取缓存 key
+     */
+    protected function getCacheKey(string $token): string
+    {
+        return self::CACHE_PREFIX . $token;
+    }
+
+    /**
+     * 缓存 token 数据
+     */
+    protected function cacheToken(GameProviderToken $tokenRecord): void
+    {
+        $cacheKey = $this->getCacheKey($tokenRecord->token);
+
+        // 计算 TTL：如果有过期时间，取过期时间和默认 TTL 的较小值
+        $ttl = self::CACHE_TTL;
+        if ($tokenRecord->expires_at) {
+            $secondsUntilExpiry = now()->diffInSeconds($tokenRecord->expires_at, false);
+            if ($secondsUntilExpiry > 0) {
+                $ttl = min($ttl, $secondsUntilExpiry);
+            }
+        }
+
+        Cache::put($cacheKey, $tokenRecord->toArray(), $ttl);
+    }
+
+    /**
+     * 清除 token 缓存
+     */
+    protected function forgetToken(string $token): void
+    {
+        Cache::forget($this->getCacheKey($token));
     }
 }
 
