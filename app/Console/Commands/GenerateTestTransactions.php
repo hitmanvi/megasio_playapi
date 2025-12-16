@@ -2,10 +2,10 @@
 
 namespace App\Console\Commands;
 
-use App\Models\Brand;
 use App\Models\Deposit;
 use App\Models\Game;
 use App\Models\Order;
+use App\Models\PaymentMethod;
 use App\Models\ProviderTransaction;
 use App\Models\Transaction;
 use App\Models\User;
@@ -36,6 +36,7 @@ class GenerateTestTransactions extends Command
     protected Collection $withdraws;
     protected Collection $providerTransactions;
     protected Collection $games;
+    protected Collection $paymentMethods;
     protected int $userId;
 
     /**
@@ -62,6 +63,13 @@ class GenerateTestTransactions extends Command
         $this->games = Game::where('enabled', true)->get();
         if ($this->games->isEmpty()) {
             $this->error("没有可用的游戏数据，请先同步游戏");
+            return 1;
+        }
+
+        // 加载支付方式
+        $this->paymentMethods = PaymentMethod::where('enabled', true)->get();
+        if ($this->paymentMethods->isEmpty()) {
+            $this->error("没有可用的支付方式，请先创建支付方式");
             return 1;
         }
 
@@ -136,7 +144,8 @@ class GenerateTestTransactions extends Command
     protected function createTestDeposits(int $count): void
     {
         for ($i = 0; $i < $count; $i++) {
-            $currency = $this->currencies[array_rand($this->currencies)];
+            $paymentMethod = $this->paymentMethods->random();
+            $currency = $paymentMethod->currency ?? $this->currencies[array_rand($this->currencies)];
             $amount = $this->randomFloat(50, 1000);
 
             Deposit::create([
@@ -146,6 +155,7 @@ class GenerateTestTransactions extends Command
                 'currency' => $currency,
                 'amount' => $amount,
                 'actual_amount' => $amount,
+                'payment_method_id' => $paymentMethod->id,
                 'status' => Deposit::STATUS_COMPLETED,
                 'pay_status' => Deposit::PAY_STATUS_PAID,
                 'finished_at' => now()->subDays(rand(1, 30)),
@@ -159,7 +169,8 @@ class GenerateTestTransactions extends Command
     protected function createTestWithdraws(int $count): void
     {
         for ($i = 0; $i < $count; $i++) {
-            $currency = $this->currencies[array_rand($this->currencies)];
+            $paymentMethod = $this->paymentMethods->random();
+            $currency = $paymentMethod->currency ?? $this->currencies[array_rand($this->currencies)];
             $amount = $this->randomFloat(20, 500);
 
             Withdraw::create([
@@ -169,6 +180,7 @@ class GenerateTestTransactions extends Command
                 'currency' => $currency,
                 'amount' => $amount,
                 'actual_amount' => $amount,
+                'payment_method_id' => $paymentMethod->id,
                 'status' => Withdraw::STATUS_COMPLETED,
                 'pay_status' => Withdraw::PAY_STATUS_PAID,
                 'approved' => true,
