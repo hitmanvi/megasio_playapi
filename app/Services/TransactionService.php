@@ -139,6 +139,12 @@ class TransactionService
 
         if ($includeDetails) {
             $data['updated_at'] = $transaction->updated_at->format('Y-m-d H:i:s');
+
+            // 加载关联实体
+            $entity = $transaction->getRelatedEntity();
+            if ($entity) {
+                $data['entity'] = $entity;
+            }
         }
 
         return $data;

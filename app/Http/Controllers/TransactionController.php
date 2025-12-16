@@ -78,5 +78,31 @@ class TransactionController extends Controller
 
         return $this->responseListWithPaginator($transactions);
     }
+
+    /**
+     * 获取交易详情
+     */
+    public function show(Request $request, int $id): JsonResponse
+    {
+        $user = $request->user();
+        if (!$user) {
+            return $this->error(ErrorCode::UNAUTHORIZED, 'User not authenticated');
+        }
+
+        $transaction = $this->transactionService->getTransactionById($id);
+
+        if (!$transaction) {
+            return $this->error(ErrorCode::NOT_FOUND, 'Transaction not found');
+        }
+
+        // 确保交易属于当前用户
+        if ($transaction->user_id !== $user->id) {
+            return $this->error(ErrorCode::FORBIDDEN, 'Access denied');
+        }
+
+        return $this->responseItem(
+            $this->transactionService->formatTransactionForResponse($transaction, true)
+        );
+    }
 }
 

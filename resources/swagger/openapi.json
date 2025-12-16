@@ -1982,6 +1982,135 @@
         }
       }
     },
+    "/transactions/{id}": {
+      "get": {
+        "tags": ["Transaction"],
+        "summary": "获取交易详情",
+        "description": "根据交易ID获取交易详情",
+        "security": [{"bearerAuth": []}],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "交易ID",
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "获取成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessResponse"
+                },
+                "examples": {
+                  "deposit": {
+                    "summary": "存款交易详情",
+                    "value": {
+                      "code": 0,
+                      "errmsg": "Success",
+                      "data": {
+                        "id": 1,
+                        "currency": "USD",
+                        "amount": 100.00,
+                        "type": "DEPOSIT",
+                        "status": "COMPLETED",
+                        "transaction_time": "2024-01-01 12:00:00",
+                        "created_at": "2024-01-01 12:00:00",
+                        "updated_at": "2024-01-01 12:00:00",
+                        "notes": "Deposit via bank transfer",
+                        "related_entity_id": "123",
+                        "entity": {
+                          "type": "deposit",
+                          "data": {
+                            "id": 123,
+                            "order_no": "D20240101120000001",
+                            "amount": 100.00,
+                            "currency": "USD",
+                            "status": "COMPLETED",
+                            "created_at": "2024-01-01 12:00:00"
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "bet": {
+                    "summary": "下注交易详情",
+                    "value": {
+                      "code": 0,
+                      "errmsg": "Success",
+                      "data": {
+                        "id": 2,
+                        "currency": "USD",
+                        "amount": 10.00,
+                        "type": "BET",
+                        "status": "COMPLETED",
+                        "transaction_time": "2024-01-01 14:00:00",
+                        "created_at": "2024-01-01 14:00:00",
+                        "updated_at": "2024-01-01 14:00:00",
+                        "related_entity_id": "5_abc123xyz",
+                        "entity": {
+                          "type": "order",
+                          "data": {
+                            "id": 456,
+                            "order_id": "01HQXYZ123456789",
+                            "amount": 10.00,
+                            "payout": 25.00,
+                            "currency": "USD",
+                            "status": "COMPLETED",
+                            "finished_at": "2024-01-01 14:05:00",
+                            "created_at": "2024-01-01 14:00:00",
+                            "game": {
+                              "id": 5,
+                              "name": "Lucky Slots",
+                              "thumbnail": "https://example.com/game.jpg"
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "未授权",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "无权访问",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "交易不存在",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/orders": {
       "get": {
         "tags": ["Order"],

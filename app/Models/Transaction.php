@@ -39,8 +39,6 @@ class Transaction extends Model
     const TYPE_DEPOSIT = 'DEPOSIT';
     const TYPE_WITHDRAWAL = 'WITHDRAWAL';
     const TYPE_WITHDRAWAL_UNFREEZE = 'WITHDRAWAL_UNFREEZE';
-    const TYPE_TRANSFER_IN = 'TRANSFER_IN';
-    const TYPE_TRANSFER_OUT = 'TRANSFER_OUT';
     const TYPE_REFUND = 'REFUND';
     const TYPE_BET = 'BET';
     const TYPE_PAYOUT = 'PAYOUT';
@@ -97,5 +95,92 @@ class Transaction extends Model
         return $query->whereBetween('transaction_time', [$startDate, $endDate]);
     }
 
+    /**
+     * 获取关联实体
+     */
+    public function getRelatedEntity(): ?array
+    {
+        if (!$this->related_entity_id) {
+            return null;
+        }
 
+        switch ($this->type) {
+            case self::TYPE_DEPOSIT:
+                $deposit = Deposit::find($this->related_entity_id);
+                if ($deposit) {
+                    return [
+                        'type' => 'deposit',
+                        'data' => [
+                            'id' => $deposit->id,
+                            'order_no' => $deposit->order_no,
+                            'amount' => (float) $deposit->amount,
+                            'currency' => $deposit->currency,
+                            'status' => $deposit->status,
+                            'created_at' => $deposit->created_at?->format('Y-m-d H:i:s'),
+                        ],
+                    ];
+                }
+                break;
+
+            case self::TYPE_WITHDRAWAL:
+            case self::TYPE_WITHDRAWAL_UNFREEZE:
+                $withdraw = Withdraw::find($this->related_entity_id);
+                if ($withdraw) {
+                    return [
+                        'type' => 'withdraw',
+                        'data' => [
+                            'id' => $withdraw->id,
+                            'order_no' => $withdraw->order_no,
+                            'amount' => (float) $withdraw->amount,
+                            'currency' => $withdraw->currency,
+                            'status' => $withdraw->status,
+                            'created_at' => $withdraw->created_at?->format('Y-m-d H:i:s'),
+                        ],
+                    ];
+                }
+                break;
+
+            case self::TYPE_BET:
+            case self::TYPE_PAYOUT:
+            case self::TYPE_REFUND:
+                // related_entity_id 格式: gameId_txid
+                $parts = explode('_', $this->related_entity_id, 2);
+                if (count($parts) === 2) {
+                    $gameId = $parts[0];
+                    $txid = $parts[1];
+
+                    // 通过 ProviderTransaction 查找订单
+                    $providerTx = ProviderTransaction::where('txid', $txid)->first();
+                    if ($providerTx && $providerTx->order_id) {
+                        $order = Order::with('game')->find($providerTx->order_id);
+                        if ($order) {
+                            return [
+                                'type' => 'order',
+                                'data' => [
+                                    'id' => $order->id,
+                                    'order_id' => $order->order_id,
+                                    'amount' => (float) $order->amount,
+                                    'payout' => (float) $order->payout,
+                                    'currency' => $order->currency,
+                                    'status' => $order->status,
+                                    'finished_at' => $order->finished_at?->format('Y-m-d H:i:s'),
+                                    'created_at' => $order->created_at?->format('Y-m-d H:i:s'),
+                                    'game' => $order->game ? [
+                                        'id' => $order->game->id,
+                                        'name' => $order->game->name,
+                                        'thumbnail' => $order->game->thumbnail,
+                                    ] : null,
+                                ],
+                            ];
+                        }
+                    }
+
+                    // 找不到返回 null
+                    return null;
+                }
+                break;
+        }
+
+        return null;
+    }
 }
