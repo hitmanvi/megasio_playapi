@@ -77,6 +77,7 @@ Route::middleware('auth:sanctum')->prefix('withdraws')->group(function () {
 // 交易记录相关路由（需要认证）
 Route::middleware('auth:sanctum')->prefix('transactions')->group(function () {
     Route::get('/', [TransactionController::class, 'index']);
+    Route::get('/types', [TransactionController::class, 'types']);
 });
 
 // 订单相关路由（需要认证）

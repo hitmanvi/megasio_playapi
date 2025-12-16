@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Transaction;
 use App\Services\TransactionService;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
@@ -14,6 +15,23 @@ class TransactionController extends Controller
     public function __construct(TransactionService $transactionService)
     {
         $this->transactionService = $transactionService;
+    }
+
+    /**
+     * 获取支持的交易类型
+     */
+    public function types(): JsonResponse
+    {
+        $types = [
+            Transaction::TYPE_DEPOSIT,
+            Transaction::TYPE_WITHDRAWAL,
+            Transaction::TYPE_WITHDRAWAL_UNFREEZE,
+            Transaction::TYPE_REFUND,
+            Transaction::TYPE_BET,
+            Transaction::TYPE_PAYOUT,
+        ];
+
+        return $this->responseItem($types);
     }
 
     /**
