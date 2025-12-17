@@ -83,6 +83,10 @@
     {
       "name": "User",
       "description": "用户相关接口"
+    },
+    {
+      "name": "Bundle",
+      "description": "捆绑包相关接口（双币种模式）"
     }
   ],
   "paths": {
@@ -4300,7 +4304,246 @@
           }
         }
       }
-    }
+    },
+    "/bundles": {
+      "get": {
+        "tags": ["Bundle"],
+        "summary": "获取捆绑包列表",
+        "description": "获取可用的捆绑包列表（仅在bundle模式下可用）",
+        "parameters": [
+          {
+            "name": "currency",
+            "in": "query",
+            "description": "支付货币",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "USD"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "每页数量",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 20
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "description": "页码",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 1
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "成功返回捆绑包列表",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {"type": "integer", "example": 0},
+                    "data": {
+                      "type": "array",
+                      "items": {"$ref": "#/components/schemas/Bundle"}
+                    },
+                    "total": {"type": "integer", "description": "总数"},
+                    "page": {"type": "integer", "description": "当前页码"},
+                    "limit": {"type": "integer", "description": "每页数量"}
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bundle模式未启用"
+          }
+        }
+      }
+    },
+    "/bundles/{id}": {
+      "get": {
+        "tags": ["Bundle"],
+        "summary": "获取捆绑包详情",
+        "description": "获取指定捆绑包的详情",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {"type": "integer"},
+            "description": "捆绑包ID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "成功返回捆绑包详情",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {"type": "integer", "example": 0},
+                    "data": {"$ref": "#/components/schemas/Bundle"}
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "捆绑包不存在"
+          }
+        }
+      }
+    },
+    "/bundles/purchase": {
+      "post": {
+        "tags": ["Bundle"],
+        "summary": "购买捆绑包",
+        "description": "创建捆绑包购买订单",
+        "security": [{"bearerAuth": []}],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["bundle_id", "payment_method_id"],
+                "properties": {
+                  "bundle_id": {
+                    "type": "integer",
+                    "description": "捆绑包ID"
+                  },
+                  "payment_method_id": {
+                    "type": "integer",
+                    "description": "支付方式ID"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "成功创建购买订单",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {"type": "integer", "example": 0},
+                    "data": {"$ref": "#/components/schemas/BundlePurchase"}
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "参数错误或Bundle模式未启用"
+          },
+          "401": {
+            "description": "未授权"
+          },
+          "404": {
+            "description": "捆绑包或支付方式不存在"
+          }
+        }
+      }
+    },
+    "/bundles/purchases/list": {
+      "get": {
+        "tags": ["Bundle"],
+        "summary": "获取购买记录列表",
+        "description": "获取当前用户的捆绑包购买记录",
+        "security": [{"bearerAuth": []}],
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "每页数量",
+            "schema": {"type": "integer", "default": 20}
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "description": "页码",
+            "schema": {"type": "integer", "default": 1}
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "成功返回购买记录列表",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {"type": "integer", "example": 0},
+                    "data": {
+                      "type": "array",
+                      "items": {"$ref": "#/components/schemas/BundlePurchase"}
+                    },
+                    "total": {"type": "integer"},
+                    "page": {"type": "integer"},
+                    "limit": {"type": "integer"}
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "未授权"
+          }
+        }
+      }
+    },
+    "/bundles/purchases/{orderNo}": {
+      "get": {
+        "tags": ["Bundle"],
+        "summary": "获取购买详情",
+        "description": "获取指定订单号的购买详情",
+        "security": [{"bearerAuth": []}],
+        "parameters": [
+          {
+            "name": "orderNo",
+            "in": "path",
+            "required": true,
+            "schema": {"type": "string"},
+            "description": "订单号"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "成功返回购买详情",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {"type": "integer", "example": 0},
+                    "data": {"$ref": "#/components/schemas/BundlePurchase"}
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "未授权"
+          },
+          "404": {
+            "description": "购买记录不存在"
+          }
+        }
+      }
+    },
   },
   "components": {
     "securitySchemes": {
@@ -4312,6 +4555,51 @@
       }
     },
     "schemas": {
+      "Bundle": {
+        "type": "object",
+        "properties": {
+          "id": {"type": "integer", "description": "捆绑包ID"},
+          "name": {"type": "string", "description": "捆绑包名称"},
+          "description": {"type": "string", "description": "描述"},
+          "icon": {"type": "string", "nullable": true, "description": "图标URL"},
+          "gold_coin": {"type": "number", "description": "包含的GoldCoin数量"},
+          "social_coin": {"type": "number", "description": "包含的SocialCoin数量"},
+          "original_price": {"type": "number", "description": "原始价格"},
+          "discount_price": {"type": "number", "nullable": true, "description": "折扣价格"},
+          "current_price": {"type": "number", "description": "当前有效价格"},
+          "currency": {"type": "string", "description": "支付货币"},
+          "stock": {"type": "integer", "nullable": true, "description": "库存数量，null表示无限"},
+          "in_stock": {"type": "boolean", "description": "是否有库存"},
+          "is_discount_active": {"type": "boolean", "description": "折扣是否生效"},
+          "discount_percentage": {"type": "integer", "nullable": true, "description": "折扣百分比"}
+        }
+      },
+      "BundlePurchase": {
+        "type": "object",
+        "properties": {
+          "id": {"type": "integer", "description": "购买记录ID"},
+          "order_no": {"type": "string", "description": "订单号"},
+          "bundle": {"$ref": "#/components/schemas/Bundle"},
+          "payment_method": {
+            "type": "object",
+            "properties": {
+              "id": {"type": "integer"},
+              "key": {"type": "string"},
+              "name": {"type": "string"},
+              "display_name": {"type": "string"}
+            }
+          },
+          "gold_coin": {"type": "number", "description": "获得的GoldCoin"},
+          "social_coin": {"type": "number", "description": "获得的SocialCoin"},
+          "amount": {"type": "number", "description": "支付金额"},
+          "currency": {"type": "string", "description": "支付货币"},
+          "status": {"type": "string", "enum": ["pending", "completed", "failed", "cancelled", "refunded"], "description": "订单状态"},
+          "pay_status": {"type": "string", "enum": ["unpaid", "paid", "refunded"], "description": "支付状态"},
+          "paid_at": {"type": "string", "format": "date-time", "nullable": true, "description": "支付时间"},
+          "finished_at": {"type": "string", "format": "date-time", "nullable": true, "description": "完成时间"},
+          "created_at": {"type": "string", "format": "date-time", "description": "创建时间"}
+        }
+      },
       "RegisterRequest": {
         "type": "object",
         "required": ["name", "password"],

@@ -22,6 +22,7 @@ use App\Http\Controllers\GameProviders\FunkyController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\SopayController;
 use App\Http\Controllers\KycController;
+use App\Http\Controllers\BundleController;
 
 // 认证相关路由
 Route::prefix('auth')->group(function () {
@@ -117,6 +118,19 @@ Route::prefix('themes')->group(function () {
 
 // 支付方式相关路由（只读）
 Route::get('/payment-methods', [PaymentMethodController::class, 'index']);
+
+// Bundle相关路由（双币种模式）
+Route::prefix('bundles')->group(function () {
+    Route::get('/', [BundleController::class, 'index']);
+    Route::get('/{id}', [BundleController::class, 'show']);
+    
+    // 需要认证的路由
+    Route::middleware('auth:sanctum')->group(function () {
+        Route::post('/purchase', [BundleController::class, 'purchase']);
+        Route::get('/purchases/list', [BundleController::class, 'purchases']);
+        Route::get('/purchases/{orderNo}', [BundleController::class, 'purchaseDetail']);
+    });
+});
 
 // 货币相关路由（只读）
 Route::get('/currencies', [CurrencyController::class, 'index']);

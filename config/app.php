@@ -124,4 +124,17 @@ return [
     ],
 
     'jwt_secret' => env('JWT_SECRET'),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Balance Mode
+    |--------------------------------------------------------------------------
+    |
+    | This option determines the balance system mode:
+    | - 'currency': Traditional multi-currency deposit mode
+    | - 'bundle': Dual-coin bundle mode (GoldCoin & SocialCoin)
+    |
+    */
+
+    'balance_mode' => env('BALANCE_MODE', 'currency'),
 ];
