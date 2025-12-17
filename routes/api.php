@@ -156,7 +156,7 @@ Route::post('/sopay/callback', [SopayController::class, 'callback']);
 // 余额模式相关路由 (根据 BALANCE_MODE 配置切换)
 // =============================================================================
 
-if (config('app.balance_mode') === 'currency') {
+// if (config('app.balance_mode') === 'currency') {
     // ========== Currency 模式：传统存款/提款 ==========
     
     // 存款相关路由（需要认证）
@@ -174,9 +174,9 @@ if (config('app.balance_mode') === 'currency') {
         Route::get('/form-fields', [WithdrawController::class, 'formFields']);
         Route::get('/{orderNo}', [WithdrawController::class, 'show']);
     });
-}
+// }
 
-if (config('app.balance_mode') === 'bundle') {
+// if (config('app.balance_mode') === 'bundle') {
     // ========== Bundle 模式：GC/SC 双币种捆绑包 ==========
     
     // Bundle 购买相关路由
@@ -201,4 +201,4 @@ if (config('app.balance_mode') === 'bundle') {
         Route::get('/exchange-rate', [RedeemController::class, 'exchangeRate']);
         Route::get('/{orderNo}', [RedeemController::class, 'show']);
     });
-}
+// }
