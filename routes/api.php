@@ -52,30 +52,14 @@ Route::middleware('auth:sanctum')->prefix('users')->group(function () {
 // Banner相关路由（只读）
 Route::get('/banners', [BannerController::class, 'index']);
 
-// 余额相关路由（需要认证）
+// 余额相关路由（需要认证）- 两种模式通用
 Route::middleware('auth:sanctum')->prefix('balances')->group(function () {
     Route::get('/', [BalanceController::class, 'index']);
     Route::get('/transactions/list', [BalanceController::class, 'transactions']);
     Route::get('/{currency}', [BalanceController::class, 'show']);
 });
 
-// 存款相关路由（需要认证）
-Route::middleware('auth:sanctum')->prefix('deposits')->group(function () {
-    Route::get('/', [DepositController::class, 'index']);
-    Route::post('/', [DepositController::class, 'store']);
-    Route::get('/form-fields', [DepositController::class, 'formFields']);
-    Route::get('/{orderNo}', [DepositController::class, 'show']);
-});
-
-// 提款相关路由（需要认证）
-Route::middleware('auth:sanctum')->prefix('withdraws')->group(function () {
-    Route::get('/', [WithdrawController::class, 'index']);
-    Route::post('/', [WithdrawController::class, 'store']);
-    Route::get('/form-fields', [WithdrawController::class, 'formFields']);
-    Route::get('/{orderNo}', [WithdrawController::class, 'show']);
-});
-
-// 交易记录相关路由（需要认证）
+// 交易记录相关路由（需要认证）- 两种模式通用
 Route::middleware('auth:sanctum')->prefix('transactions')->group(function () {
     Route::get('/', [TransactionController::class, 'index']);
     Route::get('/types', [TransactionController::class, 'types']);
@@ -118,19 +102,6 @@ Route::prefix('themes')->group(function () {
 
 // 支付方式相关路由（只读）
 Route::get('/payment-methods', [PaymentMethodController::class, 'index']);
-
-// Bundle相关路由（双币种模式）
-Route::prefix('bundles')->group(function () {
-    Route::get('/', [BundleController::class, 'index']);
-    Route::get('/{id}', [BundleController::class, 'show']);
-    
-    // 需要认证的路由
-    Route::middleware('auth:sanctum')->group(function () {
-        Route::post('/purchase', [BundleController::class, 'purchase']);
-        Route::get('/purchases/list', [BundleController::class, 'purchases']);
-        Route::get('/purchases/{orderNo}', [BundleController::class, 'purchaseDetail']);
-    });
-});
 
 // 货币相关路由（只读）
 Route::get('/currencies', [CurrencyController::class, 'index']);
@@ -179,3 +150,44 @@ Route::prefix('gp')->middleware(['throttle:gp'])->group(function () {
 
 // Sopay 回调路由
 Route::post('/sopay/callback', [SopayController::class, 'callback']);
+
+// =============================================================================
+// 余额模式相关路由 (根据 BALANCE_MODE 配置切换)
+// =============================================================================
+
+if (config('app.balance_mode') === 'currency') {
+    // ========== Currency 模式：传统存款/提款 ==========
+    
+    // 存款相关路由（需要认证）
+    Route::middleware('auth:sanctum')->prefix('deposits')->group(function () {
+        Route::get('/', [DepositController::class, 'index']);
+        Route::post('/', [DepositController::class, 'store']);
+        Route::get('/form-fields', [DepositController::class, 'formFields']);
+        Route::get('/{orderNo}', [DepositController::class, 'show']);
+    });
+
+    // 提款相关路由（需要认证）
+    Route::middleware('auth:sanctum')->prefix('withdraws')->group(function () {
+        Route::get('/', [WithdrawController::class, 'index']);
+        Route::post('/', [WithdrawController::class, 'store']);
+        Route::get('/form-fields', [WithdrawController::class, 'formFields']);
+        Route::get('/{orderNo}', [WithdrawController::class, 'show']);
+    });
+}
+
+if (config('app.balance_mode') === 'bundle') {
+    // ========== Bundle 模式：GC/SC 双币种捆绑包 ==========
+    
+    Route::prefix('bundles')->group(function () {
+        Route::get('/', [BundleController::class, 'index']);
+        Route::get('/{id}', [BundleController::class, 'show']);
+        
+        // 需要认证的路由
+        Route::middleware('auth:sanctum')->group(function () {
+            Route::get('/form-fields', [BundleController::class, 'formFields']);
+            Route::post('/purchase', [BundleController::class, 'purchase']);
+            Route::get('/purchases/list', [BundleController::class, 'purchases']);
+            Route::get('/purchases/{orderNo}', [BundleController::class, 'purchaseDetail']);
+        });
+    });
+}

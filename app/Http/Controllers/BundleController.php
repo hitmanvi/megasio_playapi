@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Enums\ErrorCode;
 use App\Models\Bundle;
+use App\Models\PaymentMethod;
 use App\Services\BundleService;
 use Exception;
 use Illuminate\Http\JsonResponse;
@@ -20,17 +21,9 @@ class BundleController extends Controller
 
     /**
      * 获取可用的Bundle列表
-     *
-     * @param Request $request
-     * @return JsonResponse
      */
     public function index(Request $request): JsonResponse
     {
-        // 检查是否为Bundle模式
-        if (!BundleService::isBundleMode()) {
-            return $this->error(ErrorCode::VALIDATION_ERROR, 'Bundle mode is not enabled');
-        }
-
         $currency = $request->query('currency', 'USD');
         $limit = (int) $request->query('limit', 20);
 
@@ -41,17 +34,10 @@ class BundleController extends Controller
 
     /**
      * 获取Bundle详情
-     *
-     * @param int $id
-     * @return JsonResponse
      */
     public function show(int $id): JsonResponse
     {
-        if (!BundleService::isBundleMode()) {
-            return $this->error(ErrorCode::VALIDATION_ERROR, 'Bundle mode is not enabled');
-        }
-
-        $bundle = Bundle::findCached($id);
+        $bundle = Bundle::find($id);
         if (!$bundle || !$bundle->enabled) {
             return $this->error(ErrorCode::NOT_FOUND, 'Bundle not found');
         }
@@ -61,19 +47,15 @@ class BundleController extends Controller
 
     /**
      * 创建购买订单
-     *
-     * @param Request $request
-     * @return JsonResponse
      */
     public function purchase(Request $request): JsonResponse
     {
-        if (!BundleService::isBundleMode()) {
-            return $this->error(ErrorCode::VALIDATION_ERROR, 'Bundle mode is not enabled');
-        }
-
         $request->validate([
             'bundle_id' => 'required|integer|exists:bundles,id',
             'payment_method_id' => 'required|integer|exists:payment_methods,id',
+            'deposit_info' => 'nullable|array',
+            'extra_info' => 'nullable|array',
+            'native_app' => 'nullable|string',
         ]);
 
         $user = $request->user();
@@ -82,14 +64,17 @@ class BundleController extends Controller
         }
 
         try {
-            $purchase = $this->bundleService->createPurchase(
+            $result = $this->bundleService->createPurchase(
                 $user->id,
                 $request->input('bundle_id'),
                 $request->input('payment_method_id'),
-                $request->ip()
+                $request->ip(),
+                $request->input('deposit_info', []),
+                $request->input('extra_info', []),
+                $request->input('native_app', '')
             );
 
-            return $this->responseItem($purchase->toApiArray());
+            return $this->responseItem($result);
         } catch (Exception $e) {
             return $this->error(ErrorCode::VALIDATION_ERROR, $e->getMessage());
         }
@@ -97,16 +82,9 @@ class BundleController extends Controller
 
     /**
      * 获取用户的购买记录
-     *
-     * @param Request $request
-     * @return JsonResponse
      */
     public function purchases(Request $request): JsonResponse
     {
-        if (!BundleService::isBundleMode()) {
-            return $this->error(ErrorCode::VALIDATION_ERROR, 'Bundle mode is not enabled');
-        }
-
         $user = $request->user();
         if (!$user) {
             return $this->error(ErrorCode::UNAUTHORIZED);
@@ -121,17 +99,9 @@ class BundleController extends Controller
 
     /**
      * 获取购买详情
-     *
-     * @param Request $request
-     * @param string $orderNo
-     * @return JsonResponse
      */
     public function purchaseDetail(Request $request, string $orderNo): JsonResponse
     {
-        if (!BundleService::isBundleMode()) {
-            return $this->error(ErrorCode::VALIDATION_ERROR, 'Bundle mode is not enabled');
-        }
-
         $user = $request->user();
         if (!$user) {
             return $this->error(ErrorCode::UNAUTHORIZED);
@@ -145,5 +115,31 @@ class BundleController extends Controller
         return $this->responseItem($purchase->toApiArray());
     }
 
-}
+    /**
+     * 获取支付表单字段
+     */
+    public function formFields(Request $request): JsonResponse
+    {
+        $request->validate([
+            'bundle_id' => 'required|integer|exists:bundles,id',
+            'payment_method_id' => 'required|integer|exists:payment_methods,id',
+        ]);
 
+        $bundle = Bundle::find($request->input('bundle_id'));
+        if (!$bundle || !$bundle->enabled) {
+            return $this->error(ErrorCode::NOT_FOUND, 'Bundle not found');
+        }
+
+        $paymentMethod = PaymentMethod::find($request->input('payment_method_id'));
+        if (!$paymentMethod || !$paymentMethod->enabled) {
+            return $this->error(ErrorCode::NOT_FOUND, 'Payment method not found');
+        }
+
+        try {
+            $fields = $this->bundleService->getFormFields((float) $bundle->getCurrentPrice(), $paymentMethod);
+            return $this->responseItem($fields);
+        } catch (Exception $e) {
+            return $this->error(ErrorCode::VALIDATION_ERROR, $e->getMessage());
+        }
+    }
+}

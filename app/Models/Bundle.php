@@ -4,14 +4,9 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Support\Facades\Cache;
 
 class Bundle extends Model
 {
-    protected const CACHE_PREFIX = 'bundle:';
-    protected const CACHE_TTL = 3600;
-    protected const CACHE_LIST_KEY = 'bundle:list:enabled';
-
     /**
      * The attributes that are mass assignable.
      *
@@ -112,8 +107,19 @@ class Bundle extends Model
         }
 
         $this->decrement('stock');
-        $this->clearCache();
         return true;
+    }
+
+    /**
+     * 恢复库存
+     */
+    public function incrementStock(): void
+    {
+        if ($this->stock === null) {
+            return; // 无限库存不需要恢复
+        }
+
+        $this->increment('stock');
     }
 
     /**
@@ -156,61 +162,6 @@ class Bundle extends Model
     public function scopeByCurrency($query, string $currency)
     {
         return $query->where('currency', $currency);
-    }
-
-    /**
-     * 获取启用的Bundle列表（带缓存）
-     */
-    public static function getEnabledList(string $currency = 'USD'): array
-    {
-        $cacheKey = self::CACHE_LIST_KEY . ':' . $currency;
-
-        return Cache::remember($cacheKey, self::CACHE_TTL, function () use ($currency) {
-            return self::enabled()
-                ->byCurrency($currency)
-                ->ordered()
-                ->get()
-                ->toArray();
-        });
-    }
-
-    /**
-     * 通过ID获取Bundle（带缓存）
-     */
-    public static function findCached(int $id): ?self
-    {
-        $cacheKey = self::CACHE_PREFIX . 'id:' . $id;
-
-        return Cache::remember($cacheKey, self::CACHE_TTL, function () use ($id) {
-            return static::find($id);
-        });
-    }
-
-    /**
-     * 清除缓存
-     */
-    public function clearCache(): void
-    {
-        Cache::forget(self::CACHE_PREFIX . 'id:' . $this->id);
-        // 清除所有货币的列表缓存
-        $currencies = ['USD', 'EUR', 'GBP', 'CAD', 'AUD'];
-        foreach ($currencies as $currency) {
-            Cache::forget(self::CACHE_LIST_KEY . ':' . $currency);
-        }
-    }
-
-    /**
-     * 模型事件
-     */
-    protected static function booted(): void
-    {
-        static::saved(function (Bundle $bundle) {
-            $bundle->clearCache();
-        });
-
-        static::deleted(function (Bundle $bundle) {
-            $bundle->clearCache();
-        });
     }
 
     /**

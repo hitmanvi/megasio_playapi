@@ -7,18 +7,21 @@ use App\Services\SopayService;
 use Illuminate\Support\Facades\Log;
 use App\Services\DepositService;
 use App\Services\WithdrawService;
+use App\Services\BundleService;
 
 class SopayController extends Controller
 {
     protected SopayService $sopayService;
     protected DepositService $depositService;
     protected WithdrawService $withdrawService;
+    protected BundleService $bundleService;
     
     public function __construct()
     {
         $this->sopayService = new SopayService();
         $this->depositService = new DepositService();
         $this->withdrawService = new WithdrawService();
+        $this->bundleService = new BundleService();
     }
 
     public function callback(Request $request)
@@ -29,7 +32,7 @@ class SopayController extends Controller
         $signData = $request->get('sign_data');
         if(!$signData) return '';
 
-        Log::error('Sopay Callback Received', [
+        Log::info('Sopay Callback Received', [
             'headers' => $request->headers->all(),
             'body' => $request->all(),
         ]);
@@ -42,11 +45,24 @@ class SopayController extends Controller
             return '';
         }
 
-        if(isset($data['subject']) && $data['subject'] == 'deposit') {
-            return $this->handleDeposit($data);
-        } elseif(isset($data['subject']) && $data['subject'] == 'withdraw') {
+        $data = json_decode($signData, true);
+        if (!$data) {
+            Log::error('Sopay Callback Invalid sign_data JSON', ['sign_data' => $signData]);
+            return '';
+        }
+
+        if (isset($data['subject']) && $data['subject'] == 'deposit') {
+            // 根据 balance_mode 区分处理
+            if (BundleService::isBundleMode()) {
+                return $this->handleBundle($data);
+            } else {
+                return $this->handleDeposit($data);
+            }
+        } elseif (isset($data['subject']) && $data['subject'] == 'withdraw') {
             return $this->handleWithdraw($data);
         }
+
+        return '';
     }
 
     private function handleDeposit($data)
@@ -77,5 +93,19 @@ class SopayController extends Controller
         } else {
             return '';
         }
+    }
+
+    private function handleBundle($data)
+    {
+        $status = $data['status'];
+        $orderNo = $data['out_trade_no'];
+        $outTradeNo = $data['order_id'];
+        $amount = $data['amount'];
+        
+        $result = $this->bundleService->finishBundlePurchase($status, $orderNo, $outTradeNo, $amount);
+        if(!$result) {
+            return '';
+        }
+        return 'ok';
     }
 }
