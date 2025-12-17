@@ -40,9 +40,6 @@ return new class extends Migration
             $table->text('note')->nullable();
             
             $table->timestamps();
-            
-            $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
-            $table->foreign('payment_method_id')->references('id')->on('payment_methods')->onDelete('set null');
         });
     }
 

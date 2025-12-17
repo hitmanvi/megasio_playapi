@@ -30,10 +30,6 @@ return new class extends Migration
             $table->timestamp('paid_at')->nullable();            // 支付时间
             $table->timestamp('finished_at')->nullable();        // 完成时间
             $table->timestamps();
-
-            $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
-            $table->foreign('bundle_id')->references('id')->on('bundles')->onDelete('cascade');
-            $table->foreign('payment_method_id')->references('id')->on('payment_methods')->onDelete('cascade');
         });
     }
 
