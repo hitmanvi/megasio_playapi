@@ -137,4 +137,16 @@ return [
     */
 
     'balance_mode' => env('BALANCE_MODE', 'currency'),
+
+    /*
+    |--------------------------------------------------------------------------
+    | SC to USD Exchange Rate
+    |--------------------------------------------------------------------------
+    |
+    | The exchange rate for converting Social Coin (SC) to USD.
+    | Used in bundle mode for redeem functionality.
+    |
+    */
+
+    'sc_to_usd_rate' => (float) env('SC_TO_USD_RATE', 1.0),
 ];

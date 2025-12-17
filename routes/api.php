@@ -23,6 +23,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\SopayController;
 use App\Http\Controllers\KycController;
 use App\Http\Controllers\BundleController;
+use App\Http\Controllers\RedeemController;
 
 // 认证相关路由
 Route::prefix('auth')->group(function () {
@@ -178,6 +179,7 @@ if (config('app.balance_mode') === 'currency') {
 if (config('app.balance_mode') === 'bundle') {
     // ========== Bundle 模式：GC/SC 双币种捆绑包 ==========
     
+    // Bundle 购买相关路由
     Route::prefix('bundles')->group(function () {
         Route::get('/', [BundleController::class, 'index']);
         Route::get('/{id}', [BundleController::class, 'show']);
@@ -189,5 +191,14 @@ if (config('app.balance_mode') === 'bundle') {
             Route::get('/purchases/list', [BundleController::class, 'purchases']);
             Route::get('/purchases/{orderNo}', [BundleController::class, 'purchaseDetail']);
         });
+    });
+
+    // Redeem 兑换相关路由 (SC -> USD)
+    Route::middleware('auth:sanctum')->prefix('redeems')->group(function () {
+        Route::get('/', [RedeemController::class, 'index']);
+        Route::post('/', [RedeemController::class, 'store']);
+        Route::get('/form-fields', [RedeemController::class, 'formFields']);
+        Route::get('/exchange-rate', [RedeemController::class, 'exchangeRate']);
+        Route::get('/{orderNo}', [RedeemController::class, 'show']);
     });
 }
