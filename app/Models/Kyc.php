@@ -172,6 +172,23 @@ class Kyc extends Model
     }
 
     /**
+     * Check if KYC is verified (at least initial approval).
+     * Used for withdraw/redeem prerequisites.
+     */
+    public function isVerified(): bool
+    {
+        return in_array($this->status, [
+            self::STATUS_APPROVED,
+            self::STATUS_ADVANCED_PENDING,
+            self::STATUS_ADVANCED_APPROVED,
+            self::STATUS_ADVANCED_REJECTED,
+            self::STATUS_ENHANCED_PENDING,
+            self::STATUS_ENHANCED_APPROVED,
+            self::STATUS_ENHANCED_REJECTED,
+        ]);
+    }
+
+    /**
      * Scope to filter by status.
      */
     public function scopeByStatus($query, string $status)

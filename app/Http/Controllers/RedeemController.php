@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Enums\ErrorCode;
+use App\Models\Kyc;
 use App\Services\RedeemService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -53,6 +54,12 @@ class RedeemController extends Controller
         $user = $request->user();
         if (!$user) {
             return $this->error(ErrorCode::UNAUTHORIZED);
+        }
+
+        // 检查 KYC 认证状态
+        $kyc = Kyc::where('user_id', $user->id)->first();
+        if (!$kyc || !$kyc->isVerified()) {
+            return $this->error(ErrorCode::FORBIDDEN, 'KYC verification required for redemption');
         }
 
         $validator = Validator::make($request->all(), [

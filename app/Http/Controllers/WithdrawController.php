@@ -2,11 +2,12 @@
 
 namespace App\Http\Controllers;
 
-use App\Services\WithdrawService;
-use Illuminate\Http\Request;
-use Illuminate\Http\JsonResponse;
-use Illuminate\Support\Facades\Validator;
 use App\Enums\ErrorCode;
+use App\Models\Kyc;
+use App\Services\WithdrawService;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Validator;
 
 class WithdrawController extends Controller
 {
@@ -61,6 +62,12 @@ class WithdrawController extends Controller
         $user = $request->user();
         if (!$user) {
             return $this->error(ErrorCode::UNAUTHORIZED, 'User not authenticated');
+        }
+
+        // 检查 KYC 认证状态
+        $kyc = Kyc::where('user_id', $user->id)->first();
+        if (!$kyc || !$kyc->isVerified()) {
+            return $this->error(ErrorCode::FORBIDDEN, 'KYC verification required for withdrawal');
         }
 
         // 验证请求参数
