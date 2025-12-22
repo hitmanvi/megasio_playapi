@@ -8,6 +8,7 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 use Illuminate\Support\Str;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 
@@ -234,5 +235,56 @@ class User extends Authenticatable
     public function getAllMeta(string $key): array
     {
         return UserMeta::getAll($this->id, $key);
+    }
+
+    /**
+     * 获取用户的标签
+     */
+    public function tags(): BelongsToMany
+    {
+        return $this->belongsToMany(Tag::class, 'user_tags')
+            ->withPivot('created_at');
+    }
+
+    /**
+     * 检查用户是否有指定标签
+     */
+    public function hasTag(string $tagName): bool
+    {
+        return $this->tags()->where('name', $tagName)->exists();
+    }
+
+    /**
+     * 检查用户是否有指定标签（通过ID）
+     */
+    public function hasTagById(int $tagId): bool
+    {
+        return $this->tags()->where('tags.id', $tagId)->exists();
+    }
+
+    /**
+     * 添加标签
+     */
+    public function addTag(int $tagId): void
+    {
+        if (!$this->hasTagById($tagId)) {
+            $this->tags()->attach($tagId);
+        }
+    }
+
+    /**
+     * 移除标签
+     */
+    public function removeTag(int $tagId): void
+    {
+        $this->tags()->detach($tagId);
+    }
+
+    /**
+     * 同步标签（替换所有标签）
+     */
+    public function syncTags(array $tagIds): void
+    {
+        $this->tags()->sync($tagIds);
     }
 }
