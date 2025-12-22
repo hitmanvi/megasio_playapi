@@ -14,6 +14,7 @@ class Bundle extends Model
      */
     protected $fillable = [
         'name',
+        'display_name',
         'description',
         'icon',
         'gold_coin',
@@ -172,6 +173,7 @@ class Bundle extends Model
         return [
             'id' => $this->id,
             'name' => $this->name,
+            'display_name' => $this->display_name,
             'description' => $this->description,
             'icon' => $this->icon,
             'gold_coin' => (float) $this->gold_coin,
