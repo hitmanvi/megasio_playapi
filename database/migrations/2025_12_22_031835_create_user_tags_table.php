@@ -15,11 +15,13 @@ return new class extends Migration
             $table->id();
             $table->unsignedBigInteger('user_id');
             $table->unsignedBigInteger('tag_id');
-            $table->timestamp('created_at')->useCurrent();
+            $table->timestamps();
+
 
             $table->unique(['user_id', 'tag_id']);
             $table->index('user_id');
             $table->index('tag_id');
+            
         });
     }
 
