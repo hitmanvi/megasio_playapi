@@ -12,7 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('deposits', function (Blueprint $table) {
-            $table->boolean('is_disputed')->default(false)->after('approved');
+            $table->boolean('is_disputed')->default(false);
             $table->string('resolved_status')->nullable()->after('is_disputed');
         });
     }
