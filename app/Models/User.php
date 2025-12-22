@@ -265,11 +265,24 @@ class User extends Authenticatable
     /**
      * 添加标签
      */
-    public function addTag(int $tagId): void
+    public function addTag(int $tagId, ?string $value = null, ?string $reason = null): void
     {
         if (!$this->hasTagById($tagId)) {
             $this->tags()->attach($tagId);
         }
+
+        // 记录打标签日志
+        if ($value !== null) {
+            UserTagLog::log($this->id, $tagId, $value, $reason);
+        }
+    }
+
+    /**
+     * 获取用户的打标签记录
+     */
+    public function tagLogs(): HasMany
+    {
+        return $this->hasMany(UserTagLog::class);
     }
 
     /**
