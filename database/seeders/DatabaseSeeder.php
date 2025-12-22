@@ -15,9 +15,7 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // Seed tags with translations
         $this->call([
-            TagSeeder::class,
             TranslationSeeder::class,
             BrandSeeder::class,
             GameSeeder::class,

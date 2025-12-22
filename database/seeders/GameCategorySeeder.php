@@ -3,10 +3,7 @@
 namespace Database\Seeders;
 
 use App\Models\GameCategory;
-use App\Models\Tag;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
-use Illuminate\Support\Facades\DB;
 
 class GameCategorySeeder extends Seeder
 {
@@ -15,12 +12,8 @@ class GameCategorySeeder extends Seeder
      */
     public function run(): void
     {
-        // Get existing category tags from tags table
-        $categoryTags = Tag::all()->keyBy('name');
-        
-        // Map tag names to category data (based on TagSeeder)
-        $categoryData = [
-            'movie' => [
+        $categories = [
+            [
                 'icon' => 'fas fa-film',
                 'enabled' => true,
                 'sort_id' => 1,
@@ -31,7 +24,7 @@ class GameCategorySeeder extends Seeder
                     'ko' => '영화',
                 ],
             ],
-            'tv-series' => [
+            [
                 'icon' => 'fas fa-tv',
                 'enabled' => true,
                 'sort_id' => 2,
@@ -42,7 +35,7 @@ class GameCategorySeeder extends Seeder
                     'ko' => 'TV 시리즈',
                 ],
             ],
-            'anime' => [
+            [
                 'icon' => 'fas fa-user-ninja',
                 'enabled' => true,
                 'sort_id' => 3,
@@ -53,7 +46,7 @@ class GameCategorySeeder extends Seeder
                     'ko' => '애니메이션',
                 ],
             ],
-            'documentary' => [
+            [
                 'icon' => 'fas fa-book-open',
                 'enabled' => true,
                 'sort_id' => 4,
@@ -64,7 +57,7 @@ class GameCategorySeeder extends Seeder
                     'ko' => '다큐멘터리',
                 ],
             ],
-            'short-film' => [
+            [
                 'icon' => 'fas fa-clock',
                 'enabled' => true,
                 'sort_id' => 5,
@@ -75,7 +68,7 @@ class GameCategorySeeder extends Seeder
                     'ko' => '단편 영화',
                 ],
             ],
-            'web-series' => [
+            [
                 'icon' => 'fas fa-globe',
                 'enabled' => true,
                 'sort_id' => 6,
@@ -88,43 +81,18 @@ class GameCategorySeeder extends Seeder
             ],
         ];
 
-        // Create game categories and migrate data from tags
-        $tagToCategoryMap = [];
-        
-        foreach ($categoryData as $tagName => $data) {
+        foreach ($categories as $data) {
             $translations = $data['translations'];
             unset($data['translations']);
-            
+
             // Set name field with English name as default
             $data['name'] = $translations['en'] ?? '';
-            
+
             // Create the game category
             $category = GameCategory::create($data);
-            
+
             // Set translations
             $category->setNames($translations);
-            
-            // Store mapping from old tag ID to new category ID
-            if (isset($categoryTags[$tagName])) {
-                $tagToCategoryMap[$categoryTags[$tagName]->id] = $category->id;
-            }
-        }
-        
-        // If there are existing games, update their category_id
-        if (!empty($tagToCategoryMap)) {
-            foreach ($tagToCategoryMap as $tagId => $categoryId) {
-                DB::table('games')
-                    ->where('category_id', $tagId)
-                    ->update(['category_id' => $categoryId]);
-            }
-        }
-        
-        // Add foreign key constraint after data migration
-        // Note: This should be done carefully to avoid duplicate constraint errors
-        try {
-            DB::statement('ALTER TABLE games ADD CONSTRAINT games_category_id_foreign FOREIGN KEY (category_id) REFERENCES game_categories(id)');
-        } catch (\Exception $e) {
-            // Constraint might already exist, ignore
         }
     }
 }
