@@ -28,6 +28,8 @@ class Deposit extends Model
         'user_ip',
         'expired_at',
         'finished_at',
+        'is_disputed',
+        'resolved_status',
     ];
 
     /**
@@ -43,6 +45,7 @@ class Deposit extends Model
         'extra_info' => 'array',
         'expired_at' => 'datetime',
         'finished_at' => 'datetime',
+        'is_disputed' => 'boolean',
     ];
 
     /**
