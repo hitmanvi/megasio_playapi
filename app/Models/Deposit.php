@@ -31,7 +31,7 @@ class Deposit extends Model
         'is_disputed',
         'resolved_status',
         'abnormal_status',
-        'abnormaled_at',
+        'disputed_at',
         'last_callback_at',
     ];
 
@@ -49,7 +49,7 @@ class Deposit extends Model
         'expired_at' => 'datetime',
         'completed_at' => 'datetime',
         'is_disputed' => 'boolean',
-        'abnormaled_at' => 'datetime',
+        'disputed_at' => 'datetime',
         'last_callback_at' => 'datetime',
     ];
 
