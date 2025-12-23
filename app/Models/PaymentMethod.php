@@ -29,6 +29,8 @@ class PaymentMethod extends Model
         'notes',
         'crypto_info',
         'fields',
+        'extra_step_type',
+        'extra_step_fields',
     ];
 
     /**
@@ -40,6 +42,7 @@ class PaymentMethod extends Model
         'amounts' => 'array',
         'crypto_info' => 'array',
         'fields' => 'array',
+        'extra_step_fields' => 'array',
         'enabled' => 'boolean',
         'is_fiat' => 'boolean',
         'sort_id' => 'integer',
