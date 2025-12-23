@@ -27,7 +27,7 @@ class Deposit extends Model
         'pay_fee',
         'user_ip',
         'expired_at',
-        'finished_at',
+        'completed_at',
         'is_disputed',
         'resolved_status',
         'abnormal_status',
@@ -46,7 +46,7 @@ class Deposit extends Model
         'deposit_info' => 'array',
         'extra_info' => 'array',
         'expired_at' => 'datetime',
-        'finished_at' => 'datetime',
+        'completed_at' => 'datetime',
         'is_disputed' => 'boolean',
         'last_callback_at' => 'datetime',
     ];

@@ -78,7 +78,7 @@ class DepositSeeder extends Seeder
                 'actual_amount' => 1000.00,
                 'pay_fee' => 0.00,
                 'out_trade_no' => 'SOPAY' . strtoupper(Str::random(10)),
-                'finished_at_offset' => 5,
+                'completed_at_offset' => 5,
             ],
             [
                 'amount' => 750.00,
@@ -90,7 +90,7 @@ class DepositSeeder extends Seeder
                 'actual_amount' => 745.00,
                 'pay_fee' => 5.00,
                 'out_trade_no' => 'SOPAY' . strtoupper(Str::random(10)),
-                'finished_at_offset' => 7,
+                'completed_at_offset' => 7,
             ],
             // 失败订单
             [
@@ -101,7 +101,7 @@ class DepositSeeder extends Seeder
                 'days_ago' => 3,
                 'payment_method_key' => 'paypal_usd',
                 'out_trade_no' => 'SOPAY' . strtoupper(Str::random(10)),
-                'finished_at_offset' => 3,
+                'completed_at_offset' => 3,
             ],
             // 已取消订单
             [
@@ -111,7 +111,7 @@ class DepositSeeder extends Seeder
                 'pay_status' => Deposit::PAY_STATUS_CANCELLED,
                 'days_ago' => 4,
                 'payment_method_key' => 'ach_usd_deposit',
-                'finished_at_offset' => 4,
+                'completed_at_offset' => 4,
             ],
             // 已过期订单
             [
@@ -143,8 +143,8 @@ class DepositSeeder extends Seeder
                 ? $createdAt->copy()->addMinutes($depositData['expired_at_offset'])
                 : $createdAt->copy()->addMinutes(30);
             
-            $finishedAt = isset($depositData['finished_at_offset'])
-                ? now()->subDays($depositData['finished_at_offset'])
+            $completedAt = isset($depositData['completed_at_offset'])
+                ? now()->subDays($depositData['completed_at_offset'])
                 : null;
 
             Deposit::updateOrCreate(
@@ -163,7 +163,7 @@ class DepositSeeder extends Seeder
                     'pay_fee' => $depositData['pay_fee'] ?? null,
                     'user_ip' => '192.168.1.' . rand(1, 255),
                     'expired_at' => $expiredAt,
-                    'finished_at' => $finishedAt,
+                    'completed_at' => $completedAt,
                     'created_at' => $createdAt,
                     'updated_at' => $createdAt,
                 ]

@@ -79,7 +79,7 @@ class DepositService
             'status' => $deposit->status,
             'pay_status' => $deposit->pay_status,
             'expired_at' => $deposit->expired_at ? $deposit->expired_at->format('Y-m-d H:i:s') : null,
-            'finished_at' => $deposit->finished_at ? $deposit->finished_at->format('Y-m-d H:i:s') : null,
+            'completed_at' => $deposit->completed_at ? $deposit->completed_at->format('Y-m-d H:i:s') : null,
             'created_at' => $deposit->created_at->format('Y-m-d H:i:s'),
             'is_expired' => $deposit->isExpired(),
         ];
@@ -299,7 +299,7 @@ class DepositService
 
         $updateData = [
             'pay_status' => $status,
-            'finished_at' => Carbon::now(),
+            'completed_at' => Carbon::now(),
         ];
 
         switch ($status) {
