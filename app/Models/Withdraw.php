@@ -29,6 +29,7 @@ class Withdraw extends Model
         'user_ip',
         'completed_at',
         'note',
+        'last_callback_at',
     ];
 
     /**
@@ -44,6 +45,7 @@ class Withdraw extends Model
         'extra_info' => 'array',
         'approved' => 'boolean',
         'completed_at' => 'datetime',
+        'last_callback_at' => 'datetime',
     ];
 
     /**

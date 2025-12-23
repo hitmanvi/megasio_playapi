@@ -270,6 +270,10 @@ class WithdrawService
         if(!$withdraw) {
             return false;
         }
+
+        // 更新最后回调时间
+        $withdraw->update(['last_callback_at' => Carbon::now()]);
+
         return DB::transaction(function () use ($withdraw, $amount) {
             $withdraw->update([
                 'status' => Withdraw::STATUS_COMPLETED,

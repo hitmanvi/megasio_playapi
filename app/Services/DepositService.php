@@ -290,6 +290,9 @@ class DepositService
             return false;
         }
 
+        // 更新最后回调时间
+        $deposit->update(['last_callback_at' => Carbon::now()]);
+
         if ($deposit->status !== Deposit::STATUS_PENDING) {
             return true;
         }

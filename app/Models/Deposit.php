@@ -30,6 +30,7 @@ class Deposit extends Model
         'finished_at',
         'is_disputed',
         'resolved_status',
+        'last_callback_at',
     ];
 
     /**
@@ -46,6 +47,7 @@ class Deposit extends Model
         'expired_at' => 'datetime',
         'finished_at' => 'datetime',
         'is_disputed' => 'boolean',
+        'last_callback_at' => 'datetime',
     ];
 
     /**
