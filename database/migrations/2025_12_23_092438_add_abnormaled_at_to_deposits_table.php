@@ -12,7 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('deposits', function (Blueprint $table) {
-            $table->timestamp('abnormaled_at')->nullable()->index();
+            $table->timestamp('disputed_at')->nullable()->index();
         });
     }
 
@@ -22,7 +22,7 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('deposits', function (Blueprint $table) {
-            $table->dropColumn('abnormaled_at');
+            $table->dropColumn('disputed_at');
         });
     }
 };
