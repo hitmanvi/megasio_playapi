@@ -145,5 +145,25 @@ class DepositController extends Controller
 
         return $this->responseItem($fields);
     }
+
+    public function extraStepFields(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'amount' => 'required',
+            'payment_method_id' => 'required',
+            'extra_info' => 'required',
+        ]);
+        if ($validator->fails()) {
+            return $this->error(ErrorCode::VALIDATION_ERROR, $validator->errors());
+        }
+        $amount = (float)$request->input('amount');
+        $paymentMethod = $this->depositService->getPaymentMethod($request->input('payment_method_id') );
+        if (!$paymentMethod) {
+            return $this->error(ErrorCode::NOT_FOUND, 'Payment method not found');
+        }
+        $extraInfo = $request->input('extra_info', []);
+        $fields = $this->depositService->getExtraStepFields($amount, $paymentMethod, $extraInfo);
+        return $this->responseItem($fields);
+    }
 }
 

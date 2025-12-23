@@ -1379,6 +1379,49 @@
         }
       }
     },
+    "/deposits/extra-step-fields": {
+      "post": {
+        "tags": ["Deposit"],
+        "summary": "获取额外步骤表单字段",
+        "description": "根据支付方式、金额和额外信息获取额外步骤需要填写的表单字段",
+        "security": [{"bearerAuth": []}],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["payment_method_id", "amount", "extra_info"],
+                "properties": {
+                  "payment_method_id": {"type": "integer", "description": "支付方式ID"},
+                  "amount": {"type": "number", "description": "金额"},
+                  "extra_info": {"type": "object", "description": "额外信息"}
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "获取额外步骤字段成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {"type": "integer", "example": 0},
+                    "data": {"type": "object", "description": "额外步骤表单字段配置"}
+                  }
+                }
+              }
+            }
+          },
+          "401": {"description": "未授权"},
+          "404": {"description": "支付方式不存在"},
+          "422": {"description": "参数验证失败"}
+        }
+      }
+    },
     "/deposits/{orderNo}": {
       "get": {
         "tags": ["Deposit"],

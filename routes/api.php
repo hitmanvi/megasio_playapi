@@ -164,6 +164,7 @@ Route::post('/sopay/callback', [SopayController::class, 'callback']);
         Route::get('/', [DepositController::class, 'index']);
         Route::post('/', [DepositController::class, 'store']);
         Route::get('/form-fields', [DepositController::class, 'formFields']);
+        Route::post('/extra-step-fields', [DepositController::class, 'extraStepFields']);
         Route::get('/{orderNo}', [DepositController::class, 'show']);
     });
 

@@ -328,4 +328,29 @@ class SopayService
         
         return $result === 1;
     }
+
+    public function getExtraStepInfo($amount, $paymentMethod, $extraInfo)
+    {
+        $params = [
+            'amount'     => $amount,
+            'extra_info' => $extraInfo,
+            'payment_id' => $paymentMethod->key,
+            'appi_id' => $this->appId,
+            'timestamp' => time(),
+            'method'     => 'extra_step_info',
+        ];
+        $params = $this->sign($params);
+        $url    = $this->endpoint . '/api/v2/orders/deposit/extra_step_info';
+        $resp   = Http::post($url, $params);
+        $res    = $resp->json();
+
+        if(!$res) {
+            throw new Exception(ErrorCode::INTERNAL_ERROR);
+        }
+        if ($res['code'] != 0) {
+            throw new Exception(self::ErrorCode[$res['code']]);
+        }
+
+        return $res['data'];
+    }
 }

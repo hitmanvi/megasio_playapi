@@ -269,6 +269,17 @@ class DepositService
         return $fields;
     }
 
+    public function getExtraStepFields($amount, PaymentMethod $paymentMethod, $extraInfo)
+    {
+        $sopayService = new SopayService();
+        $fields = $sopayService->getExtraStepInfo($amount, $paymentMethod, $extraInfo);
+        if(!$fields) {
+            throw new Exception(ErrorCode::INTERNAL_ERROR);
+        }
+
+        return $fields;
+    }
+
     public function finishDeposit($status, $orderId, $outId, $amount)
     {
         $deposit = Deposit::where('order_id', $orderId)
