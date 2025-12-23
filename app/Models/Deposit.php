@@ -30,6 +30,7 @@ class Deposit extends Model
         'finished_at',
         'is_disputed',
         'resolved_status',
+        'abnormal_status',
         'last_callback_at',
     ];
 
