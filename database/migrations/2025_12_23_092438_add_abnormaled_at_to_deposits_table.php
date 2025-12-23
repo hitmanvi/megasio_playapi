@@ -12,7 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('deposits', function (Blueprint $table) {
-            $table->timestamp('abnormaled_at')->nullable();
+            $table->timestamp('abnormaled_at')->nullable()->index();
         });
     }
 
