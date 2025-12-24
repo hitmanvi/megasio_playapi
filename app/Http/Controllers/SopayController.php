@@ -2,12 +2,13 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
-use App\Services\SopayService;
-use Illuminate\Support\Facades\Log;
-use App\Services\DepositService;
-use App\Services\WithdrawService;
+use App\Models\SopayCallbackLog;
 use App\Services\BundleService;
+use App\Services\DepositService;
+use App\Services\SopayService;
+use App\Services\WithdrawService;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 
 class SopayController extends Controller
 {
@@ -27,42 +28,83 @@ class SopayController extends Controller
     public function callback(Request $request)
     {
         $signature = $request->header('signature');
-        if(!$signature) return '';
-
         $signData = $request->get('sign_data');
-        if(!$signData) return '';
+        $data = $signData ? json_decode($signData, true) : null;
+
+        // 初始化日志数据
+        $logData = [
+            'order_id' => $data['order_id'] ?? null,
+            'out_trade_no' => $data['out_trade_no'] ?? null,
+            'subject' => $data['subject'] ?? null,
+            'status' => $data['status'] ?? null,
+            'amount' => $data['amount'] ?? null,
+            'request_headers' => $request->headers->all(),
+            'request_body' => $request->all(),
+            'sign_data' => $signData,
+            'signature' => $signature,
+            'signature_valid' => false,
+            'process_result' => null,
+            'process_error' => null,
+            'ip' => $request->ip(),
+        ];
+
+        if (!$signature) {
+            $logData['process_error'] = 'Missing signature header';
+            SopayCallbackLog::log($logData);
+            return '';
+        }
+
+        if (!$signData) {
+            $logData['process_error'] = 'Missing sign_data';
+            SopayCallbackLog::log($logData);
+            return '';
+        }
 
         Log::info('Sopay Callback Received', [
             'headers' => $request->headers->all(),
             'body' => $request->all(),
         ]);
-        
-        if(!$this->sopayService->verifySign($signData, $signature)) {
+
+        if (!$this->sopayService->verifySign($signData, $signature)) {
             Log::error('Sopay Callback Signature Verification Failed', [
                 'sign_data' => $signData,
                 'signature' => $signature,
             ]);
+            $logData['process_error'] = 'Signature verification failed';
+            SopayCallbackLog::log($logData);
             return '';
         }
 
-        $data = json_decode($signData, true);
+        $logData['signature_valid'] = true;
+
         if (!$data) {
             Log::error('Sopay Callback Invalid sign_data JSON', ['sign_data' => $signData]);
+            $logData['process_error'] = 'Invalid sign_data JSON';
+            SopayCallbackLog::log($logData);
             return '';
         }
 
-        if (isset($data['subject']) && $data['subject'] == 'deposit') {
-            // 根据 balance_mode 区分处理
-            if (BundleService::isBundleMode()) {
-                return $this->handleBundle($data);
-            } else {
-                return $this->handleDeposit($data);
+        try {
+            $result = '';
+            if (isset($data['subject']) && $data['subject'] == 'deposit') {
+                // 根据 balance_mode 区分处理
+                if (BundleService::isBundleMode()) {
+                    $result = $this->handleBundle($data);
+                } else {
+                    $result = $this->handleDeposit($data);
+                }
+            } elseif (isset($data['subject']) && $data['subject'] == 'withdraw') {
+                $result = $this->handleWithdraw($data);
             }
-        } elseif (isset($data['subject']) && $data['subject'] == 'withdraw') {
-            return $this->handleWithdraw($data);
-        }
 
-        return '';
+            $logData['process_result'] = $result ?: 'empty';
+            SopayCallbackLog::log($logData);
+            return $result;
+        } catch (\Exception $e) {
+            $logData['process_error'] = $e->getMessage();
+            SopayCallbackLog::log($logData);
+            return '';
+        }
     }
 
     private function handleDeposit($data)
