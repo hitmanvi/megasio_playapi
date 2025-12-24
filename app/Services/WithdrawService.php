@@ -284,5 +284,27 @@ class WithdrawService
             return true;
         });
     }
+
+    public function failWithdraw($orderId, $outId, $errorMessage, $payStatus)
+    {
+        $withdraw = Withdraw::where('order_no', $orderId)->where('out_id', $outId)->first();
+        if(!$withdraw) {
+            return false;
+        }
+
+        // 更新最后回调时间
+        $withdraw->update(['last_callback_at' => Carbon::now()]);
+
+        return DB::transaction(function () use ($withdraw, $errorMessage, $payStatus) {
+            $withdraw->update([
+                'status' => Withdraw::STATUS_FAILED,
+                'pay_status' => $payStatus,
+                'pay_error' => $errorMessage,
+            ]);
+            // 解冻用户余额（提现请求时已冻结）
+            $this->balanceService->unfreezeAmount($withdraw->user_id, $withdraw->currency, $withdraw->amount);
+            return true;
+        });
+    }
 }
 

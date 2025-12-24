@@ -123,18 +123,26 @@ class SopayController extends Controller
     private function handleWithdraw($data)
     {
         $status = $data['status'];
-        if($status == SopayService::SOPAY_STATUS_SUCCEED) {
-            $orderId = $data['out_trade_no'];
-            $outId = $data['order_id'];
-            $amount = $data['amount'];
+        $orderId = $data['out_trade_no'];
+        $outId = $data['order_id'];
+        $amount = $data['amount'] ?? 0;
+        $errorMessage = $data['error_message'] ?? null;
+
+        if ($status == SopayService::SOPAY_STATUS_SUCCEED) {
             $result = $this->withdrawService->finishWithdraw($orderId, $outId, $amount);
-            if(!$result) {
+            if (!$result) {
                 return '';
             }
             return 'ok';
-        } else {
-            return '';
+        } elseif ($status == SopayService::SOPAY_STATUS_FAILED) {
+            $result = $this->withdrawService->failWithdraw($orderId, $outId, $errorMessage);
+            if (!$result) {
+                return '';
+            }
+            return 'ok';
         }
+
+        return '';
     }
 
     private function handleBundle($data)

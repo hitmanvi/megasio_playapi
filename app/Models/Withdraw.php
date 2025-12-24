@@ -29,6 +29,7 @@ class Withdraw extends Model
         'user_ip',
         'completed_at',
         'note',
+        'pay_error',
         'last_callback_at',
     ];
 
