@@ -292,6 +292,26 @@ class WithdrawService
             return false;
         }
 
+        // pay status 从sopay的状态映射到withdraw的pay status
+        // 假设sopay的pay status和withdraw的pay status之间有映射关系
+        // 可以根据app/Services/SopayService.php中SOPAY_STATUS_xxx的定义进行对应
+        // 这里只进行基础映射，你可以根据实际业务细化
+        $sopayToPayStatusMap = [
+            0 => Withdraw::PAY_STATUS_PENDING,  // SOPAY_STATUS_PREPARING
+            1 => Withdraw::PAY_STATUS_PENDING,  // SOPAY_STATUS_PAYING
+            2 => Withdraw::PAY_STATUS_PENDING,  // SOPAY_STATUS_CONFIRMING
+            3 => Withdraw::PAY_STATUS_PAID,     // SOPAY_STATUS_SUCCEED
+            4 => Withdraw::PAY_STATUS_FAILED,   // SOPAY_STATUS_FAILED
+            5 => Withdraw::PAY_STATUS_FAILED,   // SOPAY_STATUS_EXPIRED
+            6 => Withdraw::PAY_STATUS_FAILED,   // SOPAY_STATUS_DELAYED
+            7 => Withdraw::PAY_STATUS_FAILED,   // SOPAY_STATUS_INSUFFICIENT
+            8 => Withdraw::PAY_STATUS_REJECTED, // SOPAY_STATUS_REJECT
+        ];
+        if (array_key_exists($payStatus, $sopayToPayStatusMap)) {
+            $payStatus = $sopayToPayStatusMap[$payStatus];
+        }
+
+        
         // 更新最后回调时间
         $withdraw->update(['last_callback_at' => Carbon::now()]);
 

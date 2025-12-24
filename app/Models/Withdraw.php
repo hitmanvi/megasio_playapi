@@ -65,7 +65,7 @@ class Withdraw extends Model
     const PAY_STATUS_PENDING = 'PENDING';
     const PAY_STATUS_PAID = 'PAID';
     const PAY_STATUS_FAILED = 'FAILED';
-    const PAY_STATUS_CANCELLED = 'CANCELLED';
+    const PAY_STATUS_REJECTED = 'REJECTED';
 
     /**
      * Get the user that owns the withdraw.

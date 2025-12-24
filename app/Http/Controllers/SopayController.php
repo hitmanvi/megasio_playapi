@@ -134,8 +134,8 @@ class SopayController extends Controller
                 return '';
             }
             return 'ok';
-        } elseif ($status == SopayService::SOPAY_STATUS_FAILED) {
-            $result = $this->withdrawService->failWithdraw($orderId, $outId, $errorMessage);
+        } elseif ($status == SopayService::SOPAY_STATUS_FAILED || $status == SopayService::SOPAY_STATUS_REJECT) {
+            $result = $this->withdrawService->failWithdraw($orderId, $outId, $errorMessage, $status);
             if (!$result) {
                 return '';
             }
