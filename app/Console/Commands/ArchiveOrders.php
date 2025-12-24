@@ -37,8 +37,6 @@ class ArchiveOrders extends Command
         $completedStatuses = [
             Order::STATUS_COMPLETED,
             Order::STATUS_CANCELLED,
-            Order::STATUS_FAILED,
-            Order::STATUS_SETTLED,
         ];
 
         $totalArchived = 0;

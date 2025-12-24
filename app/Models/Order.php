@@ -50,8 +50,6 @@ class Order extends Model
     const STATUS_PENDING = 'PENDING';
     const STATUS_COMPLETED = 'COMPLETED';
     const STATUS_CANCELLED = 'CANCELLED';
-    const STATUS_FAILED = 'FAILED';
-    const STATUS_SETTLED = 'SETTLED';
 
     /**
      * Get the user that owns the order.
@@ -125,11 +123,4 @@ class Order extends Model
         return $query->where('status', self::STATUS_COMPLETED);
     }
 
-    /**
-     * Scope to filter settled orders.
-     */
-    public function scopeSettled($query)
-    {
-        return $query->where('status', self::STATUS_SETTLED);
     }
-}
