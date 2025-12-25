@@ -204,6 +204,7 @@ class DepositService
         }
 
         // Return sopay response with order_no
+        $res['order_no'] = $deposit->order_no;
         return $res;
     }
 
