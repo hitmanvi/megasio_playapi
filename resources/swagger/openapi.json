@@ -3244,7 +3244,10 @@
                         "max_amount": 10000,
                         "min_amount": 100,
                         "sort_id": 1,
-                        "crypto_info": null
+                        "crypto_info": null,
+                        "fields": null,
+                        "extra_step_type": null,
+                        "extra_step_fields": null
                       },
                       {
                         "id": 2,
@@ -3258,7 +3261,10 @@
                         "max_amount": 5000,
                         "min_amount": 50,
                         "sort_id": 2,
-                        "crypto_info": null
+                        "crypto_info": null,
+                        "fields": null,
+                        "extra_step_type": "verification",
+                        "extra_step_fields": [{"field": "otp", "type": "string", "required": true}]
                       }
                     ],
                     "meta": {}
@@ -6437,6 +6443,27 @@
             "nullable": true,
             "description": "加密货币额外信息（如：网络类型、钱包地址、合约地址等）",
             "additionalProperties": true
+          },
+          "fields": {
+            "type": "array",
+            "nullable": true,
+            "description": "表单字段配置",
+            "items": {
+              "type": "object"
+            }
+          },
+          "extra_step_type": {
+            "type": "string",
+            "nullable": true,
+            "description": "额外步骤类型"
+          },
+          "extra_step_fields": {
+            "type": "array",
+            "nullable": true,
+            "description": "额外步骤表单字段配置",
+            "items": {
+              "type": "object"
+            }
           }
         }
       },

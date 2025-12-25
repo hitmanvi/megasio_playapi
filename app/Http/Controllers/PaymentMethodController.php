@@ -52,6 +52,8 @@ class PaymentMethodController extends Controller
                 'sort_id' => $method->sort_id,
                 'crypto_info' => $method->crypto_info,
                 'fields' => $method->fields,
+                'extra_step_type' => $method->extra_step_type,
+                'extra_step_fields' => $method->extra_step_fields,
             ];
         });
 
