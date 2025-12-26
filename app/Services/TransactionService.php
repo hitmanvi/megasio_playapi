@@ -37,10 +37,10 @@ class TransactionService
      */
     public function getUserTransactions(
         int $userId,
-        string $currency = null,
-        string $type = null,
-        Carbon $startDate = null,
-        Carbon $endDate = null,
+        ?string $currency,
+        ?string $type,
+        ?Carbon $startDate,
+        ?Carbon $endDate,
         int $limit = 50,
         int $offset = 0
     ): Collection {
