@@ -191,7 +191,7 @@ class DepositService
             'payment_method_id' => $paymentMethod->id,
             'deposit_info' => $depositInfo,
             'extra_info' => $extraInfo,
-            'status' => Deposit::STATUS_PENDING,
+            'status' => Deposit::STATUS_PROCESSING,
             'pay_status' => Deposit::PAY_STATUS_PENDING,
             'user_ip' => $userIp,
             'expired_at' => $expiredAt,
@@ -293,7 +293,7 @@ class DepositService
         // 更新最后回调时间
         $deposit->update(['last_callback_at' => Carbon::now()]);
 
-        if ($deposit->status !== Deposit::STATUS_PENDING) {
+        if ($deposit->status !== Deposit::STATUS_PROCESSING) {
             return true;
         }
 
