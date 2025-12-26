@@ -3,8 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Enums\ErrorCode;
+use App\Exceptions\Exception as AppException;
 use App\Services\AuthService;
 use App\Services\VerificationCodeService;
+use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 
@@ -46,7 +48,7 @@ class AuthController extends Controller
             ]);
 
             return $this->responseItem($result);
-        } catch (\App\Exceptions\Exception $e) {
+        } catch (AppException $e) {
             return $this->error($e->getErrorCode(), $e->getMessage());
         }
     }
@@ -73,7 +75,7 @@ class AuthController extends Controller
             );
 
             return $this->responseItem($result);
-        } catch (\App\Exceptions\Exception $e) {
+        } catch (AppException $e) {
             return $this->error($e->getErrorCode(), $e->getMessage());
         }
     }
@@ -117,7 +119,7 @@ class AuthController extends Controller
             );
 
             return $this->responseItem(null);
-        } catch (\App\Exceptions\Exception $e) {
+        } catch (AppException $e) {
             return $this->error($e->getErrorCode(), $e->getMessage());
         }
     }
@@ -152,9 +154,9 @@ class AuthController extends Controller
                 $result = $this->verificationCodeService->sendSmsCode($phone, $areaCode, $type);
             }
             return $this->responseItem($result);
-        } catch (\App\Exceptions\Exception $e) {
+        } catch (AppException $e) {
             return $this->error($e->getErrorCode(), $e->getMessage());
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return $this->error(ErrorCode::SMS_SEND_FAILED, $e->getMessage());
         }
     }
@@ -188,7 +190,7 @@ class AuthController extends Controller
             );
 
             return $this->responseItem($result);
-        } catch (\App\Exceptions\Exception $e) {
+        } catch (AppException $e) {
             return $this->error($e->getErrorCode(), $e->getMessage());
         }
     }
@@ -236,7 +238,7 @@ class AuthController extends Controller
             $this->authService->resetPassword($account, $password);
 
             return $this->responseItem(null);
-        } catch (\App\Exceptions\Exception $e) {
+        } catch (AppException $e) {
             return $this->error($e->getErrorCode(), $e->getMessage());
         }
     }
