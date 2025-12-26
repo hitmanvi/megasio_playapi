@@ -9,7 +9,6 @@ use Carbon\Carbon;
 use Illuminate\Pagination\LengthAwarePaginator;
 use App\Exceptions\Exception;
 use App\Enums\ErrorCode;
-use Illuminate\Support\Facades\DB;
 
 class DepositService
 {
