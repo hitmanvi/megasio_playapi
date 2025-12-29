@@ -146,6 +146,7 @@ class BalanceService
                 $userId,
                 $currency,
                 $amount,
+                (float)$balance->available,
                 Transaction::TYPE_DEPOSIT,
                 $relatedEntityId,
                 $notes
@@ -161,8 +162,12 @@ class BalanceService
     public function finishWithdraw(int $userId, string $currency, float $amount, string $notes, int $relatedEntityId): array
     {
         return DB::transaction(function () use ($userId, $currency, $amount, $notes, $relatedEntityId) {
-            $this->updateBalance($userId, $currency, $amount, 'subtract', 'frozen');
-            $this->transactionService->createTransaction($userId, $currency, -$amount, Transaction::TYPE_WITHDRAWAL_UNFREEZE, $relatedEntityId, $notes);
+            $balance = $this->updateBalance($userId, $currency, $amount, 'subtract', 'frozen');
+            $transaction = $this->transactionService->createTransaction($userId, $currency, -$amount, (float)$balance->available, Transaction::TYPE_WITHDRAWAL_UNFREEZE, $relatedEntityId, $notes);
+            return [
+                'balance' => $balance,
+                'transaction' => $transaction,
+            ];
         });
     }
 
@@ -187,6 +192,7 @@ class BalanceService
                 $userId,
                 $currency,
                 -$amount,
+                (float)$balance->available,
                 Transaction::TYPE_WITHDRAWAL,
                 $relatedEntityId,
                 $notes
@@ -243,7 +249,7 @@ class BalanceService
         return DB::transaction(function () use ($userId, $amount, $currency, $gameId, $txid) {
             $balance = $this->updateBalance($userId, $currency, $amount, 'subtract', 'available');
             $entityId = $gameId."_".$txid;
-            $transaction = $this->transactionService->createTransaction($userId, $currency, -$amount, Transaction::TYPE_BET, $entityId);
+            $transaction = $this->transactionService->createTransaction($userId, $currency, -$amount, (float)$balance->available, Transaction::TYPE_BET, $entityId);
             return [
                 'balance' => $balance,
                 'transaction' => $transaction,
@@ -256,7 +262,7 @@ class BalanceService
         return DB::transaction(function () use ($userId, $amount, $currency, $gameId, $txid) {
             $balance = $this->updateBalance($userId, $currency, $amount, 'add', 'available');
             $entityId = $gameId."_".$txid;
-            $transaction = $this->transactionService->createTransaction($userId, $currency, $amount, Transaction::TYPE_PAYOUT, $entityId);
+            $transaction = $this->transactionService->createTransaction($userId, $currency, $amount, (float)$balance->available, Transaction::TYPE_PAYOUT, $entityId);
             return [
                 'balance' => $balance,
                 'transaction' => $transaction,
@@ -269,7 +275,7 @@ class BalanceService
         return DB::transaction(function () use ($userId, $amount, $currency, $gameId, $txid) {
             $balance = $this->updateBalance($userId, $currency, $amount, 'add', 'available');
             $entityId = $gameId."_".$txid;
-            $transaction = $this->transactionService->createTransaction($userId, $currency, $amount, Transaction::TYPE_REFUND, $entityId);
+            $transaction = $this->transactionService->createTransaction($userId, $currency, $amount, (float)$balance->available, Transaction::TYPE_REFUND, $entityId);
             return [
                 'balance' => $balance,
                 'transaction' => $transaction,

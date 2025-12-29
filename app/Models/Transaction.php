@@ -16,6 +16,7 @@ class Transaction extends Model
         'user_id',
         'currency',
         'amount',
+        'balance',
         'type',
         'status',
         'related_entity_id',
@@ -30,6 +31,7 @@ class Transaction extends Model
      */
     protected $casts = [
         'amount' => 'decimal:8',
+        'balance' => 'decimal:8',
         'transaction_time' => 'datetime',
     ];
 

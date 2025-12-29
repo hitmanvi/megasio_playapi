@@ -16,6 +16,7 @@ class TransactionService
         int $userId,
         string $currency,
         float $amount,
+        float $balance,
         string $type,
         string $relatedEntityId,
         string $notes = ''
@@ -24,6 +25,7 @@ class TransactionService
             'user_id' => $userId,
             'currency' => $currency,
             'amount' => $amount,
+            'balance' => $balance,
             'type' => $type,
             'status' => Transaction::STATUS_COMPLETED, // 固定为完成状态
             'related_entity_id' => $relatedEntityId,
@@ -123,6 +125,7 @@ class TransactionService
             'id' => $transaction->id,
             'currency' => $transaction->currency,
             'amount' => (float)$transaction->amount,
+            'balance' => (float)$transaction->balance,
             'type' => $transaction->type,
             'status' => $transaction->status,
             'transaction_time' => $transaction->transaction_time ? $transaction->transaction_time->format('Y-m-d H:i:s') : null,
