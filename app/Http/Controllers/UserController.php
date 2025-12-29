@@ -3,18 +3,25 @@
 namespace App\Http\Controllers;
 
 use App\Enums\ErrorCode;
+use App\Services\VipService;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 
 class UserController extends Controller
 {
+    protected VipService $vipService;
+
+    public function __construct(VipService $vipService)
+    {
+        $this->vipService = $vipService;
+    }
+
     /**
      * 获取当前用户信息
      */
     public function show(Request $request): JsonResponse
     {
         $user = $request->user();
-        $vip = $user->vip;
         
         return $this->responseItem([
             'uid' => $user->uid,
@@ -24,11 +31,7 @@ class UserController extends Controller
             'display_currencies' => $user->getDisplayCurrencies(),
             'base_currency' => $user->getBaseCurrency(),
             'current_currency' => $user->getCurrentCurrency(),
-            'vip' => $vip ? [
-                'level' => $vip->level,
-                'exp' => $vip->exp,
-                'next_level' => $vip->getNextLevelInfo(),
-            ] : null,
+            'vip' => $this->vipService->getUserVipInfo($user),
         ]);
     }
 
