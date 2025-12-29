@@ -147,6 +147,14 @@ class User extends Authenticatable
     }
 
     /**
+     * 获取用户VIP信息
+     */
+    public function vip(): HasOne
+    {
+        return $this->hasOne(UserVip::class);
+    }
+
+    /**
      * 获取用户扩展统计属性
      */
     public function statistic_attributes(): HasMany

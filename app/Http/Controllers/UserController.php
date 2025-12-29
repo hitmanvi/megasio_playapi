@@ -14,6 +14,7 @@ class UserController extends Controller
     public function show(Request $request): JsonResponse
     {
         $user = $request->user();
+        $vip = $user->vip;
         
         return $this->responseItem([
             'uid' => $user->uid,
@@ -23,6 +24,11 @@ class UserController extends Controller
             'display_currencies' => $user->getDisplayCurrencies(),
             'base_currency' => $user->getBaseCurrency(),
             'current_currency' => $user->getCurrentCurrency(),
+            'vip' => $vip ? [
+                'level' => $vip->level,
+                'exp' => $vip->exp,
+                'next_level' => $vip->getNextLevelInfo(),
+            ] : null,
         ]);
     }
 
