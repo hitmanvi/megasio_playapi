@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Services\InvitationService;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Pagination\LengthAwarePaginator;
 
 class InvitationController extends Controller
 {
@@ -43,7 +44,7 @@ class InvitationController extends Controller
         });
 
         // 创建新的分页器，使用格式化后的数据
-        $formattedPaginator = new \Illuminate\Pagination\LengthAwarePaginator(
+        $formattedPaginator = new LengthAwarePaginator(
             $result,
             $invitationsPaginator->total(),
             $invitationsPaginator->perPage(),
