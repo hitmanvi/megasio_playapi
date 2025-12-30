@@ -6,6 +6,7 @@ use App\Models\Theme;
 use App\Models\Translation;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Pagination\LengthAwarePaginator;
 
 class ThemeController extends Controller
 {
@@ -52,7 +53,7 @@ class ThemeController extends Controller
         });
 
         // 创建新的分页器，使用格式化后的数据
-        $formattedPaginator = new \Illuminate\Pagination\LengthAwarePaginator(
+        $formattedPaginator = new LengthAwarePaginator(
             $result,
             $themesPaginator->total(),
             $themesPaginator->perPage(),

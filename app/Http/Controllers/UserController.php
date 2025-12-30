@@ -6,6 +6,7 @@ use App\Enums\ErrorCode;
 use App\Services\VipService;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
+use App\Models\Currency;
 
 class UserController extends Controller
 {
@@ -56,7 +57,7 @@ class UserController extends Controller
             
             // 验证货币代码是否有效（如果不为空）
             if (!empty($currencies)) {
-                $validCurrencies = \App\Models\Currency::whereIn('code', $currencies)
+                $validCurrencies = Currency::whereIn('code', $currencies)
                     ->pluck('code')
                     ->toArray();
 
@@ -77,7 +78,7 @@ class UserController extends Controller
             $currency = $request->input('base_currency');
             if ($currency) {
                 $currency = strtoupper($currency);
-                $currencyModel = \App\Models\Currency::where('code', $currency)->first();
+                $currencyModel = Currency::where('code', $currency)->first();
                 if (!$currencyModel) {
                     return $this->error(ErrorCode::VALIDATION_ERROR, [
                         'base_currency' => ['Currency not found'],
@@ -96,7 +97,7 @@ class UserController extends Controller
             $currency = $request->input('current_currency');
             if ($currency) {
                 $currency = strtoupper($currency);
-                $currencyModel = \App\Models\Currency::where('code', $currency)->first();
+                $currencyModel = Currency::where('code', $currency)->first();
                 if (!$currencyModel) {
                     return $this->error(ErrorCode::VALIDATION_ERROR, [
                         'current_currency' => ['Currency not found'],
