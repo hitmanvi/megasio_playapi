@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\GameGroup;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Pagination\LengthAwarePaginator;
 
 class GameGroupController extends Controller
 {
@@ -41,7 +42,7 @@ class GameGroupController extends Controller
         });
 
         // 创建分页器，使用格式化后的数据
-        $formattedPaginator = new \Illuminate\Pagination\LengthAwarePaginator(
+        $formattedPaginator = new LengthAwarePaginator(
             $result,
             $groupsPaginator->total(),
             $groupsPaginator->perPage(),
@@ -78,7 +79,7 @@ class GameGroupController extends Controller
         });
 
         // 创建分页器，使用格式化后的数据
-        $formattedPaginator = new \Illuminate\Pagination\LengthAwarePaginator(
+        $formattedPaginator = new LengthAwarePaginator(
             $result,
             $groupsPaginator->total(),
             $groupsPaginator->perPage(),
@@ -144,7 +145,7 @@ class GameGroupController extends Controller
         });
 
         // 创建新的分页器，使用格式化后的数据
-        $formattedPaginator = new \Illuminate\Pagination\LengthAwarePaginator(
+        $formattedPaginator = new LengthAwarePaginator(
             $result,
             $gamesPaginator->total(),
             $gamesPaginator->perPage(),
