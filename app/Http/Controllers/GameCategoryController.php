@@ -13,8 +13,6 @@ class GameCategoryController extends Controller
      */
     public function index(Request $request): JsonResponse
     {
-        $locale = $this->getLocale($request);
-
         $categories = GameCategory::query()
             ->enabled()
             ->ordered()
