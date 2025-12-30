@@ -12,7 +12,6 @@ use App\Exceptions\Exception;
 use App\Enums\ErrorCode;
 use App\Services\BalanceService;
 use App\Services\ProviderCallbackService;
-use App\Models\Game;
 use Illuminate\Support\Facades\Log;
 class FunkyProvider implements GameProviderInterface
 {
