@@ -30,11 +30,11 @@ class UserVip extends Model
     /**
      * VIP level constants.
      */
-    const LEVEL_BRONZE = 'Bronze';
-    const LEVEL_SILVER = 'Silver';
-    const LEVEL_GOLD = 'Gold';
-    const LEVEL_PLATINUM = 'Platinum';
-    const LEVEL_DIAMOND = 'Diamond';
+    const LEVEL_BRONZE = '1';
+    const LEVEL_SILVER = '2';
+    const LEVEL_GOLD = '3';
+    const LEVEL_PLATINUM = '4';
+    const LEVEL_DIAMOND = '5';
 
     /**
      * VIP level configuration.
