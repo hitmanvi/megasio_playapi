@@ -6,6 +6,7 @@ use App\Services\ExchangeRateService;
 use App\Enums\ErrorCode;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\Log;
 
 class ExchangeRateController extends Controller
 {
@@ -53,7 +54,7 @@ class ExchangeRateController extends Controller
                 'base' => [$e->getMessage()],
             ]);
         } catch (\Exception $e) {
-            \Log::error('Failed to get exchange rates', [
+            Log::error('Failed to get exchange rates', [
                 'base' => $baseCurrency,
                 'error' => $e->getMessage(),
             ]);
