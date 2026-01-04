@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Events\DepositCompleted;
 use App\Models\Deposit;
 use App\Models\PaymentMethod;
 use Illuminate\Support\Str;
@@ -315,6 +316,7 @@ class DepositService
                     'Deposit',
                     $deposit->id
                 );
+                event(new DepositCompleted($deposit));
                 break;
             case SopayService::SOPAY_STATUS_FAILED:
                 $updateData['status'] = Deposit::STATUS_FAILED;

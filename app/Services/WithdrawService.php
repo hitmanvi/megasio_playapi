@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Events\WithdrawCompleted;
 use App\Models\Withdraw;
 use App\Models\PaymentMethod;
 use Illuminate\Support\Str;
@@ -281,6 +282,7 @@ class WithdrawService
                 'completed_at' => Carbon::now(),
             ]);
             $this->balanceService->finishWithdraw($withdraw->user_id, $withdraw->currency, $amount, 'Withdraw', $withdraw->id);
+            event(new WithdrawCompleted($withdraw));
             return true;
         });
     }
