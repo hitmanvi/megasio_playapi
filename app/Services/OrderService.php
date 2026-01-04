@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Events\OrderCompleted;
 use App\Models\Order;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Carbon\Carbon;
@@ -169,6 +170,10 @@ class OrderService
         $order->status = $isFinished ? Order::STATUS_COMPLETED : Order::STATUS_PENDING;
         $order->finished_at = $isFinished ? Carbon::now() : null;
         $order->save();
+
+        if ($isFinished) {
+            event(new OrderCompleted($order));
+        }
 
         return $order;
     }
