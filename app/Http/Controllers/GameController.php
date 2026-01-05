@@ -153,4 +153,31 @@ class GameController extends Controller
             return $this->error(ErrorCode::INTERNAL_ERROR, $e->getMessage());
         }
     }
+
+    /**
+     * 获取用户最近游玩的游戏列表
+     */
+    public function recent(Request $request): JsonResponse
+    {
+        $user = $request->user();
+        $locale = $this->getLocale($request);
+        $perPage = (int) $request->input('per_page', 20);
+
+        $gamesPaginator = $this->gameService->getRecentPlayedGamesPaginated($user->id, $perPage);
+        
+        // 格式化分页数据
+        $games = $gamesPaginator->getCollection();
+        $result = $this->gameService->formatGamesList($games, $locale);
+        
+        // 创建新的分页器，使用格式化后的数据
+        $formattedPaginator = new LengthAwarePaginator(
+            $result,
+            $gamesPaginator->total(),
+            $gamesPaginator->perPage(),
+            $gamesPaginator->currentPage(),
+            ['path' => $request->url(), 'query' => $request->query()]
+        );
+
+        return $this->responseListWithPaginator($formattedPaginator);
+    }
 }

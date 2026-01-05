@@ -115,13 +115,16 @@ Route::prefix('games')->group(function () {
     // 公开路由
     Route::get('/', [GameController::class, 'index']);
     Route::get('/recommend', [GameController::class, 'recommend']);
-    Route::get('/{id}', [GameController::class, 'show']);
     Route::post('/{id}/demo', [GameController::class, 'demo']);
     
     // 需要认证的路由
     Route::middleware('auth:sanctum')->group(function () {
+        Route::get('/recent/list', [GameController::class, 'recent']);
         Route::post('/{id}/session', [GameController::class, 'session']);
     });
+
+    // 动态路由放最后，避免与其他路由冲突
+    Route::get('/{id}', [GameController::class, 'show']);
 });
 
 // 游戏群组相关路由（只读）

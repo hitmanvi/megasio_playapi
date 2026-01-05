@@ -8,6 +8,7 @@ use App\Exceptions\Exception;
 use App\GameProviders\GameProviderFactory;
 use App\Models\Game;
 use App\Models\Translation;
+use App\Models\UserRecentGame;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Pagination\LengthAwarePaginator;
@@ -273,5 +274,48 @@ class GameService
     public function getGameByProviderAndOutId(string $provider, string $outId): Game
     {
         return Game::where('provider', $provider)->where('out_id', $outId)->first();
+    }
+
+    /**
+     * 获取用户最近游玩的游戏列表（分页）
+     *
+     * @param int $userId 用户ID
+     * @param int $perPage 每页数量
+     * @return LengthAwarePaginator
+     */
+    public function getRecentPlayedGamesPaginated(int $userId, int $perPage = 20): LengthAwarePaginator
+    {
+        // 从 user_recent_games 表获取最近游玩记录
+        $recentRecords = UserRecentGame::where('user_id', $userId)
+            ->orderByDesc('last_played_at')
+            ->paginate($perPage);
+
+        $gameIds = $recentRecords->pluck('game_id')->toArray();
+        
+        if (empty($gameIds)) {
+            return new LengthAwarePaginator(
+                collect([]),
+                0,
+                $perPage,
+                $recentRecords->currentPage()
+            );
+        }
+
+        // 保持原有顺序获取游戏
+        $games = Game::with(['brand', 'category', 'themes'])
+            ->whereIn('id', $gameIds)
+            ->enabled()
+            ->get()
+            ->sortBy(function ($game) use ($gameIds) {
+                return array_search($game->id, $gameIds);
+            })
+            ->values();
+
+        return new LengthAwarePaginator(
+            $games,
+            $recentRecords->total(),
+            $perPage,
+            $recentRecords->currentPage()
+        );
     }
 }
