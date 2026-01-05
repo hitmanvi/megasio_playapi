@@ -28,40 +28,11 @@ class UserVip extends Model
     ];
 
     /**
-     * VIP level constants.
-     */
-    const LEVEL_BRONZE = '1';
-    const LEVEL_SILVER = '2';
-    const LEVEL_GOLD = '3';
-    const LEVEL_PLATINUM = '4';
-    const LEVEL_DIAMOND = '5';
-
-    /**
-     * VIP level configuration.
-     * Maps level name to required experience points.
-     */
-    private static array $levelConfig = [
-        self::LEVEL_BRONZE => 0,
-        self::LEVEL_SILVER => 500,
-        self::LEVEL_GOLD => 2000,
-        self::LEVEL_PLATINUM => 5000,
-        self::LEVEL_DIAMOND => 10000,
-    ];
-
-    /**
      * Get all VIP levels.
      */
     public static function getLevels(): array
     {
-        return array_keys(self::$levelConfig);
-    }
-
-    /**
-     * Get level configuration.
-     */
-    public static function getLevelConfig(): array
-    {
-        return self::$levelConfig;
+        return VipLevel::getLevelKeys();
     }
 
     /**
@@ -69,7 +40,7 @@ class UserVip extends Model
      */
     public static function getRequiredExp(string $level): int
     {
-        return self::$levelConfig[$level] ?? 0;
+        return VipLevel::getRequiredExp($level);
     }
 
     /**
@@ -97,33 +68,12 @@ class UserVip extends Model
      */
     private function checkLevelUp(): void
     {
-        $newLevel = $this->calculateLevelFromExp($this->exp);
+        $newLevel = VipLevel::calculateLevelFromExp($this->exp);
         
         if ($newLevel !== $this->level) {
             $this->level = $newLevel;
             $this->save();
         }
-    }
-
-    /**
-     * Calculate VIP level from experience points.
-     */
-    private function calculateLevelFromExp(int $exp): string
-    {
-        $levels = self::$levelConfig;
-        
-        // Sort levels by exp requirement (descending)
-        arsort($levels);
-        
-        // Find the highest level the user qualifies for
-        foreach ($levels as $level => $requiredExp) {
-            if ($exp >= $requiredExp) {
-                return $level;
-            }
-        }
-        
-        // Default to bronze if no level matches
-        return self::LEVEL_BRONZE;
     }
 
     /**
@@ -163,27 +113,46 @@ class UserVip extends Model
     }
 
     /**
+     * Get current level info.
+     */
+    public function getCurrentLevelInfo(): ?array
+    {
+        return VipLevel::getLevelCached($this->level);
+    }
+
+    /**
+     * Get current level benefits.
+     */
+    public function getBenefits(): array
+    {
+        $levelInfo = $this->getCurrentLevelInfo();
+        return $levelInfo['benefits'] ?? [];
+    }
+
+    /**
      * Get next level information.
      */
     public function getNextLevelInfo(): ?array
     {
-        $levels = self::getLevels();
-        $currentIndex = array_search($this->level, $levels);
+        $nextLevel = VipLevel::getNextLevel($this->level);
         
-        if ($currentIndex === false || $currentIndex >= count($levels) - 1) {
+        if (!$nextLevel) {
             return null; // Already at max level
         }
         
-        $nextLevel = $levels[$currentIndex + 1];
-        $requiredExp = self::getRequiredExp($nextLevel);
-        $expNeeded = $requiredExp - $this->exp;
+        $requiredExp = $nextLevel['required_exp'];
+        $expNeeded = max(0, $requiredExp - $this->exp);
+        $currentLevelExp = VipLevel::getRequiredExp($this->level);
+        $expRange = $requiredExp - $currentLevelExp;
+        $currentProgress = $this->exp - $currentLevelExp;
         
         return [
-            'level' => $nextLevel,
+            'level' => $nextLevel['level'],
+            'name' => $nextLevel['name'],
             'required_exp' => $requiredExp,
             'exp_needed' => $expNeeded,
-            'progress_percentage' => $requiredExp > 0 
-                ? round(($this->exp / $requiredExp) * 100, 2) 
+            'progress_percentage' => $expRange > 0 
+                ? round(($currentProgress / $expRange) * 100, 2) 
                 : 0,
         ];
     }

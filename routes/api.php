@@ -24,6 +24,7 @@ use App\Http\Controllers\SopayController;
 use App\Http\Controllers\KycController;
 use App\Http\Controllers\BundleController;
 use App\Http\Controllers\RedeemController;
+use App\Http\Controllers\VipController;
 
 // 认证相关路由
 Route::prefix('auth')->group(function () {
@@ -84,6 +85,9 @@ Route::middleware('auth:sanctum')->prefix('kyc')->group(function () {
     Route::post('/', [KycController::class, 'store']);
     Route::post('/advanced', [KycController::class, 'submitAdvanced']);
 });
+
+// VIP等级列表（只读）
+Route::get('/vip/levels', [VipController::class, 'levels']);
 
 // 品牌相关路由（只读）
 Route::prefix('brands')->group(function () {

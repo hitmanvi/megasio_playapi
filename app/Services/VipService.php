@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\User;
 use App\Models\UserVip;
+use App\Models\VipLevel;
 
 class VipService
 {
@@ -13,7 +14,7 @@ class VipService
     public function getOrCreateVip(User $user): UserVip
     {
         return $user->vip ?? $user->vip()->create([
-            'level' => UserVip::LEVEL_BRONZE,
+            'level' => VipLevel::getDefaultLevel(),
             'exp' => 0,
         ]);
     }
@@ -23,9 +24,14 @@ class VipService
      */
     public function formatVipForResponse(UserVip $vip): array
     {
+        $currentLevelInfo = $vip->getCurrentLevelInfo();
+        
         return [
             'level' => $vip->level,
+            'level_name' => $currentLevelInfo['name'] ?? null,
+            'level_icon' => $currentLevelInfo['icon'] ?? null,
             'exp' => $vip->exp,
+            'benefits' => $vip->getBenefits(),
             'next_level' => $vip->getNextLevelInfo(),
         ];
     }
@@ -48,5 +54,37 @@ class VipService
         $vip->addExp($exp);
         return $vip;
     }
-}
 
+    /**
+     * 获取所有VIP等级列表
+     */
+    public function getAllLevels(): array
+    {
+        return VipLevel::enabled()
+            ->ordered()
+            ->get()
+            ->map(fn($level) => $level->toApiArray())
+            ->toArray();
+    }
+
+    /**
+     * 获取指定等级信息
+     */
+    public function getLevelInfo(string $level): ?array
+    {
+        $levelConfig = VipLevel::getLevelCached($level);
+        
+        if (!$levelConfig) {
+            return null;
+        }
+
+        return [
+            'level' => $levelConfig['level'],
+            'name' => $levelConfig['name'],
+            'icon' => $levelConfig['icon'],
+            'required_exp' => $levelConfig['required_exp'],
+            'description' => $levelConfig['description'],
+            'benefits' => $levelConfig['benefits'],
+        ];
+    }
+}
