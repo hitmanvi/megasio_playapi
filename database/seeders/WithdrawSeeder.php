@@ -111,7 +111,7 @@ class WithdrawSeeder extends Seeder
                 'amount' => 150.00,
                 'currency' => 'USD',
                 'status' => Withdraw::STATUS_CANCELLED,
-                'pay_status' => Withdraw::PAY_STATUS_CANCELLED,
+                'pay_status' => Withdraw::PAY_STATUS_FAILED,
                 'approved' => false,
                 'days_ago' => 4,
                 'payment_method_key' => 'ach_usd_withdraw',
