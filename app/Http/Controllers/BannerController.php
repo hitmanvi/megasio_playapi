@@ -23,8 +23,8 @@ class BannerController extends Controller
             return [
                 'id' => $banner->id,
                 'type' => $banner->type,
-                'img_url' => $platform === 'app' ? $banner->app_img_url : $banner->web_img_url,
-                'rule_url' => $platform === 'app' ? $banner->app_rule_url : $banner->web_rule_url,
+                'img_url' => $platform === 'app' ? $banner->app_img : $banner->web_img,
+                'href' => $platform === 'app' ? $banner->app_href : $banner->web_href,
                 'description' => $banner->description,
                 'sort_id' => $banner->sort_id,
             ];

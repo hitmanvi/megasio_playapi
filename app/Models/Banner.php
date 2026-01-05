@@ -13,10 +13,10 @@ class Banner extends Model
      */
     protected $fillable = [
         'type',
-        'web_img_url',
-        'app_img_url',
-        'web_rule_url',
-        'app_rule_url',
+        'web_img',
+        'app_img',
+        'web_href',
+        'app_href',
         'enabled',
         'sort_id',
         'started_at',
