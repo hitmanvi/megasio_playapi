@@ -65,9 +65,17 @@ class GenerateUserRecentGames extends Command
             // 模拟不同的游玩时间，越靠前越近
             $playedAt = $now->copy()->subMinutes($index * 30 + rand(1, 29));
             
+            // 随机生成游玩次数和最大倍数
+            $playCount = rand(1, 100);
+            $maxMultiplier = rand(0, 500) / 10; // 0 - 50x
+            
             UserRecentGame::updateOrCreate(
                 ['user_id' => $userId, 'game_id' => $game->id],
-                ['last_played_at' => $playedAt]
+                [
+                    'last_played_at' => $playedAt,
+                    'play_count' => $playCount,
+                    'max_multiplier' => $maxMultiplier,
+                ]
             );
             $created++;
         }
@@ -76,7 +84,7 @@ class GenerateUserRecentGames extends Command
         
         // 显示生成的记录
         $this->table(
-            ['游戏ID', '游戏名称', '最后游玩时间'],
+            ['游戏ID', '游戏名称', '游玩次数', '最大倍数', '最后游玩时间'],
             UserRecentGame::where('user_id', $userId)
                 ->orderByDesc('last_played_at')
                 ->with('game')
@@ -84,6 +92,8 @@ class GenerateUserRecentGames extends Command
                 ->map(fn($record) => [
                     $record->game_id,
                     $record->game?->name ?? 'N/A',
+                    $record->play_count,
+                    number_format($record->max_multiplier, 2) . 'x',
                     $record->last_played_at->format('Y-m-d H:i:s'),
                 ])
         );

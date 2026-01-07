@@ -280,16 +280,31 @@ class GameService
      * 获取用户最近游玩的游戏列表（分页）
      *
      * @param int $userId 用户ID
+     * @param string $sort 排序方式: recent(最近游玩), play_count(游玩次数), max_multiplier(最大倍数)
      * @param int $perPage 每页数量
      * @return LengthAwarePaginator
      */
-    public function getRecentPlayedGamesPaginated(int $userId, int $perPage = 20): LengthAwarePaginator
+    public function getRecentPlayedGamesPaginated(int $userId, string $sort = 'recent', int $perPage = 20): LengthAwarePaginator
     {
-        // 从 user_recent_games 表获取最近游玩记录
-        $recentRecords = UserRecentGame::where('user_id', $userId)
-            ->orderByDesc('last_played_at')
-            ->paginate($perPage);
-
+        // 构建查询
+        $query = UserRecentGame::where('user_id', $userId);
+        
+        // 应用排序
+        switch ($sort) {
+            case 'play_count':
+                $query->orderByDesc('play_count')->orderByDesc('last_played_at');
+                break;
+            case 'max_multiplier':
+                $query->orderByDesc('max_multiplier')->orderByDesc('last_played_at');
+                break;
+            case 'recent':
+            default:
+                $query->orderByDesc('last_played_at');
+                break;
+        }
+        
+        $recentRecords = $query->paginate($perPage);
+        
         $gameIds = $recentRecords->pluck('game_id')->toArray();
         
         if (empty($gameIds)) {
@@ -301,21 +316,73 @@ class GameService
             );
         }
 
-        // 保持原有顺序获取游戏
+        // 获取游戏并关联统计数据
         $games = Game::with(['brand', 'category', 'themes'])
             ->whereIn('id', $gameIds)
             ->enabled()
             ->get()
-            ->sortBy(function ($game) use ($gameIds) {
-                return array_search($game->id, $gameIds);
-            })
-            ->values();
+            ->keyBy('id');
+        
+        // 按照 recentRecords 的顺序构建结果，并附加统计信息
+        $result = $recentRecords->getCollection()->map(function ($record) use ($games) {
+            $game = $games->get($record->game_id);
+            if (!$game) {
+                return null;
+            }
+            return [
+                'game' => $game,
+                'play_count' => $record->play_count,
+                'max_multiplier' => (float) $record->max_multiplier,
+                'last_played_at' => $record->last_played_at,
+            ];
+        })->filter()->values();
 
         return new LengthAwarePaginator(
-            $games,
+            $result,
             $recentRecords->total(),
             $perPage,
             $recentRecords->currentPage()
         );
+    }
+
+    /**
+     * 格式化最近游玩游戏列表数据
+     *
+     * @param Collection $items
+     * @param string $locale
+     * @return array
+     */
+    public function formatRecentGamesList($items, string $locale = 'en'): array
+    {
+        return $items->map(function ($item) use ($locale) {
+            $game = $item['game'];
+            return [
+                'id' => $game->id,
+                'name' => $game->getNameTranslation($locale),
+                'thumbnail' => $game->thumbnail,
+                'sort_id' => $game->sort_id,
+                'brand' => $game->brand ? [
+                    'id' => $game->brand->id,
+                    'name' => $game->brand->getName($locale),
+                    'provider' => $game->brand->provider,
+                ] : null,
+                'category' => $game->category ? [
+                    'id' => $game->category->id,
+                    'name' => $game->category->getName($locale),
+                ] : null,
+                'themes' => $game->themes->map(function ($theme) use ($locale) {
+                    return [
+                        'id' => $theme->id,
+                        'name' => $theme->getName($locale),
+                        'icon' => $theme->icon,
+                    ];
+                }),
+                'created_at' => $game->created_at,
+                'has_demo' => $game->has_demo,
+                'play_count' => $item['play_count'],
+                'max_multiplier' => $item['max_multiplier'],
+                'last_played_at' => $item['last_played_at'],
+            ];
+        })->toArray();
     }
 }

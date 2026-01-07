@@ -161,13 +161,14 @@ class GameController extends Controller
     {
         $user = $request->user();
         $locale = $this->getLocale($request);
+        $sort = $request->input('sort', 'recent'); // recent, play_count, max_multiplier
         $perPage = (int) $request->input('per_page', 20);
 
-        $gamesPaginator = $this->gameService->getRecentPlayedGamesPaginated($user->id, $perPage);
+        $gamesPaginator = $this->gameService->getRecentPlayedGamesPaginated($user->id, $sort, $perPage);
         
         // 格式化分页数据
-        $games = $gamesPaginator->getCollection();
-        $result = $this->gameService->formatGamesList($games, $locale);
+        $items = $gamesPaginator->getCollection();
+        $result = $this->gameService->formatRecentGamesList($items, $locale);
         
         // 创建新的分页器，使用格式化后的数据
         $formattedPaginator = new LengthAwarePaginator(
