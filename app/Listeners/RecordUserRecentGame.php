@@ -3,7 +3,7 @@
 namespace App\Listeners;
 
 use App\Events\OrderCompleted;
-use App\Models\UserRecentGame;
+use App\Jobs\RecordUserRecentGameJob;
 
 class RecordUserRecentGame
 {
@@ -21,7 +21,8 @@ class RecordUserRecentGame
                 $multiplier = (float) $order->payout / (float) $order->amount;
             }
             
-            UserRecentGame::recordPlay($order->user_id, $order->game_id, $multiplier);
+            // 派发到队列异步处理
+            RecordUserRecentGameJob::dispatch($order->user_id, $order->game_id, $multiplier);
         }
     }
 }

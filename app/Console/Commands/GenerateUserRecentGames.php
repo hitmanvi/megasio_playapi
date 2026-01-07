@@ -4,7 +4,7 @@ namespace App\Console\Commands;
 
 use App\Models\Game;
 use App\Models\User;
-use App\Models\UserRecentGame;
+use App\Services\UserRecentGameService;
 use Carbon\Carbon;
 use Illuminate\Console\Command;
 
@@ -30,9 +30,9 @@ class GenerateUserRecentGames extends Command
     /**
      * Execute the console command.
      */
-    public function handle(): int
+    public function handle(UserRecentGameService $service): int
     {
-        $userId = $this->argument('user_id');
+        $userId = (int) $this->argument('user_id');
         $count = (int) $this->option('count');
         $clear = $this->option('clear');
 
@@ -53,49 +53,43 @@ class GenerateUserRecentGames extends Command
 
         // 清除现有记录
         if ($clear) {
-            $deleted = UserRecentGame::where('user_id', $userId)->delete();
-            $this->info("已清除 {$deleted} 条现有记录");
+            $service->clearCache($userId);
+            $this->info("已清除 Redis 缓存");
         }
 
         // 生成记录
-        $created = 0;
         $now = Carbon::now();
+        $records = [];
         
         foreach ($games as $index => $game) {
             // 模拟不同的游玩时间，越靠前越近
             $playedAt = $now->copy()->subMinutes($index * 30 + rand(1, 29));
             
             // 随机生成游玩次数和最大倍数
-            $playCount = rand(1, 100);
-            $maxMultiplier = rand(0, 500) / 10; // 0 - 50x
-            
-            UserRecentGame::updateOrCreate(
-                ['user_id' => $userId, 'game_id' => $game->id],
-                [
-                    'last_played_at' => $playedAt,
-                    'play_count' => $playCount,
-                    'max_multiplier' => $maxMultiplier,
-                ]
-            );
-            $created++;
+            $records[] = [
+                'game_id' => $game->id,
+                'game_name' => $game->name,
+                'play_count' => rand(1, 100),
+                'max_multiplier' => rand(0, 500) / 10, // 0 - 50x
+                'last_played_at' => $playedAt,
+            ];
         }
 
-        $this->info("成功为用户 {$user->username} (ID: {$userId}) 生成 {$created} 条最近游玩记录");
+        // 批量写入 Redis
+        $service->batchSet($userId, $records);
+
+        $this->info("成功为用户 {$user->username} (ID: {$userId}) 生成 " . count($records) . " 条最近游玩记录");
         
         // 显示生成的记录
         $this->table(
             ['游戏ID', '游戏名称', '游玩次数', '最大倍数', '最后游玩时间'],
-            UserRecentGame::where('user_id', $userId)
-                ->orderByDesc('last_played_at')
-                ->with('game')
-                ->get()
-                ->map(fn($record) => [
-                    $record->game_id,
-                    $record->game?->name ?? 'N/A',
-                    $record->play_count,
-                    number_format($record->max_multiplier, 2) . 'x',
-                    $record->last_played_at->format('Y-m-d H:i:s'),
-                ])
+            collect($records)->map(fn($record) => [
+                $record['game_id'],
+                $record['game_name'],
+                $record['play_count'],
+                number_format($record['max_multiplier'], 2) . 'x',
+                $record['last_played_at']->format('Y-m-d H:i:s'),
+            ])
         );
 
         return Command::SUCCESS;

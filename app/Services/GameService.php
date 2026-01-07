@@ -8,13 +8,18 @@ use App\Exceptions\Exception;
 use App\GameProviders\GameProviderFactory;
 use App\Models\Game;
 use App\Models\Translation;
-use App\Models\UserRecentGame;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Pagination\LengthAwarePaginator;
 
 class GameService
 {
+    protected UserRecentGameService $userRecentGameService;
+
+    public function __construct(UserRecentGameService $userRecentGameService)
+    {
+        $this->userRecentGameService = $userRecentGameService;
+    }
     /**
      * 获取游戏列表（分页）
      *
@@ -278,71 +283,17 @@ class GameService
 
     /**
      * 获取用户最近游玩的游戏列表（分页）
+     * 优先从 Redis 缓存读取，缓存未命中则从数据库加载
      *
      * @param int $userId 用户ID
      * @param string $sort 排序方式: recent(最近游玩), play_count(游玩次数), max_multiplier(最大倍数)
      * @param int $perPage 每页数量
+     * @param int $page 页码
      * @return LengthAwarePaginator
      */
-    public function getRecentPlayedGamesPaginated(int $userId, string $sort = 'recent', int $perPage = 20): LengthAwarePaginator
+    public function getRecentPlayedGamesPaginated(int $userId, string $sort = 'recent', int $perPage = 20, int $page = 1): LengthAwarePaginator
     {
-        // 构建查询
-        $query = UserRecentGame::where('user_id', $userId);
-        
-        // 应用排序
-        switch ($sort) {
-            case 'play_count':
-                $query->orderByDesc('play_count')->orderByDesc('last_played_at');
-                break;
-            case 'max_multiplier':
-                $query->orderByDesc('max_multiplier')->orderByDesc('last_played_at');
-                break;
-            case 'recent':
-            default:
-                $query->orderByDesc('last_played_at');
-                break;
-        }
-        
-        $recentRecords = $query->paginate($perPage);
-        
-        $gameIds = $recentRecords->pluck('game_id')->toArray();
-        
-        if (empty($gameIds)) {
-            return new LengthAwarePaginator(
-                collect([]),
-                0,
-                $perPage,
-                $recentRecords->currentPage()
-            );
-        }
-
-        // 获取游戏并关联统计数据
-        $games = Game::with(['brand', 'category', 'themes'])
-            ->whereIn('id', $gameIds)
-            ->enabled()
-            ->get()
-            ->keyBy('id');
-        
-        // 按照 recentRecords 的顺序构建结果，并附加统计信息
-        $result = $recentRecords->getCollection()->map(function ($record) use ($games) {
-            $game = $games->get($record->game_id);
-            if (!$game) {
-                return null;
-            }
-            return [
-                'game' => $game,
-                'play_count' => $record->play_count,
-                'max_multiplier' => (float) $record->max_multiplier,
-                'last_played_at' => $record->last_played_at,
-            ];
-        })->filter()->values();
-
-        return new LengthAwarePaginator(
-            $result,
-            $recentRecords->total(),
-            $perPage,
-            $recentRecords->currentPage()
-        );
+        return $this->userRecentGameService->getRecentGames($userId, $sort, $page, $perPage);
     }
 
     /**
