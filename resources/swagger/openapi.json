@@ -2997,6 +2997,14 @@
               "default": 10,
               "minimum": 1
             }
+          },
+          {
+            "name": "name",
+            "in": "query",
+            "description": "分类名称（模糊搜索）",
+            "schema": {
+              "type": "string"
+            }
           }
         ],
         "responses": {
