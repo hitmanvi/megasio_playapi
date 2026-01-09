@@ -14,6 +14,7 @@ class GameCategoryController extends Controller
     public function index(Request $request): JsonResponse
     {
         $categories = GameCategory::query()
+            ->when($request->input('name'), fn($q, $name) => $q->where('name', 'like', "%{$name}%"))
             ->enabled()
             ->ordered()
             ->paginate($request->input('per_page', 10));
