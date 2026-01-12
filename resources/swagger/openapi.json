@@ -3005,6 +3005,17 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "ids",
+            "in": "query",
+            "description": "分类ID列表",
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "integer"
+              }
+            }
           }
         ],
         "responses": {

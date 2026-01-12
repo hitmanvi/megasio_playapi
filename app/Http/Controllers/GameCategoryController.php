@@ -14,6 +14,7 @@ class GameCategoryController extends Controller
     public function index(Request $request): JsonResponse
     {
         $categories = GameCategory::query()
+            ->when($request->input('ids'), fn($q, $ids) => $q->whereIn('id', $ids))
             ->when($request->input('name'), fn($q, $name) => $q->where('name', 'like', "%{$name}%"))
             ->enabled()
             ->ordered()
