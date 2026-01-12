@@ -8,7 +8,7 @@ use Illuminate\Http\JsonResponse;
 
 class GameCategoryController extends Controller
 {
-    /**
+    /** 
      * 获取游戏分类列表
      */
     public function index(Request $request): JsonResponse
