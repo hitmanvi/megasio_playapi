@@ -33,7 +33,7 @@ return Application::configure(basePath: dirname(__DIR__))
             Log::error($e->getMessage());
             $resp = [
                 'code'   => ErrorCode::INTERNAL_ERROR->value,
-                'errmsg' => $e->getMessage(),
+                'errmsg' => "Server error",
                 'data'   => null,
             ];
             return response()->json($resp);
