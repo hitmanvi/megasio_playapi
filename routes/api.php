@@ -25,6 +25,7 @@ use App\Http\Controllers\KycController;
 use App\Http\Controllers\BundleController;
 use App\Http\Controllers\RedeemController;
 use App\Http\Controllers\VipController;
+use App\Http\Controllers\CheckInController;
 
 // 认证相关路由
 Route::prefix('auth')->group(function () {
@@ -88,6 +89,13 @@ Route::middleware('auth:sanctum')->prefix('kyc')->group(function () {
 
 // VIP等级列表（只读）
 Route::get('/vip/levels', [VipController::class, 'levels']);
+
+// 签到相关路由（需要认证）
+Route::middleware('auth:sanctum')->prefix('check-ins')->group(function () {
+    Route::post('/', [CheckInController::class, 'store']);
+    Route::get('/status', [CheckInController::class, 'status']);
+    Route::get('/history', [CheckInController::class, 'history']);
+});
 
 // 品牌相关路由（只读）
 Route::prefix('brands')->group(function () {

@@ -44,6 +44,7 @@ class Transaction extends Model
     const TYPE_REFUND = 'REFUND';
     const TYPE_BET = 'BET';
     const TYPE_PAYOUT = 'PAYOUT';
+    const TYPE_CHECK_IN_REWARD = 'CHECK_IN_REWARD';
     /**
      * Transaction status constants.
      */
