@@ -28,12 +28,21 @@ class CheckInService
     {
         $today = Carbon::today();
 
-        // 检查今日是否已签到
-        $existingCheckIn = UserCheckIn::where('user_id', $userId)
-            ->where('check_in_date', $today)
+        // 获取最后一次签到记录
+        $lastCheckIn = UserCheckIn::where('user_id', $userId)
+            ->orderByDesc('created_at')
             ->first();
 
-        if ($existingCheckIn) {
+        // 检查是否满足24小时间隔
+        if ($lastCheckIn && $lastCheckIn->created_at) {
+            $nextAvailableTime = $lastCheckIn->created_at->copy()->addHours(24);
+            if ($nextAvailableTime->isFuture()) {
+                throw new Exception(ErrorCode::VALIDATION_ERROR, 'Check-in available after ' . $nextAvailableTime->toIso8601String());
+            }
+        }
+
+        // 检查今日是否已签到
+        if ($lastCheckIn && $lastCheckIn->check_in_date->isToday()) {
             throw new Exception(ErrorCode::VALIDATION_ERROR, 'Already checked in today');
         }
 
@@ -155,35 +164,53 @@ class CheckInService
     {
         $today = Carbon::today();
 
-        // 今日签到记录
-        $todayCheckIn = UserCheckIn::where('user_id', $userId)
-            ->where('check_in_date', $today)
+        // 获取最后一次签到记录
+        $lastCheckIn = UserCheckIn::where('user_id', $userId)
+            ->orderByDesc('created_at')
             ->first();
+
+        // 今日签到记录
+        $todayCheckIn = $lastCheckIn && $lastCheckIn->check_in_date->isToday() ? $lastCheckIn : null;
 
         // 获取当前连续签到天数
         $consecutiveDays = 0;
         if ($todayCheckIn) {
             $consecutiveDays = $todayCheckIn->consecutive_days;
-        } else {
-            // 如果今天没签到，检查昨天
-            $yesterday = $today->copy()->subDay();
-            $yesterdayCheckIn = UserCheckIn::where('user_id', $userId)
-                ->where('check_in_date', $yesterday)
-                ->first();
-            if ($yesterdayCheckIn) {
-                $consecutiveDays = $yesterdayCheckIn->consecutive_days;
-            }
+        } else if ($lastCheckIn && $lastCheckIn->check_in_date->isYesterday()) {
+            $consecutiveDays = $lastCheckIn->consecutive_days;
         }
 
         // 统计总签到天数
         $totalDays = UserCheckIn::where('user_id', $userId)->count();
 
+        // 计算下次可签到时间（上次签到后24小时）
+        $nextCheckInAt = $this->calculateNextCheckInAt($lastCheckIn);
+
         return [
             'checked_in_today' => $todayCheckIn !== null,
             'consecutive_days' => $consecutiveDays,
             'total_days' => $totalDays,
+            'next_check_in_at' => $nextCheckInAt,
             'today_check_in' => $todayCheckIn ? $this->formatCheckIn($todayCheckIn) : null,
         ];
+    }
+
+    /**
+     * 计算下次可签到时间
+     */
+    protected function calculateNextCheckInAt(?UserCheckIn $lastCheckIn): ?string
+    {
+        if (!$lastCheckIn || !$lastCheckIn->created_at) {
+            return null; // 没有签到记录，现在可签到
+        }
+
+        $nextTime = $lastCheckIn->created_at->copy()->addHours(24);
+
+        if ($nextTime->isPast()) {
+            return null; // 已过签到时间，现在可签到
+        }
+
+        return $nextTime->toIso8601String();
     }
 
     /**

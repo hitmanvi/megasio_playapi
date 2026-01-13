@@ -2760,6 +2760,7 @@
                     "checked_in_today": true,
                     "consecutive_days": 5,
                     "total_days": 30,
+                    "next_check_in_at": "2026-01-13T09:00:00+00:00",
                     "today_check_in": {
                       "id": 1,
                       "check_in_date": "2026-01-12",
@@ -5158,6 +5159,12 @@
               "total_days": {
                 "type": "integer",
                 "description": "总签到天数"
+              },
+              "next_check_in_at": {
+                "type": "string",
+                "format": "date-time",
+                "nullable": true,
+                "description": "下次可签到时间（上次签到后24小时），null表示现在可签到"
               },
               "today_check_in": {
                 "$ref": "#/components/schemas/CheckIn",
