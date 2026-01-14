@@ -21,7 +21,7 @@ return new class extends Migration
             $table->decimal('last_bonus', 20, 4)->unsigned()->default(0);
             $table->decimal('need_wager', 20, 4)->unsigned()->default(0);
             $table->decimal('wager', 20, 4)->unsigned()->default(0);
-            $table->tinyInteger('status')->default(0);
+            $table->string('status', 20)->default('pending');
             $table->timestamps();
         });
     }

@@ -5,9 +5,11 @@ namespace App\Services;
 use App\Exceptions\DuplicateTransactionException;
 use App\Exceptions\GameNotFoundException;
 use App\Exceptions\GameNotEnabledException;
+use App\Exceptions\InsufficientBalanceException;
 use App\Exceptions\InvalidTokenException;
 use App\Exceptions\OrderNotFoundException;
 use App\Exceptions\ProviderTransactionNotFoundException;
+use App\Models\BonusTask;
 use App\Models\Game;
 use App\Models\Order;
 use App\Models\ProviderTransaction;
@@ -74,7 +76,11 @@ class ProviderCallbackService
             throw new GameNotEnabledException();
         }
 
-        return DB::transaction(function () use ($provider, $game, $userId, $txid, $roundId, $amount, $currency, $detail) {
+        // 判断是否是 bonus 模式
+        $isBonus = $this->isBonusCurrency($currency);
+        $bonusTask = $isBonus ? $this->getActiveBonusTask($userId) : null;
+
+        return DB::transaction(function () use ($provider, $game, $userId, $txid, $roundId, $amount, $currency, $detail, $isBonus, $bonusTask) {
             // 创建 provider transaction 记录
             $transaction = $this->providerTransactionService->create(
                 $provider,
@@ -86,8 +92,18 @@ class ProviderCallbackService
             );
 
             // 处理余额扣减
-            $result = $this->balanceService->bet($userId, $amount, $currency, $game->id, $txid);
-            $balance = $result['balance']['available'];
+            if ($isBonus && $bonusTask) {
+                // Bonus 订单：扣减 bonus task 的 last_bonus
+                if (!$bonusTask->hasSufficientBonus($amount)) {
+                    throw new InsufficientBalanceException();
+                }
+                $bonusTask->deductBonus($amount);
+                $balance = $bonusTask->getAvailableBonus();
+            } else {
+                // 普通订单：扣减主余额
+                $result = $this->balanceService->bet($userId, $amount, $currency, $game->id, $txid);
+                $balance = $result['balance']['available'];
+            }
 
             // 创建或更新订单
             $order = $this->orderService->bet($userId, $amount, $currency, $game, $roundId);
@@ -142,7 +158,11 @@ class ProviderCallbackService
         $gameId = $order->game_id;
         $currency = $order->currency;
 
-        return DB::transaction(function () use ($provider, $gameId, $userId, $txid, $roundId, $amount, $currency, $detail, $isFinished, $order) {
+        // 根据 currency 判断是否是 bonus 模式
+        $isBonus = $this->isBonusCurrency($currency);
+        $bonusTask = $isBonus ? $this->getActiveBonusTask($userId) : null;
+
+        return DB::transaction(function () use ($provider, $gameId, $userId, $txid, $roundId, $amount, $currency, $detail, $isFinished, $order, $isBonus, $bonusTask) {
             // 创建 provider transaction 记录
             $providerTransaction = $this->providerTransactionService->create(
                 $provider,
@@ -155,8 +175,15 @@ class ProviderCallbackService
             );
 
             // 处理余额增加
-            $result = $this->balanceService->payout($userId, $amount, $currency, $gameId, $txid);
-            $balance = $result['balance']['available'];
+            if ($isBonus && $bonusTask) {
+                // Bonus 订单：增加 bonus task 的 last_bonus
+                $bonusTask->addBonus($amount);
+                $balance = $bonusTask->getAvailableBonus();
+            } else {
+                // 普通订单：增加主余额
+                $result = $this->balanceService->payout($userId, $amount, $currency, $gameId, $txid);
+                $balance = $result['balance']['available'];
+            }
 
             // 更新订单
             $this->orderService->payout($order, $amount, $isFinished);
@@ -209,7 +236,11 @@ class ProviderCallbackService
             $amount = $order->amount;
         }
 
-        return DB::transaction(function () use ($provider, $gameId, $userId, $txid, $roundId, $amount, $currency, $detail, $order) {
+        // 根据 currency 判断是否是 bonus 模式
+        $isBonus = $this->isBonusCurrency($currency);
+        $bonusTask = $isBonus ? $this->getActiveBonusTask($userId) : null;
+
+        return DB::transaction(function () use ($provider, $gameId, $userId, $txid, $roundId, $amount, $currency, $detail, $order, $isBonus, $bonusTask) {
             // 创建 provider transaction 记录
             $providerTransaction = $this->providerTransactionService->create(
                 $provider,
@@ -222,7 +253,13 @@ class ProviderCallbackService
             );
 
             // 处理余额退款
-            $this->balanceService->refund($userId, $amount, $currency, $gameId, $txid);
+            if ($isBonus && $bonusTask) {
+                // Bonus 订单：退还 bonus task 的 last_bonus
+                $bonusTask->addBonus($amount);
+            } else {
+                // 普通订单：退还主余额
+                $this->balanceService->refund($userId, $amount, $currency, $gameId, $txid);
+            }
 
             // 更新订单
             $this->orderService->refund($order);
@@ -252,14 +289,43 @@ class ProviderCallbackService
         ];
     }
 
+    /**
+     * 获取用户当前激活的 bonus task
+     */
+    protected function getActiveBonusTask(int $userId): ?BonusTask
+    {
+        return BonusTask::where('user_id', $userId)
+            ->where('status', BonusTask::STATUS_ACTIVE)
+            ->first();
+    }
+
+    /**
+     * 判断是否是 bonus 模式
+     */
+    protected function isBonusCurrency(string $currency): bool
+    {
+        return strtoupper($currency) === 'BONUS';
+    }
+
     public function getBalance(string $token): float
     {
         $userInfo = $this->getUserInfoByToken($token);
         $userId = $userInfo['user_id'];
         $currency = $userInfo['currency'];
+
+        // 根据 currency 判断是否是 bonus 模式
+        if ($this->isBonusCurrency($currency)) {
+            $bonusTask = $this->getActiveBonusTask($userId);
+            if ($bonusTask) {
+                return $bonusTask->getAvailableBonus();
+            }
+            return 0;
+        }
+
+        // 返回主余额
         $balance = $this->balanceService->getBalance($userId, $currency);
         
-        return floatval($balance->available);
+        return floatval($balance->available ?? 0);
     }
 
     /**

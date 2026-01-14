@@ -8,11 +8,12 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class BonusTask extends Model
 {
     // 状态常量
-    const STATUS_PENDING = 0;      // 进行中
-    const STATUS_COMPLETED = 1;    // 已完成
-    const STATUS_CLAIMED = 2;      // 已领取
-    const STATUS_EXPIRED = 3;      // 已过期
-    const STATUS_CANCELLED = 4;    // 已取消
+    const STATUS_PENDING = 'pending';        // 待激活
+    const STATUS_ACTIVE = 'active';          // 进行中
+    const STATUS_COMPLETED = 'completed';    // 已完成（可领取）
+    const STATUS_CLAIMED = 'claimed';        // 已领取
+    const STATUS_EXPIRED = 'expired';        // 已过期
+    const STATUS_CANCELLED = 'cancelled';   // 已取消
 
     protected $fillable = [
         'user_id',
@@ -32,7 +33,6 @@ class BonusTask extends Model
         'last_bonus' => 'decimal:4',
         'need_wager' => 'decimal:4',
         'wager' => 'decimal:4',
-        'status' => 'integer',
     ];
 
     /**
@@ -44,11 +44,19 @@ class BonusTask extends Model
     }
 
     /**
-     * 是否进行中
+     * 是否待激活
      */
     public function isPending(): bool
     {
         return $this->status === self::STATUS_PENDING;
+    }
+
+    /**
+     * 是否进行中
+     */
+    public function isActive(): bool
+    {
+        return $this->status === self::STATUS_ACTIVE;
     }
 
     /**
@@ -65,6 +73,17 @@ class BonusTask extends Model
     public function isClaimed(): bool
     {
         return $this->status === self::STATUS_CLAIMED;
+    }
+
+    /**
+     * 激活任务
+     */
+    public function activate(): void
+    {
+        if ($this->isPending()) {
+            $this->status = self::STATUS_ACTIVE;
+            $this->save();
+        }
     }
 
     /**
@@ -86,10 +105,52 @@ class BonusTask extends Model
         $this->wager = min($this->wager + $amount, $this->need_wager);
         
         // 检查是否完成
-        if ($this->wager >= $this->need_wager && $this->isPending()) {
+        if ($this->wager >= $this->need_wager && $this->isActive()) {
             $this->status = self::STATUS_COMPLETED;
         }
         
         $this->save();
+    }
+
+    /**
+     * 扣减 bonus 余额（下注）
+     */
+    public function deductBonus(float $amount): bool
+    {
+        if ($this->last_bonus < $amount) {
+            return false;
+        }
+        
+        $this->last_bonus -= $amount;
+        $this->save();
+        
+        return true;
+    }
+
+    /**
+     * 增加 bonus 余额（赢钱）
+     */
+    public function addBonus(float $amount): void
+    {
+        $newBonus = $this->last_bonus + $amount;
+        // 不超过上限
+        $this->last_bonus = min($newBonus, $this->cap_bonus);
+        $this->save();
+    }
+
+    /**
+     * 获取可用 bonus 余额
+     */
+    public function getAvailableBonus(): float
+    {
+        return (float) $this->last_bonus;
+    }
+
+    /**
+     * 检查余额是否足够
+     */
+    public function hasSufficientBonus(float $amount): bool
+    {
+        return $this->last_bonus >= $amount;
     }
 }

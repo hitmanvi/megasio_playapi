@@ -2,8 +2,12 @@
 
 namespace App\Providers;
 
+use App\Events\OrderCompleted;
+use App\Listeners\RecordUserRecentGame;
+use App\Listeners\UpdateBonusTaskWager;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
 
@@ -23,6 +27,16 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         $this->configureRateLimiting();
+        $this->configureEventListeners();
+    }
+
+    /**
+     * Configure event listeners.
+     */
+    protected function configureEventListeners(): void
+    {
+        Event::listen(OrderCompleted::class, RecordUserRecentGame::class);
+        Event::listen(OrderCompleted::class, UpdateBonusTaskWager::class);
     }
 
     /**
