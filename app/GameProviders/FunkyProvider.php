@@ -22,6 +22,7 @@ class FunkyProvider implements GameProviderInterface
     protected $funkySecret;
     public $lang;
     public $currency;
+    public $realCurrency;
 
     protected $tokenService;
     protected $balanceService;
@@ -76,6 +77,7 @@ class FunkyProvider implements GameProviderInterface
         $this->balanceService = new BalanceService();
         $this->providerCallbackService = new ProviderCallbackService();
         $this->loadCurrencyConfig($currency);
+
     }
 
     /**
@@ -87,8 +89,15 @@ class FunkyProvider implements GameProviderInterface
      */
     protected function loadCurrencyConfig(string $currency): void
     {
+        if($currency == 'BONUS') {
+            $this->realCurrency = 'BONUS';
+            $this->currency = config('providers.default_currency');
+        } else {
+            $this->realCurrency = $currency;
+            $this->currency = $currency;
+        }
         // 先尝试加载币种特定配置
-        $currencyConfig = config("providers.funky.{$currency}", []);
+        $currencyConfig = config("providers.funky.{$this->currency}", []);
         
         // 如果没有币种特定配置，使用通用配置（default 或直接在 funky 下的配置）
         if (empty($currencyConfig)) {
@@ -102,7 +111,6 @@ class FunkyProvider implements GameProviderInterface
                 $currencyConfig = $defaultConfig;
             }
         }
-
         // 加载所有配置
         $this->apiUrl = $currencyConfig['api_url'] ?? null;
         $this->clientId = $currencyConfig['client_id'] ?? null;
@@ -143,11 +151,11 @@ class FunkyProvider implements GameProviderInterface
             'currency'    => $this->currency,
             'gameCode'    => $gameId,
             'language'    => $this->lang,
-            'playerId'    => $user->uid,
+            'playerId'    => $this->genUid($user->uid),
             'playerIp'    => request()->ip(),
             'redirectUrl' => config('providers.return_url'),
             'sessionId'   => $token,
-            'userName'    => $user->uid,
+            'userName'    => $this->genUid($user->uid),
         ];
 
         $resp = $this->postRequest($path, $data);
@@ -224,6 +232,24 @@ class FunkyProvider implements GameProviderInterface
         } else {
             // 赔付金额等于下注金额，平局
             return self::STATUS_DRAW;
+        }
+    }
+
+    public function genUid($uid)
+    {
+        if($this->realCurrency == 'BONUS') {
+            return 'B_' . $uid;
+        } else {
+            return $uid;
+        }
+    }
+
+    public function getUid($uid)
+    {
+        if($this->realCurrency == 'BONUS') {
+            return substr($uid, 2);
+        } else {
+            return $uid;
         }
     }
 }

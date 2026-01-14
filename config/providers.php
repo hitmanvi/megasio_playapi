@@ -27,6 +27,9 @@ return [
         'decay_minutes' => env('GP_RATE_LIMIT_DECAY_MINUTES', 1),
     ],
 
+
+    'default_currency' => env('DEFAULT_CURRENCY', 'USD'),
+    
     'funky' => [
         /*
         |--------------------------------------------------------------------------

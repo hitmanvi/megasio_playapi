@@ -257,7 +257,7 @@ class BalanceService
         });
     }
 
-    public function payout($userId, $amount, $currency,$gameId, $txid)
+    public function payout($userId, $amount, $currency, $gameId, $txid)
     {
         return DB::transaction(function () use ($userId, $amount, $currency, $gameId, $txid) {
             $balance = $this->updateBalance($userId, $currency, $amount, 'add', 'available');
