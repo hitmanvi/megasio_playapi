@@ -17,7 +17,7 @@ class HelpCenterSeeder extends Seeder
         $faqGroup = ArticleGroup::create([
             'name' => '常见问题',
             'icon' => 'fas fa-question-circle',
-            'parent_id' => null,
+            'parent_id' => 0,
             'enabled' => true,
             'sort_id' => 1,
         ]);
@@ -49,7 +49,7 @@ class HelpCenterSeeder extends Seeder
         $accountGroup = ArticleGroup::create([
             'name' => '账户相关',
             'icon' => 'fas fa-user-circle',
-            'parent_id' => null,
+            'parent_id' => 0,
             'enabled' => true,
             'sort_id' => 2,
         ]);
