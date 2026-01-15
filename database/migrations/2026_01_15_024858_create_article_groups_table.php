@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->string('name')->comment('分组名称');
             $table->string('icon')->nullable()->comment('图标路径或类名');
-            $table->unsignedBigInteger('parent_id')->nullable()->comment('父级分组ID');
+            $table->unsignedBigInteger('parent_id')->default(0)->comment('父级分组ID');
             $table->boolean('enabled')->default(true)->comment('是否启用');
             $table->integer('sort_id')->default(0)->comment('排序ID');
             $table->timestamps();
