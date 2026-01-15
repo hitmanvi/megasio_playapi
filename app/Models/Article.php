@@ -65,6 +65,26 @@ class Article extends Model
     }
 
     /**
+     * Scope to filter by group ID (including all descendant groups).
+     */
+    public function scopeByGroupId($query, $groupId = null)
+    {
+        if ($groupId === null) {
+            return $query;
+        }
+
+        // 检查分组是否存在且启用
+        $group = ArticleGroup::enabled()->find($groupId);
+        if ($group) {
+            $groupIds = ArticleGroup::getAllDescendantIds($groupId);
+            return $query->whereIn('group_id', $groupIds);
+        }
+
+        // 如果分组不存在或已禁用，返回空结果
+        return $query->whereRaw('1 = 0');
+    }
+
+    /**
      * Scope to order by sort_id.
      */
     public function scopeOrdered($query)
@@ -77,10 +97,13 @@ class Article extends Model
      */
     public function scopeSearch($query, $keyword)
     {
-        return $query->where(function ($q) use ($keyword) {
-            $q->where('title', 'like', "%{$keyword}%")
-              ->orWhere('content', 'like', "%{$keyword}%");
-        });
+        if (!empty($keyword)) {
+            return $query->where(function ($q) use ($keyword) {
+                $q->where('title', 'like', "%{$keyword}%")
+                  ->orWhere('content', 'like', "%{$keyword}%");
+            });
+        }
+        return $query;
     }
 
     /**

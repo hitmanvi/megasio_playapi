@@ -16,26 +16,12 @@ class ArticleGroupController extends Controller
      */
     public function index(Request $request): JsonResponse
     {
-        $parentId = $request->input('parent_id');
-        $name = $request->input('name');
-        
-        $query = ArticleGroup::query()
+        $groups = ArticleGroup::query()
             ->enabled()
-            ->ordered();
-
-        // 按父级ID筛选，不传时默认取 root
-        if ($parentId === null || $parentId === 0 || $parentId === '0') {
-            $query->root();
-        } else {
-            $query->byParent($parentId);
-        }
-
-        // 按名称搜索
-        if (!empty($name)) {
-            $query->where('name', 'like', "%{$name}%");
-        }
-
-        $groups = $query->paginate($request->input('per_page', 10));
+            ->byParentId($request->input('parent_id'))
+            ->byName($request->input('name'))
+            ->ordered()
+            ->paginate($request->input('per_page', 10));
 
         // 格式化返回数据
         $groups->getCollection()->transform(function ($group) {

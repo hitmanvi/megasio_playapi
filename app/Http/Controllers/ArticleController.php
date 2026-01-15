@@ -17,28 +17,13 @@ class ArticleController extends Controller
      */
     public function index(Request $request): JsonResponse
     {
-        $groupId = $request->input('group_id');
-        $keyword = $request->input('keyword');
-
-        $query = Article::query()
+        $articles = Article::query()
             ->with('group')
             ->enabled()
-            ->ordered();
-
-        // 按分组筛选
-        if ($groupId !== null) {
-            $query->byGroup($groupId);
-        }
-
-        // 关键词搜索（标题和内容）
-        if (!empty($keyword)) {
-            $query->where(function ($q) use ($keyword) {
-                $q->where('title', 'like', "%{$keyword}%")
-                  ->orWhere('content', 'like', "%{$keyword}%");
-            });
-        }
-
-        $articles = $query->paginate($request->input('per_page', 10));
+            ->byGroupId($request->input('group_id'))
+            ->search($request->input('keyword'))
+            ->ordered()
+            ->paginate($request->input('per_page', 10));
 
         // 格式化返回数据
         $articles->getCollection()->transform(function ($article) {

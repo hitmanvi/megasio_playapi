@@ -106,6 +106,28 @@ class ArticleGroup extends Model
     }
 
     /**
+     * Scope to filter by parent ID (default to root if not provided).
+     */
+    public function scopeByParentId($query, $parentId = null)
+    {
+        if ($parentId === null || $parentId === 0 || $parentId === '0') {
+            return $query->root();
+        }
+        return $query->byParent($parentId);
+    }
+
+    /**
+     * Scope to filter by name.
+     */
+    public function scopeByName($query, $name)
+    {
+        if (!empty($name)) {
+            return $query->where('name', 'like', "%{$name}%");
+        }
+        return $query;
+    }
+
+    /**
      * Check if group is enabled.
      */
     public function isEnabled(): bool
@@ -155,5 +177,23 @@ class ArticleGroup extends Model
             $parent = $parent->parent;
         }
         return $ancestors;
+    }
+
+    /**
+     * Get all descendant group IDs (including self).
+     * 
+     * @param int $groupId
+     * @return array
+     */
+    public static function getAllDescendantIds(int $groupId): array
+    {
+        $groupIds = [$groupId];
+        $children = self::where('parent_id', $groupId)->enabled()->pluck('id');
+        
+        foreach ($children as $childId) {
+            $groupIds = array_merge($groupIds, self::getAllDescendantIds($childId));
+        }
+        
+        return $groupIds;
     }
 }
