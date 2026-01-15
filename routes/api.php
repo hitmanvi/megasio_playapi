@@ -26,6 +26,8 @@ use App\Http\Controllers\BundleController;
 use App\Http\Controllers\RedeemController;
 use App\Http\Controllers\VipController;
 use App\Http\Controllers\CheckInController;
+use App\Http\Controllers\ArticleGroupController;
+use App\Http\Controllers\ArticleController;
 
 // 认证相关路由
 Route::prefix('auth')->group(function () {
@@ -145,6 +147,20 @@ Route::prefix('game-groups')->group(function () {
     Route::get('/category/{category}', [GameGroupController::class, 'getByCategory']);
     Route::get('/{id}', [GameGroupController::class, 'show']);
     Route::get('/{groupId}/games', [GameGroupController::class, 'getGames']);
+});
+
+// 帮助中心相关路由（只读）
+Route::prefix('help-center')->group(function () {
+    // 文章分组相关路由
+    Route::prefix('groups')->group(function () {
+        Route::get('/', [ArticleGroupController::class, 'index']);
+    });
+    
+    // 文章相关路由
+    Route::prefix('articles')->group(function () {
+        Route::get('/', [ArticleController::class, 'index']);
+        Route::get('/{id}', [ArticleController::class, 'show']);
+    });
 });
 
 // 工具类路由
