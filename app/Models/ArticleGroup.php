@@ -151,7 +151,7 @@ class ArticleGroup extends Model
      */
     public function isRoot(): bool
     {
-        return is_null($this->parent_id);
+        return $this->parent_id === 0;
     }
 
     /**
