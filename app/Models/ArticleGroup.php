@@ -106,11 +106,17 @@ class ArticleGroup extends Model
     }
 
     /**
-     * Scope to filter by parent ID (default to root if not provided).
+     * Scope to filter by parent ID.
+     * If parentId is null, no filter is applied.
+     * If parentId is 0 or '0', filter root groups.
+     * Otherwise, filter by the specified parent ID.
      */
     public function scopeByParentId($query, $parentId = null)
     {
-        if ($parentId === null || $parentId === 0 || $parentId === '0') {
+        if ($parentId === null) {
+            return $query;
+        }
+        if ($parentId === 0 || $parentId === '0') {
             return $query->root();
         }
         return $query->byParent($parentId);
