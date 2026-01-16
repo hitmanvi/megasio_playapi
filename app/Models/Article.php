@@ -73,15 +73,9 @@ class Article extends Model
             return $query;
         }
 
-        // 检查分组是否存在且启用
-        $group = ArticleGroup::enabled()->find($groupId);
-        if ($group) {
-            $groupIds = ArticleGroup::getAllDescendantIds($groupId);
-            return $query->whereIn('group_id', $groupIds);
-        }
 
-        // 如果分组不存在或已禁用，返回空结果
-        return $query->whereRaw('1 = 0');
+        return $query->where('group_id', $groupId);
+
     }
 
     /**
