@@ -154,6 +154,7 @@ Route::prefix('help-center')->group(function () {
     // 文章分组相关路由
     Route::prefix('groups')->group(function () {
         Route::get('/', [ArticleGroupController::class, 'index']);
+        Route::get('/{id}', [ArticleGroupController::class, 'show']);
     });
     
     // 文章相关路由

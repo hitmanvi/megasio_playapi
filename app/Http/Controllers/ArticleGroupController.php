@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\ArticleGroup;
+use App\Enums\ErrorCode;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 
@@ -29,6 +30,35 @@ class ArticleGroupController extends Controller
         });
 
         return $this->responseListWithPaginator($groups);
+    }
+
+    /**
+     * 获取单个分组详情（包含所有上级分组）
+     * 
+     * @param Request $request
+     * @param int $id
+     * @return JsonResponse
+     */
+    public function show(Request $request, int $id): JsonResponse
+    {
+        $group = ArticleGroup::query()
+            ->enabled()
+            ->where('id', $id)
+            ->first();
+
+        if (!$group) {
+            return $this->error(ErrorCode::NOT_FOUND, 'Article group not found');
+        }
+
+        // 获取所有上级分组
+        $ancestors = $group->getAncestors();
+        
+        $data = $this->formatGroup($group);
+        $data['ancestors'] = $ancestors->map(function ($ancestor) {
+            return $this->formatGroup($ancestor);
+        })->values()->toArray();
+
+        return $this->responseItem($data);
     }
 
     /**

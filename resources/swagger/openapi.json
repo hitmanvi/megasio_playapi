@@ -5150,6 +5150,72 @@
         }
       }
     },
+    "/help-center/groups/{id}": {
+      "get": {
+        "tags": ["HelpCenter"],
+        "summary": "获取文章分组详情",
+        "description": "根据ID获取文章分组详情，包含所有上级分组",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "分组ID",
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "获取分组详情成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ArticleGroupDetailResponse"
+                },
+                "example": {
+                  "code": 0,
+                  "errmsg": "Success",
+                  "data": {
+                    "id": 2,
+                    "name": "存款相关",
+                    "icon": "fas fa-money-bill-wave",
+                    "parent_id": 1,
+                    "enabled": true,
+                    "sort_id": 1,
+                    "created_at": "2026-01-15 10:00:00",
+                    "updated_at": "2026-01-15 10:00:00",
+                    "ancestors": [
+                      {
+                        "id": 1,
+                        "name": "常见问题",
+                        "icon": "fas fa-question-circle",
+                        "parent_id": null,
+                        "enabled": true,
+                        "sort_id": 1,
+                        "created_at": "2026-01-15 10:00:00",
+                        "updated_at": "2026-01-15 10:00:00"
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "分组不存在或已禁用",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/help-center/articles": {
       "get": {
         "tags": ["HelpCenter"],
@@ -8498,6 +8564,67 @@
                     "type": "integer",
                     "description": "总记录数"
                   }
+                }
+              }
+            }
+          }
+        }
+      },
+      "ArticleGroupDetailResponse": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "integer",
+            "description": "响应码，0表示成功"
+          },
+          "errmsg": {
+            "type": "string",
+            "description": "响应消息"
+          },
+          "data": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "integer",
+                "description": "分组ID"
+              },
+              "name": {
+                "type": "string",
+                "description": "分组名称"
+              },
+              "icon": {
+                "type": "string",
+                "nullable": true,
+                "description": "图标路径或类名"
+              },
+              "parent_id": {
+                "type": "integer",
+                "nullable": true,
+                "description": "父级分组ID"
+              },
+              "enabled": {
+                "type": "boolean",
+                "description": "是否启用"
+              },
+              "sort_id": {
+                "type": "integer",
+                "description": "排序ID"
+              },
+              "created_at": {
+                "type": "string",
+                "format": "date-time",
+                "description": "创建时间"
+              },
+              "updated_at": {
+                "type": "string",
+                "format": "date-time",
+                "description": "更新时间"
+              },
+              "ancestors": {
+                "type": "array",
+                "description": "所有上级分组列表（从根到直接父级）",
+                "items": {
+                  "$ref": "#/components/schemas/ArticleGroup"
                 }
               }
             }
