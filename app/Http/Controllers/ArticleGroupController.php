@@ -43,6 +43,9 @@ class ArticleGroupController extends Controller
     {
         $group = ArticleGroup::query()
             ->enabled()
+            ->with(['children' => function ($q) {
+                $q->enabled()->ordered();
+            }])
             ->where('id', $id)
             ->first();
 
@@ -56,6 +59,11 @@ class ArticleGroupController extends Controller
         $data = $this->formatGroup($group);
         $data['ancestors'] = $ancestors->map(function ($ancestor) {
             return $this->formatGroup($ancestor);
+        })->values()->toArray();
+        
+        // 获取子分组
+        $data['children'] = $group->children->map(function ($child) {
+            return $this->formatGroup($child);
         })->values()->toArray();
 
         return $this->responseItem($data);
