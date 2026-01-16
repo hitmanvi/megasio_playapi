@@ -116,9 +116,6 @@ class ArticleGroup extends Model
         if ($parentId === null) {
             return $query;
         }
-        if ($parentId === 0 || $parentId === '0') {
-            return $query->root();
-        }
         return $query->byParent($parentId);
     }
 
