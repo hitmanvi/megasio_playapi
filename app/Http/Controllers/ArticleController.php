@@ -49,7 +49,8 @@ class ArticleController extends Controller
             ->where('id', $id);
 
         if ($withGroup) {
-            $query->with('group');
+            // 递归加载所有层级的 parent
+            $query->with(['group.parent.parent.parent']);
         }
 
         $article = $query->first();
@@ -87,11 +88,25 @@ class ArticleController extends Controller
         }
 
         if ($includeGroup && $article->relationLoaded('group') && $article->group) {
-            $data['group'] = [
+            $groupData = [
                 'id' => $article->group->id,
                 'name' => $article->group->name,
                 'icon' => $article->group->icon,
             ];
+            
+            // 获取所有上级分组
+            $ancestors = $article->group->getAncestors();
+            if ($ancestors->isNotEmpty()) {
+                $groupData['ancestors'] = $ancestors->map(function ($ancestor) {
+                    return [
+                        'id' => $ancestor->id,
+                        'name' => $ancestor->name,
+                        'icon' => $ancestor->icon,
+                    ];
+                })->values()->toArray();
+            }
+            
+            $data['group'] = $groupData;
         }
 
         return $data;
