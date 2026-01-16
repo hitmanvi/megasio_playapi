@@ -104,6 +104,8 @@ class ArticleController extends Controller
                         'icon' => $ancestor->icon,
                     ];
                 })->values()->toArray();
+            } else {
+                $groupData['ancestors'] = [];
             }
             
             $data['group'] = $groupData;
