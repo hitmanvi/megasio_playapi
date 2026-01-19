@@ -14,13 +14,6 @@ class CheckInService
 {
     const REWARD_CYCLE = 7; // 奖励周期天数
 
-    protected BalanceService $balanceService;
-
-    public function __construct()
-    {
-        $this->balanceService = new BalanceService();
-    }
-
     /**
      * 用户签到
      */
@@ -115,15 +108,11 @@ class CheckInService
 
     /**
      * 根据类型发放奖励
+     * 注意：货币类型奖励现在通过 BonusTask 来发放，不再直接操作 balance
      */
     protected function grantRewardByType(int $userId, string $type, float $amount, int $checkInId): void
     {
-        // 检查是否为货币类型
-        if ($this->isCurrencyType($type)) {
-            $this->balanceService->checkInReward($userId, $type, $amount, $checkInId);
-            return;
-        }
-
+        // 货币类型奖励现在通过 BonusTask 来发放
         // 其他类型奖励暂不处理，可扩展
         // 例如：exp -> VipService, item -> InventoryService 等
     }

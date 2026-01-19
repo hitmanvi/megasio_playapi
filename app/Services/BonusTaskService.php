@@ -34,7 +34,6 @@ class BonusTaskService
 
     /**
      * 领取 BonusTask 奖励
-     * 参考 BalanceService::checkInReward 的实现方式
      *
      * @param int $userId
      * @param int $taskId
