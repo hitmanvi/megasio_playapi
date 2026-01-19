@@ -26,6 +26,7 @@ use App\Http\Controllers\BundleController;
 use App\Http\Controllers\RedeemController;
 use App\Http\Controllers\VipController;
 use App\Http\Controllers\CheckInController;
+use App\Http\Controllers\BonusTaskController;
 use App\Http\Controllers\ArticleGroupController;
 use App\Http\Controllers\ArticleController;
 
@@ -97,6 +98,12 @@ Route::middleware('auth:sanctum')->prefix('check-ins')->group(function () {
     Route::post('/', [CheckInController::class, 'store']);
     Route::get('/status', [CheckInController::class, 'status']);
     Route::get('/history', [CheckInController::class, 'history']);
+});
+
+// BonusTask 相关路由（需要认证）
+Route::middleware('auth:sanctum')->prefix('bonus-tasks')->group(function () {
+    Route::get('/claimable', [BonusTaskController::class, 'claimable']);
+    Route::post('/{id}/claim', [BonusTaskController::class, 'claim']);
 });
 
 // 品牌相关路由（只读）

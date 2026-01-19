@@ -305,4 +305,27 @@ class BalanceService
             ];
         });
     }
+
+    /**
+     * BonusTask 奖励
+     */
+    public function bonusTaskReward(int $userId, string $currency, float $amount, int $taskId, string $bonusName): array
+    {
+        return DB::transaction(function () use ($userId, $currency, $amount, $taskId, $bonusName) {
+            $balance = $this->updateBalance($userId, $currency, $amount, 'add', 'available');
+            $transaction = $this->transactionService->createTransaction(
+                $userId,
+                $currency,
+                $amount,
+                (float)$balance->available,
+                Transaction::TYPE_BONUS_TASK_REWARD,
+                (string) $taskId,
+                "Bonus task reward: {$bonusName}"
+            );
+            return [
+                'balance' => $balance,
+                'transaction' => $transaction,
+            ];
+        });
+    }
 }

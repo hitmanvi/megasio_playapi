@@ -95,6 +95,10 @@
     {
       "name": "HelpCenter",
       "description": "帮助中心相关接口"
+    },
+    {
+      "name": "BonusTask",
+      "description": "奖励任务相关接口"
     }
   ],
   "paths": {
@@ -5382,6 +5386,138 @@
           }
         }
       }
+    },
+    "/bonus-tasks/claimable": {
+      "get": {
+        "tags": ["BonusTask"],
+        "summary": "获取可领取的奖励任务列表",
+        "description": "获取当前用户所有可领取（已完成）的奖励任务列表",
+        "security": [{"bearerAuth": []}],
+        "responses": {
+          "200": {
+            "description": "获取成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BonusTaskListResponse"
+                },
+                "example": {
+                  "code": 0,
+                  "errmsg": "Success",
+                  "data": [
+                    {
+                      "id": 1,
+                      "task_no": "TASK001",
+                      "bonus_name": "首充奖励",
+                      "cap_bonus": 100.0000,
+                      "base_bonus": 50.0000,
+                      "last_bonus": 100.0000,
+                      "need_wager": 500.0000,
+                      "wager": 500.0000,
+                      "status": "completed",
+                      "currency": "USD",
+                      "progress_percent": 100.0,
+                      "created_at": "2026-01-15 10:00:00",
+                      "updated_at": "2026-01-15 12:00:00"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "未授权",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/bonus-tasks/{id}/claim": {
+      "post": {
+        "tags": ["BonusTask"],
+        "summary": "领取奖励任务奖励",
+        "description": "领取指定奖励任务的奖励，奖励金额为 min(cap_bonus, last_bonus)",
+        "security": [{"bearerAuth": []}],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "奖励任务ID",
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "领取成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BonusTaskClaimResponse"
+                },
+                "example": {
+                  "code": 0,
+                  "errmsg": "Success",
+                  "data": {
+                    "id": 1,
+                    "task_no": "TASK001",
+                    "bonus_name": "首充奖励",
+                    "cap_bonus": 100.0000,
+                    "base_bonus": 50.0000,
+                    "last_bonus": 100.0000,
+                    "need_wager": 500.0000,
+                    "wager": 500.0000,
+                    "status": "claimed",
+                    "currency": "USD",
+                    "progress_percent": 100.0,
+                    "claim_amount": 100.0000,
+                    "created_at": "2026-01-15 10:00:00",
+                    "updated_at": "2026-01-15 12:00:00"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "未授权",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "奖励任务不存在",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "奖励任务不可领取",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -8768,6 +8904,124 @@
           },
           "data": {
             "$ref": "#/components/schemas/Article"
+          }
+        }
+      },
+      "BonusTask": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "description": "奖励任务ID"
+          },
+          "task_no": {
+            "type": "string",
+            "nullable": true,
+            "description": "任务编号"
+          },
+          "bonus_name": {
+            "type": "string",
+            "nullable": true,
+            "description": "奖励名称"
+          },
+          "cap_bonus": {
+            "type": "number",
+            "format": "decimal",
+            "description": "奖励上限"
+          },
+          "base_bonus": {
+            "type": "number",
+            "format": "decimal",
+            "description": "基础奖励"
+          },
+          "last_bonus": {
+            "type": "number",
+            "format": "decimal",
+            "description": "当前奖励余额"
+          },
+          "need_wager": {
+            "type": "number",
+            "format": "decimal",
+            "description": "需要完成的流水"
+          },
+          "wager": {
+            "type": "number",
+            "format": "decimal",
+            "description": "已完成流水"
+          },
+          "status": {
+            "type": "string",
+            "description": "任务状态",
+            "enum": ["pending", "active", "completed", "claimed", "expired", "cancelled"]
+          },
+          "currency": {
+            "type": "string",
+            "nullable": true,
+            "description": "奖励币种"
+          },
+          "progress_percent": {
+            "type": "number",
+            "format": "float",
+            "description": "完成进度百分比"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "创建时间"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "更新时间"
+          }
+        }
+      },
+      "BonusTaskListResponse": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "integer",
+            "description": "响应码，0表示成功"
+          },
+          "errmsg": {
+            "type": "string",
+            "description": "响应消息"
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/BonusTask"
+            }
+          }
+        }
+      },
+      "BonusTaskClaimResponse": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "integer",
+            "description": "响应码，0表示成功"
+          },
+          "errmsg": {
+            "type": "string",
+            "description": "响应消息"
+          },
+          "data": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/BonusTask"
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "claim_amount": {
+                    "type": "number",
+                    "format": "decimal",
+                    "description": "实际领取的金额"
+                  }
+                }
+              }
+            ]
           }
         }
       }

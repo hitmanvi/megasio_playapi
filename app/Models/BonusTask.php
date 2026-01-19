@@ -25,6 +25,7 @@ class BonusTask extends Model
         'need_wager',
         'wager',
         'status',
+        'currency',
     ];
 
     protected $casts = [
@@ -152,5 +153,47 @@ class BonusTask extends Model
     public function hasSufficientBonus(float $amount): bool
     {
         return $this->last_bonus >= $amount;
+    }
+
+    /**
+     * Scope to filter completed tasks (claimable).
+     */
+    public function scopeClaimable($query)
+    {
+        return $query->where('status', self::STATUS_COMPLETED);
+    }
+
+    /**
+     * Scope to order by created_at desc.
+     */
+    public function scopeOrdered($query)
+    {
+        return $query->orderBy('created_at', 'desc');
+    }
+
+    /**
+     * 计算可领取金额
+     */
+    public function getClaimAmount(): float
+    {
+        return min((float) $this->cap_bonus, (float) $this->last_bonus);
+    }
+
+    /**
+     * 领取奖励
+     * 
+     * @return float 领取的金额
+     */
+    public function claim(): float
+    {
+        if (!$this->isCompleted()) {
+            throw new \Exception('Bonus task is not claimable');
+        }
+        
+        $claimAmount = $this->getClaimAmount();
+        $this->status = self::STATUS_CLAIMED;
+        $this->save();
+        
+        return $claimAmount;
     }
 }
