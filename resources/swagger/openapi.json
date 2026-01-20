@@ -4956,6 +4956,54 @@
         }
       }
     },
+    "/bundles/purchases/statuses": {
+      "get": {
+        "tags": ["Bundle"],
+        "summary": "获取Bundle购买订单状态集合",
+        "description": "获取所有可用的Bundle购买订单状态列表",
+        "security": [{"bearerAuth": []}],
+        "responses": {
+          "200": {
+            "description": "获取成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "example": 0
+                    },
+                    "errmsg": {
+                      "type": "string",
+                      "example": "Success"
+                    },
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "enum": ["pending", "completed", "failed", "cancelled", "refunded"]
+                      },
+                      "example": ["pending", "completed", "failed", "cancelled", "refunded"]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "未授权",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/redeems": {
       "get": {
         "tags": ["Redeem"],
@@ -5055,6 +5103,54 @@
           },
           "401": {"description": "未授权"},
           "400": {"description": "参数错误或余额不足"}
+        }
+      }
+    },
+    "/redeems/statuses": {
+      "get": {
+        "tags": ["Redeem"],
+        "summary": "获取兑换订单状态集合",
+        "description": "获取所有可用的兑换订单状态列表",
+        "security": [{"bearerAuth": []}],
+        "responses": {
+          "200": {
+            "description": "获取成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "example": 0
+                    },
+                    "errmsg": {
+                      "type": "string",
+                      "example": "Success"
+                    },
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "enum": ["PENDING", "PROCESSING", "COMPLETED", "FAILED", "CANCELLED", "REJECTED"]
+                      },
+                      "example": ["PENDING", "PROCESSING", "COMPLETED", "FAILED", "CANCELLED", "REJECTED"]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "未授权",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
         }
       }
     },

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Enums\ErrorCode;
 use App\Models\Kyc;
+use App\Models\Redeem;
 use App\Services\RedeemService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -166,6 +167,23 @@ class RedeemController extends Controller
             'to' => 'USD',
             'rate' => $rate,
         ]);
+    }
+
+    /**
+     * 获取兑换订单状态集合
+     */
+    public function statuses(): JsonResponse
+    {
+        $statuses = [
+            Redeem::STATUS_PENDING,
+            Redeem::STATUS_PROCESSING,
+            Redeem::STATUS_COMPLETED,
+            Redeem::STATUS_FAILED,
+            Redeem::STATUS_CANCELLED,
+            Redeem::STATUS_REJECTED,
+        ];
+
+        return $this->responseItem($statuses);
     }
 }
 

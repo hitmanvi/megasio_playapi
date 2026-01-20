@@ -229,6 +229,7 @@ Route::post('/sopay/callback', [SopayController::class, 'callback']);
         // 需要认证的路由
         Route::middleware('auth:sanctum')->group(function () {
             Route::get('/form-fields', [BundleController::class, 'formFields']);
+            Route::get('/purchases/statuses', [BundleController::class, 'purchaseStatuses']);
             Route::post('/purchase', [BundleController::class, 'purchase']);
             Route::get('/purchases/list', [BundleController::class, 'purchases']);
             Route::get('/purchases/{orderNo}', [BundleController::class, 'purchaseDetail']);
@@ -239,6 +240,7 @@ Route::post('/sopay/callback', [SopayController::class, 'callback']);
     Route::middleware('auth:sanctum')->prefix('redeems')->group(function () {
         Route::get('/', [RedeemController::class, 'index']);
         Route::post('/', [RedeemController::class, 'store']);
+        Route::get('/statuses', [RedeemController::class, 'statuses']);
         Route::get('/form-fields', [RedeemController::class, 'formFields']);
         Route::get('/exchange-rate', [RedeemController::class, 'exchangeRate']);
         Route::get('/{orderNo}', [RedeemController::class, 'show']);

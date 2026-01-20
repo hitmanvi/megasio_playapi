@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Enums\ErrorCode;
 use App\Models\Bundle;
+use App\Models\BundlePurchase;
 use App\Models\PaymentMethod;
 use App\Services\BundleService;
 use Exception;
@@ -141,5 +142,21 @@ class BundleController extends Controller
         } catch (Exception $e) {
             return $this->error(ErrorCode::VALIDATION_ERROR, $e->getMessage());
         }
+    }
+
+    /**
+     * 获取Bundle购买订单状态集合
+     */
+    public function purchaseStatuses(): JsonResponse
+    {
+        $statuses = [
+            BundlePurchase::STATUS_PENDING,
+            BundlePurchase::STATUS_COMPLETED,
+            BundlePurchase::STATUS_FAILED,
+            BundlePurchase::STATUS_CANCELLED,
+            BundlePurchase::STATUS_REFUNDED,
+        ];
+
+        return $this->responseItem($statuses);
     }
 }
