@@ -22,6 +22,7 @@ class ProviderCallbackService
     protected BalanceService $balanceService;
     protected OrderService $orderService;
     protected GameProviderTokenService $tokenService;
+    protected BonusTaskService $bonusTaskService;
 
     public function __construct()
     {
@@ -29,6 +30,7 @@ class ProviderCallbackService
         $this->balanceService = new BalanceService();
         $this->orderService = new OrderService();
         $this->tokenService = new GameProviderTokenService();
+        $this->bonusTaskService = new BonusTaskService();
     }
 
     /**
@@ -78,7 +80,7 @@ class ProviderCallbackService
 
         // 判断是否是 bonus 模式
         $isBonus = $this->isBonusCurrency($currency);
-        $bonusTask = $isBonus ? $this->getActiveBonusTask($userId) : null;
+        $bonusTask = $isBonus ? $this->bonusTaskService->getActiveBonusTask($userId) : null;
 
         return DB::transaction(function () use ($provider, $game, $userId, $txid, $roundId, $amount, $currency, $detail, $isBonus, $bonusTask) {
             // 创建 provider transaction 记录
@@ -160,7 +162,7 @@ class ProviderCallbackService
 
         // 根据 currency 判断是否是 bonus 模式
         $isBonus = $this->isBonusCurrency($currency);
-        $bonusTask = $isBonus ? $this->getActiveBonusTask($userId) : null;
+        $bonusTask = $isBonus ? $this->bonusTaskService->getActiveBonusTask($userId) : null;
 
         return DB::transaction(function () use ($provider, $gameId, $userId, $txid, $roundId, $amount, $currency, $detail, $isFinished, $order, $isBonus, $bonusTask) {
             // 创建 provider transaction 记录
@@ -238,7 +240,7 @@ class ProviderCallbackService
 
         // 根据 currency 判断是否是 bonus 模式
         $isBonus = $this->isBonusCurrency($currency);
-        $bonusTask = $isBonus ? $this->getActiveBonusTask($userId) : null;
+        $bonusTask = $isBonus ? $this->bonusTaskService->getActiveBonusTask($userId) : null;
 
         return DB::transaction(function () use ($provider, $gameId, $userId, $txid, $roundId, $amount, $currency, $detail, $order, $isBonus, $bonusTask) {
             // 创建 provider transaction 记录
@@ -290,16 +292,6 @@ class ProviderCallbackService
     }
 
     /**
-     * 获取用户当前激活的 bonus task
-     */
-    protected function getActiveBonusTask(int $userId): ?BonusTask
-    {
-        return BonusTask::where('user_id', $userId)
-            ->where('status', BonusTask::STATUS_ACTIVE)
-            ->first();
-    }
-
-    /**
      * 判断是否是 bonus 模式
      */
     protected function isBonusCurrency(string $currency): bool
@@ -315,7 +307,7 @@ class ProviderCallbackService
 
         // 根据 currency 判断是否是 bonus 模式
         if ($this->isBonusCurrency($currency)) {
-            $bonusTask = $this->getActiveBonusTask($userId);
+            $bonusTask = $this->bonusTaskService->getActiveBonusTask($userId);
             if ($bonusTask) {
                 return $bonusTask->getAvailableBonus();
             }

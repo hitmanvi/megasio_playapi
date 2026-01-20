@@ -26,6 +26,7 @@ class BonusTask extends Model
         'wager',
         'status',
         'currency',
+        'expired_at',
     ];
 
     protected $casts = [
@@ -34,6 +35,7 @@ class BonusTask extends Model
         'last_bonus' => 'decimal:4',
         'need_wager' => 'decimal:4',
         'wager' => 'decimal:4',
+        'expired_at' => 'datetime',
     ];
 
     /**
@@ -77,6 +79,43 @@ class BonusTask extends Model
     }
 
     /**
+     * 是否已过期
+     */
+    public function isExpired(): bool
+    {
+        if (!$this->expired_at) {
+            return false;
+        }
+        return $this->expired_at->isPast();
+    }
+
+    /**
+     * 检查是否可领取（已完成即可领取，不受过期时间限制）
+     */
+    public function isClaimable(): bool
+    {
+        return $this->isCompleted();
+    }
+
+    /**
+     * 检查是否可以操作（pending/active 状态的任务未过期才能操作）
+     */
+    public function canOperate(): bool
+    {
+        // completed 和 claimed 状态可以操作（已完成的任务不受过期限制）
+        if ($this->isCompleted() || $this->isClaimed()) {
+            return true;
+        }
+        
+        // pending 和 active 状态需要检查是否过期
+        if ($this->isPending() || $this->isActive()) {
+            return !$this->isExpired();
+        }
+        
+        return false;
+    }
+
+    /**
      * 激活任务
      */
     public function activate(): void
@@ -103,6 +142,13 @@ class BonusTask extends Model
      */
     public function addWager(float $amount): void
     {
+        // 如果任务已过期，更新状态为过期并直接返回
+        if ($this->isExpired() && ($this->isPending() || $this->isActive())) {
+            $this->status = self::STATUS_EXPIRED;
+            $this->save();
+            return;
+        }
+        
         $this->wager = min($this->wager + $amount, $this->need_wager);
         
         // 检查是否完成
@@ -118,6 +164,10 @@ class BonusTask extends Model
      */
     public function deductBonus(float $amount): bool
     {
+        if (!$this->canOperate()) {
+            return false;
+        }
+        
         if ($this->last_bonus < $amount) {
             return false;
         }
@@ -133,9 +183,11 @@ class BonusTask extends Model
      */
     public function addBonus(float $amount): void
     {
-        $newBonus = $this->last_bonus + $amount;
-        // 不超过上限
-        $this->last_bonus = min($newBonus, $this->cap_bonus);
+        if (!$this->canOperate()) {
+            return;
+        }
+        
+        $this->last_bonus = $this->last_bonus + $amount;
         $this->save();
     }
 
@@ -157,6 +209,7 @@ class BonusTask extends Model
 
     /**
      * Scope to filter completed tasks (claimable).
+     * 已完成的任务即可领取，不受过期时间限制
      */
     public function scopeClaimable($query)
     {
@@ -181,12 +234,13 @@ class BonusTask extends Model
 
     /**
      * 领取奖励
+     * 已完成的任务即可领取，不受过期时间限制
      * 
      * @return float 领取的金额
      */
     public function claim(): float
     {
-        if (!$this->isCompleted()) {
+        if (!$this->isClaimable()) {
             throw new \Exception('Bonus task is not claimable');
         }
         

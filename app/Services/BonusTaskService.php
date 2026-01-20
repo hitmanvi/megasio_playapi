@@ -11,10 +11,10 @@ class BonusTaskService
     protected BalanceService $balanceService;
     protected TransactionService $transactionService;
 
-    public function __construct(BalanceService $balanceService, TransactionService $transactionService)
+    public function __construct()
     {
-        $this->balanceService = $balanceService;
-        $this->transactionService = $transactionService;
+        $this->balanceService = new BalanceService();
+        $this->transactionService = new TransactionService();
     }
 
     /**
@@ -30,6 +30,23 @@ class BonusTaskService
             ->claimable()
             ->ordered()
             ->get();
+    }
+
+    /**
+     * 获取用户当前激活的 bonus task（未过期的）
+     *
+     * @param int $userId
+     * @return BonusTask|null
+     */
+    public function getActiveBonusTask(int $userId): ?BonusTask
+    {
+        return BonusTask::where('user_id', $userId)
+            ->where('status', BonusTask::STATUS_ACTIVE)
+            ->where(function ($query) {
+                $query->whereNull('expired_at')
+                      ->orWhere('expired_at', '>', now());
+            })
+            ->first();
     }
 
     /**
@@ -50,7 +67,7 @@ class BonusTaskService
             throw new \Exception('Bonus task not found');
         }
 
-        if (!$task->isCompleted()) {
+        if (!$task->isClaimable()) {
             throw new \Exception('Bonus task is not claimable');
         }
 
@@ -103,6 +120,7 @@ class BonusTaskService
             'wager' => (float) $task->wager,
             'status' => $task->status,
             'currency' => $task->currency,
+            'expired_at' => $task->expired_at?->toIso8601String(),
             'progress_percent' => $task->getProgressPercent(),
             'created_at' => $task->created_at,
             'updated_at' => $task->updated_at,
