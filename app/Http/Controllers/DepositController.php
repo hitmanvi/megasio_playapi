@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Deposit;
 use App\Services\DepositService;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
@@ -164,6 +165,23 @@ class DepositController extends Controller
         $extraInfo = $request->input('extra_info', []);
         $fields = $this->depositService->getExtraStepFields($amount, $paymentMethod, $extraInfo);
         return $this->responseItem($fields);
+    }
+
+    /**
+     * 获取存款订单状态集合
+     */
+    public function statuses(): JsonResponse
+    {
+        $statuses = [
+            Deposit::STATUS_PENDING,
+            Deposit::STATUS_PROCESSING,
+            Deposit::STATUS_COMPLETED,
+            Deposit::STATUS_FAILED,
+            Deposit::STATUS_CANCELLED,
+            Deposit::STATUS_EXPIRED,
+        ];
+
+        return $this->responseItem($statuses);
     }
 }
 

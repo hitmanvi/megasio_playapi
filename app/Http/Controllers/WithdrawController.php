@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Enums\ErrorCode;
 use App\Models\Kyc;
+use App\Models\Withdraw;
 use App\Services\WithdrawService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -149,6 +150,23 @@ class WithdrawController extends Controller
         $fields = $this->withdrawService->getFormFields($amount, $paymentMethod);
 
         return $this->responseItem($fields);
+    }
+
+    /**
+     * 获取提款订单状态集合
+     */
+    public function statuses(): JsonResponse
+    {
+        $statuses = [
+            Withdraw::STATUS_PENDING,
+            Withdraw::STATUS_PROCESSING,
+            Withdraw::STATUS_COMPLETED,
+            Withdraw::STATUS_FAILED,
+            Withdraw::STATUS_CANCELLED,
+            Withdraw::STATUS_REJECTED,
+        ];
+
+        return $this->responseItem($statuses);
     }
 }
 

@@ -202,6 +202,7 @@ Route::post('/sopay/callback', [SopayController::class, 'callback']);
     Route::middleware('auth:sanctum')->prefix('deposits')->group(function () {
         Route::get('/', [DepositController::class, 'index']);
         Route::post('/', [DepositController::class, 'store']);
+        Route::get('/statuses', [DepositController::class, 'statuses']);
         Route::get('/form-fields', [DepositController::class, 'formFields']);
         Route::post('/extra-step-fields', [DepositController::class, 'extraStepFields']);
         Route::get('/{orderNo}', [DepositController::class, 'show']);
@@ -211,6 +212,7 @@ Route::post('/sopay/callback', [SopayController::class, 'callback']);
     Route::middleware('auth:sanctum')->prefix('withdraws')->group(function () {
         Route::get('/', [WithdrawController::class, 'index']);
         Route::post('/', [WithdrawController::class, 'store']);
+        Route::get('/statuses', [WithdrawController::class, 'statuses']);
         Route::get('/form-fields', [WithdrawController::class, 'formFields']);
         Route::get('/{orderNo}', [WithdrawController::class, 'show']);
     });

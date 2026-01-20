@@ -1308,6 +1308,54 @@
         }
       }
     },
+    "/deposits/statuses": {
+      "get": {
+        "tags": ["Deposit"],
+        "summary": "获取存款订单状态集合",
+        "description": "获取所有可用的存款订单状态列表",
+        "security": [{"bearerAuth": []}],
+        "responses": {
+          "200": {
+            "description": "获取成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "example": 0
+                    },
+                    "errmsg": {
+                      "type": "string",
+                      "example": "Success"
+                    },
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "enum": ["PENDING", "PROCESSING", "COMPLETED", "FAILED", "CANCELLED", "EXPIRED"]
+                      },
+                      "example": ["PENDING", "PROCESSING", "COMPLETED", "FAILED", "CANCELLED", "EXPIRED"]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "未授权",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/deposits/form-fields": {
       "get": {
         "tags": ["Deposit"],
@@ -1712,6 +1760,54 @@
           },
           "404": {
             "description": "支付方式不存在",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/withdraws/statuses": {
+      "get": {
+        "tags": ["Withdraw"],
+        "summary": "获取提款订单状态集合",
+        "description": "获取所有可用的提款订单状态列表",
+        "security": [{"bearerAuth": []}],
+        "responses": {
+          "200": {
+            "description": "获取成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "example": 0
+                    },
+                    "errmsg": {
+                      "type": "string",
+                      "example": "Success"
+                    },
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "enum": ["PENDING", "PROCESSING", "COMPLETED", "FAILED", "CANCELLED", "REJECTED"]
+                      },
+                      "example": ["PENDING", "PROCESSING", "COMPLETED", "FAILED", "CANCELLED", "REJECTED"]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "未授权",
             "content": {
               "application/json": {
                 "schema": {
