@@ -43,6 +43,9 @@ class ArticleGroupController extends Controller
     {
         $group = ArticleGroup::query()
             ->enabled()
+            ->withCount(['articles' => function ($q) {
+                $q->enabled();
+            }])
             ->with(['children' => function ($q) {
                 $q->enabled()->ordered();
             }])
@@ -70,12 +73,33 @@ class ArticleGroupController extends Controller
     }
 
     /**
-     * 格式化分组数据
+     * 格式化分组数据（包含 article_count）
      * 
      * @param ArticleGroup $group
      * @return array
      */
     protected function formatGroup(ArticleGroup $group): array
+    {
+        return [
+            'id' => $group->id,
+            'name' => $group->name,
+            'icon' => $group->icon,
+            'parent_id' => $group->parent_id,
+            'enabled' => $group->enabled,
+            'sort_id' => $group->sort_id,
+            'article_count' => $group->articles_count ?? 0,
+            'created_at' => $group->created_at,
+            'updated_at' => $group->updated_at,
+        ];
+    }
+
+    /**
+     * 格式化分组数据（不包含 article_count）
+     * 
+     * @param ArticleGroup $group
+     * @return array
+     */
+    protected function formatGroupWithoutCount(ArticleGroup $group): array
     {
         return [
             'id' => $group->id,
