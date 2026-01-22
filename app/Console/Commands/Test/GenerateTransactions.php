@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Console\Commands;
+namespace App\Console\Commands\Test;
 
 use App\Models\Deposit;
 use App\Models\Game;
@@ -14,7 +14,7 @@ use Illuminate\Console\Command;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 
-class GenerateTestTransactions extends Command
+class GenerateTransactions extends Command
 {
     /**
      * The name and signature of the console command.

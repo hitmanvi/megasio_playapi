@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Console\Commands;
+namespace App\Console\Commands\Test;
 
 use App\Models\Brand;
 use App\Models\Theme;
@@ -8,7 +8,7 @@ use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
 use Faker\Generator as Faker;
 
-class GenerateTestBrandsAndThemes extends Command
+class GenerateBrandsAndThemes extends Command
 {
     /**
      * The name and signature of the console command.

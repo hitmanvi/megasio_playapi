@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Console\Commands;
+namespace App\Console\Commands\Test;
 
 use App\Models\Game;
 use App\Models\Brand;
@@ -11,7 +11,7 @@ use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
 use Faker\Factory as Faker;
 
-class GenerateTestGames extends Command
+class GenerateGames extends Command
 {
     /**
      * The name and signature of the console command.
