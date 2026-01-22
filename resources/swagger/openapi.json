@@ -554,6 +554,7 @@
                     "name": "张三",
                     "phone": "13800138000",
                     "email": "zhangsan@example.com",
+                    "invite_code": "ABC12345",
                     "display_currencies": ["USD", "EUR", "CNY"],
                     "base_currency": "USD",
                     "current_currency": "USD"
@@ -582,7 +583,7 @@
       "patch": {
         "tags": ["User"],
         "summary": "更新用户信息",
-        "description": "更新当前用户的基本信息",
+        "description": "更新当前用户的基本信息（name 和 invite_code）",
         "security": [{"bearerAuth": []}],
         "requestBody": {
           "required": true,
@@ -590,17 +591,28 @@
             "application/json": {
               "schema": {
                 "type": "object",
-                "required": ["name"],
                 "properties": {
                   "name": {
                     "type": "string",
                     "maxLength": 255,
                     "description": "用户昵称"
+                  },
+                  "invite_code": {
+                    "type": "string",
+                    "minLength": 8,
+                    "maxLength": 8,
+                    "pattern": "^[ABCDEFGHJKLMNPQRSTUVWXYZ23456789]{8}$",
+                    "description": "邀请码（8位大写字母和数字，排除容易混淆的字符 0, O, I, 1）"
                   }
-                }
+                },
+                "anyOf": [
+                  {"required": ["name"]},
+                  {"required": ["invite_code"]}
+                ]
               },
               "example": {
-                "name": "新昵称"
+                "name": "新昵称",
+                "invite_code": "ABC12345"
               }
             }
           }
@@ -611,16 +623,37 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/SuccessResponse"
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "example": 0
+                    },
+                    "errmsg": {
+                      "type": "string",
+                      "example": "Success"
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "name": {
+                          "type": "string",
+                          "description": "用户昵称"
+                        },
+                        "invite_code": {
+                          "type": "string",
+                          "description": "邀请码"
+                        }
+                      }
+                    }
+                  }
                 },
                 "example": {
                   "code": 0,
                   "errmsg": "Success",
                   "data": {
-                    "uid": "01ARZ3NDEKTSV4RRFFQ69G5FAV",
                     "name": "新昵称",
-                    "phone": "13800138000",
-                    "email": "zhangsan@example.com"
+                    "invite_code": "ABC12345"
                   }
                 }
               }
@@ -6279,6 +6312,11 @@
                 "type": "string",
                 "nullable": true,
                 "description": "邮箱"
+              },
+              "invite_code": {
+                "type": "string",
+                "nullable": true,
+                "description": "邀请码"
               },
               "display_currencies": {
                 "type": "array",

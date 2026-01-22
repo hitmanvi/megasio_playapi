@@ -29,6 +29,7 @@ class UserController extends Controller
             'name' => $user->name,
             'phone' => $user->phone,
             'email' => $user->email,
+            'invite_code' => $user->invite_code,
             'display_currencies' => $user->getDisplayCurrencies(),
             'base_currency' => $user->getBaseCurrency(),
             'current_currency' => $user->getCurrentCurrency(),
@@ -127,14 +128,53 @@ class UserController extends Controller
      */
     public function update(Request $request): JsonResponse
     {
-        $request->validate([
-            'name' => 'required|string|max:255',
-        ]);
-
         $user = $request->user();
-        $user->name = $request->input('name');
+        
+        $rules = [];
+        $updated = false;
+
+        // 如果请求中包含 name，则验证并更新
+        if ($request->has('name')) {
+            $rules['name'] = 'required|string|max:255';
+        }
+
+        // 如果请求中包含 invite_code，则验证并更新
+        if ($request->has('invite_code')) {
+            $rules['invite_code'] = [
+                'required',
+                'string',
+                'size:8',
+                'regex:/^[ABCDEFGHJKLMNPQRSTUVWXYZ23456789]{8}$/',
+                'unique:users,invite_code,' . $user->id,
+            ];
+        }
+
+        if (!empty($rules)) {
+            $request->validate($rules);
+        }
+
+        // 更新 name
+        if ($request->has('name')) {
+            $user->name = $request->input('name');
+            $updated = true;
+        }
+
+        // 更新 invite_code
+        if ($request->has('invite_code')) {
+            $inviteCode = strtoupper($request->input('invite_code'));
+            $user->invite_code = $inviteCode;
+            $updated = true;
+        }
+
+        if (!$updated) {
+            return $this->error(ErrorCode::VALIDATION_ERROR, 'No fields to update');
+        }
+
         $user->save();
 
-        return $this->responseItem(true);
+        return $this->responseItem([
+            'name' => $user->name,
+            'invite_code' => $user->invite_code,
+        ]);
     }
 }
