@@ -9,9 +9,10 @@ class InvitationReward extends Model
 {
 
     // 奖励来源类型
-    const SOURCE_TYPE_REGISTER = 'register';    // 被邀请人注册
-    const SOURCE_TYPE_DEPOSIT = 'deposit';      // 被邀请人充值
-    const SOURCE_TYPE_BET = 'bet';              // 被邀请人下注
+    const SOURCE_TYPE_DEPOSIT = 'deposit';    // 被邀请人充值奖励
+    const SOURCE_TYPE_BET = 'bet';
+    const SOURCE_TYPE_VIP = 'vip';
+
 
     protected $fillable = [
         'user_id',
