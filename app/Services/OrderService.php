@@ -10,6 +10,7 @@ use Illuminate\Support\Str;
 
 class OrderService
 {
+
     /**
      * Get user orders with filters and pagination.
      *

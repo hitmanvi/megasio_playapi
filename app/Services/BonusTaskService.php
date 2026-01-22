@@ -102,6 +102,111 @@ class BonusTaskService
     }
 
     /**
+     * 激活任务
+     *
+     * @param BonusTask $task
+     * @return void
+     */
+    public function activate(BonusTask $task): void
+    {
+        if ($task->isPending()) {
+            $task->status = BonusTask::STATUS_ACTIVE;
+            $task->save();
+        }
+    }
+
+    /**
+     * 扣减 bonus 余额（下注）
+     * 同时增加 wager（流水）
+     *
+     * @param BonusTask $task
+     * @param float $amount
+     * @return bool
+     */
+    public function deductBonus(BonusTask $task, float $amount): bool
+    {
+        // 检查是否可以操作（包括过期检查）
+        if (!$task->canOperate()) {
+            // 如果任务已过期且处于 pending 或 active 状态，更新状态为过期
+            if ($task->isExpired() && ($task->isPending() || $task->isActive())) {
+                $task->status = BonusTask::STATUS_EXPIRED;
+                $task->save();
+            }
+            return false;
+        }
+        
+        // 检查余额是否足够
+        if ($task->last_bonus < $amount) {
+            return false;
+        }
+        
+        // 扣减 bonus 余额
+        $task->last_bonus -= $amount;
+        
+        // 增加 wager（流水）
+        $task->wager = min($task->wager + $amount, $task->need_wager);
+        
+        // 检查是否完成
+        if ($task->wager >= $task->need_wager && $task->isActive()) {
+            // 任务完成，发放奖励并更新状态
+            $this->completeTask($task);
+        } else {
+            $task->save();
+        }
+        
+        return true;
+    }
+
+    /**
+     * 完成任务：发放 cap_bonus 奖励并更新状态为已领取
+     *
+     * @param BonusTask $task
+     * @return void
+     */
+    protected function completeTask(BonusTask $task): void
+    {
+        DB::transaction(function () use ($task) {
+            // 计算奖励金额：cap_bonus
+            $rewardAmount = (float) $task->cap_bonus;
+            
+            // 发放奖励到用户余额
+            if ($rewardAmount > 0) {
+                $this->balanceService->bonusTaskReward(
+                    $task->user_id,
+                    $task->currency,
+                    $rewardAmount,
+                    $task->id,
+                    $task->bonus_name
+                );
+            }
+            
+            // 清空 last_bonus
+            $task->last_bonus = 0;
+            
+            // 更新任务状态为已领取（因为奖励已自动发放）
+            $task->status = BonusTask::STATUS_CLAIMED;
+            $task->save();
+        });
+    }
+
+    /**
+     * 增加 bonus 余额（赢钱）
+     *
+     * @param BonusTask $task
+     * @param float $amount
+     * @return void
+     */
+    public function addBonus(BonusTask $task, float $amount): void
+    {
+        if (!$task->canOperate()) {
+            return;
+        }
+        
+        $task->last_bonus = $task->last_bonus + $amount;
+        $task->save();
+    }
+
+    /**
      * 格式化 BonusTask 数据
      *
      * @param BonusTask $task

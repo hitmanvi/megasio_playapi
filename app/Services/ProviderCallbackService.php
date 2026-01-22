@@ -99,7 +99,7 @@ class ProviderCallbackService
                 if (!$bonusTask->hasSufficientBonus($amount)) {
                     throw new InsufficientBalanceException();
                 }
-                $bonusTask->deductBonus($amount);
+                $this->bonusTaskService->deductBonus($bonusTask, $amount);
                 $balance = $bonusTask->getAvailableBonus();
             } else {
                 // 普通订单：扣减主余额
@@ -179,7 +179,7 @@ class ProviderCallbackService
             // 处理余额增加
             if ($isBonus && $bonusTask) {
                 // Bonus 订单：增加 bonus task 的 last_bonus
-                $bonusTask->addBonus($amount);
+                $this->bonusTaskService->addBonus($bonusTask, $amount);
                 $balance = $bonusTask->getAvailableBonus();
             } else {
                 // 普通订单：增加主余额
@@ -188,12 +188,12 @@ class ProviderCallbackService
             }
 
             // 更新订单
-            $this->orderService->payout($order, $amount, $isFinished);
+            $updatedOrder = $this->orderService->payout($order, $amount, $isFinished);
 
             return [
                 'transaction' => $providerTransaction,
                 'balance' => floatval($balance),
-                'order' => $order,
+                'order' => $updatedOrder ?: $order,
             ];
         });
     }
@@ -257,7 +257,7 @@ class ProviderCallbackService
             // 处理余额退款
             if ($isBonus && $bonusTask) {
                 // Bonus 订单：退还 bonus task 的 last_bonus
-                $bonusTask->addBonus($amount);
+                $this->bonusTaskService->addBonus($bonusTask, $amount);
             } else {
                 // 普通订单：退还主余额
                 $this->balanceService->refund($userId, $amount, $currency, $gameId, $txid);

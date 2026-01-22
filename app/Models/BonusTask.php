@@ -116,17 +116,6 @@ class BonusTask extends Model
     }
 
     /**
-     * 激活任务
-     */
-    public function activate(): void
-    {
-        if ($this->isPending()) {
-            $this->status = self::STATUS_ACTIVE;
-            $this->save();
-        }
-    }
-
-    /**
      * 获取完成进度百分比
      */
     public function getProgressPercent(): float
@@ -135,60 +124,6 @@ class BonusTask extends Model
             return 100;
         }
         return min(100, ($this->wager / $this->need_wager) * 100);
-    }
-
-    /**
-     * 增加流水
-     */
-    public function addWager(float $amount): void
-    {
-        // 如果任务已过期，更新状态为过期并直接返回
-        if ($this->isExpired() && ($this->isPending() || $this->isActive())) {
-            $this->status = self::STATUS_EXPIRED;
-            $this->save();
-            return;
-        }
-        
-        $this->wager = min($this->wager + $amount, $this->need_wager);
-        
-        // 检查是否完成
-        if ($this->wager >= $this->need_wager && $this->isActive()) {
-            $this->status = self::STATUS_COMPLETED;
-        }
-        
-        $this->save();
-    }
-
-    /**
-     * 扣减 bonus 余额（下注）
-     */
-    public function deductBonus(float $amount): bool
-    {
-        if (!$this->canOperate()) {
-            return false;
-        }
-        
-        if ($this->last_bonus < $amount) {
-            return false;
-        }
-        
-        $this->last_bonus -= $amount;
-        $this->save();
-        
-        return true;
-    }
-
-    /**
-     * 增加 bonus 余额（赢钱）
-     */
-    public function addBonus(float $amount): void
-    {
-        if (!$this->canOperate()) {
-            return;
-        }
-        
-        $this->last_bonus = $this->last_bonus + $amount;
-        $this->save();
     }
 
     /**
@@ -230,24 +165,5 @@ class BonusTask extends Model
     public function getClaimAmount(): float
     {
         return min((float) $this->cap_bonus, (float) $this->last_bonus);
-    }
-
-    /**
-     * 领取奖励
-     * 已完成的任务即可领取，不受过期时间限制
-     * 
-     * @return float 领取的金额
-     */
-    public function claim(): float
-    {
-        if (!$this->isClaimable()) {
-            throw new \Exception('Bonus task is not claimable');
-        }
-        
-        $claimAmount = $this->getClaimAmount();
-        $this->status = self::STATUS_CLAIMED;
-        $this->save();
-        
-        return $claimAmount;
     }
 }
