@@ -35,6 +35,7 @@ class InvitationService
             'total_invited' => $totalInvited,
             'active_invited' => $activeInvited,
             'total_reward' => (float) $totalReward,
+            'currency' => 'USD',
         ];
     }
 
