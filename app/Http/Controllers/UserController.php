@@ -145,7 +145,7 @@ class UserController extends Controller
                 'string',
                 'min:6',
                 'max:8',
-                'regex:/^[ABCDEFGHJKLMNPQRSTUVWXYZ23456789]{6,8}$/',
+                'regex:/^[A-Z0-9]{6,8}$/',
                 'unique:users,invite_code,' . $user->id,
             ];
         }
