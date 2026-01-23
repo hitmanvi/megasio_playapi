@@ -166,7 +166,7 @@ class UserController extends Controller
                 ->where('id', '!=', $user->id)
                 ->first();
             if ($existingUser) {
-                return $this->error(ErrorCode::VALIDATION_ERROR, 'Invite code already exists');
+                return $this->error(ErrorCode::INVITE_CODE_ALREADY_EXISTS);
             }
             $inviteCode = strtoupper($request->input('invite_code'));
             $user->invite_code = $inviteCode;

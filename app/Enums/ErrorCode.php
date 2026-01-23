@@ -34,6 +34,7 @@ enum ErrorCode: int
     case EMAIL_ALREADY_EXISTS = 3004;
     case PHONE_EMAIL_REQUIRED = 3005;
     case INVALID_INVITE_CODE = 3006;
+    case INVITE_CODE_ALREADY_EXISTS = 3007;
 
     // 业务逻辑错误 (4000-4999)
     case INSUFFICIENT_PERMISSIONS = 4001;
@@ -89,7 +90,7 @@ enum ErrorCode: int
             self::EMAIL_ALREADY_EXISTS => 'This email has already been registered',
             self::PHONE_EMAIL_REQUIRED => 'Please provide either phone number or email',
             self::INVALID_INVITE_CODE => 'Invalid invite code',
-
+            self::INVITE_CODE_ALREADY_EXISTS => 'Invite code already exists',
             // 业务逻辑错误
             self::INSUFFICIENT_PERMISSIONS => 'Insufficient permissions',
             self::RESOURCE_LOCKED => 'Resource is locked',
