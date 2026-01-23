@@ -7,6 +7,7 @@ use App\Services\VipService;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use App\Models\Currency;
+use App\Models\User;
 
 class UserController extends Controller
 {
@@ -146,7 +147,6 @@ class UserController extends Controller
                 'min:6',
                 'max:8',
                 'regex:/^[A-Z0-9]{6,8}$/',
-                'unique:users,invite_code,' . $user->id,
             ];
         }
 
@@ -162,6 +162,12 @@ class UserController extends Controller
 
         // 更新 invite_code
         if ($request->has('invite_code')) {
+            $existingUser = User::where('invite_code', strtoupper($request->input('invite_code')))
+                ->where('id', '!=', $user->id)
+                ->first();
+            if ($existingUser) {
+                return $this->error(ErrorCode::VALIDATION_ERROR, 'Invite code already exists');
+            }
             $inviteCode = strtoupper($request->input('invite_code'));
             $user->invite_code = $inviteCode;
             $updated = true;
