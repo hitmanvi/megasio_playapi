@@ -140,6 +140,18 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Default Currency
+    |--------------------------------------------------------------------------
+    |
+    | The default currency code used throughout the application.
+    | This value should match one of the supported currencies.
+    |
+    */
+
+    'currency' => env('APP_CURRENCY', 'USD'),
+
+    /*
+    |--------------------------------------------------------------------------
     | SC to USD Exchange Rate
     |--------------------------------------------------------------------------
     |

@@ -97,7 +97,7 @@ class GenerateRewards extends Command
                     'user_id' => $invitation->inviter_id, // 奖励给邀请人
                     'invitation_id' => $invitation->id,
                     'source_type' => InvitationReward::SOURCE_TYPE_BET,
-                    'reward_type' => 'wager', // 可以根据需要调整
+                    'reward_type' => config('app.currency'), // 可以根据需要调整
                     'reward_amount' => $rewardAmount,
                     'related_id' => null, // 可以根据需要存储相关ID
                 ]);
