@@ -99,6 +99,7 @@ class GenerateRewards extends Command
                     'source_type' => InvitationReward::SOURCE_TYPE_BET,
                     'reward_type' => config('app.currency'), // 可以根据需要调整
                     'reward_amount' => $rewardAmount,
+                    'wager' => $wager, // 记录下注金额
                     'related_id' => null, // 可以根据需要存储相关ID
                 ]);
 

@@ -89,16 +89,16 @@ class InvitationService
         // 验证邀请关系是否存在且属于该用户
         $invitation = Invitation::where('id', $invitationId)
             ->where('inviter_id', $userId)
-            ->with('invitee')
+            ->with(['invitee.vip'])
             ->first();
 
         if (!$invitation) {
             throw new \Exception('Invitation not found');
         }
 
-        // 按来源类型聚合奖励总额
+        // 按来源类型聚合奖励总额和 wager
         $rewardStats = InvitationReward::where('invitation_id', $invitationId)
-            ->selectRaw('source_type, COUNT(*) as count, SUM(reward_amount) as total_amount')
+            ->selectRaw('source_type, COUNT(*) as count, SUM(reward_amount) as total_amount, SUM(wager) as total_wager')
             ->groupBy('source_type')
             ->get()
             ->map(function ($stat) {
@@ -106,6 +106,7 @@ class InvitationService
                     'source_type' => $stat->source_type,
                     'count' => (int) $stat->count,
                     'total_amount' => (float) $stat->total_amount,
+                    'total_wager' => (float) $stat->total_wager,
                 ];
             })
             ->values();
@@ -117,6 +118,7 @@ class InvitationService
             'invitation_id' => $invitation->id,
             'invitee' => $invitee,
             'total_reward' => (float) $invitation->total_reward,
+            'currency' => 'USD', // 货币代码
             'reward_stats' => $rewardStats,
             'invited_at' => $invitation->created_at->toIso8601String(),
         ];
@@ -130,12 +132,32 @@ class InvitationService
      */
     protected function formatMaskedUserInfo(User $user): array
     {
+        $vipLevel = null;
+        $vipLevelName = null;
+        
+        // 获取VIP等级信息
+        if ($user->relationLoaded('vip') && $user->vip) {
+            $vipLevel = $user->vip->level;
+            $levelInfo = $user->vip->getCurrentLevelInfo();
+            $vipLevelName = $levelInfo['name'] ?? null;
+        } elseif ($user->vip) {
+            // 如果关系未加载，尝试加载
+            $user->load('vip');
+            if ($user->vip) {
+                $vipLevel = $user->vip->level;
+                $levelInfo = $user->vip->getCurrentLevelInfo();
+                $vipLevelName = $levelInfo['name'] ?? null;
+            }
+        }
+
         return [
             'uid' => $user->uid,
             'name' => $user->name,
             'phone' => $this->maskPhone($user->phone),
             'email' => $this->maskEmail($user->email),
             'status' => $user->status,
+            'vip_level' => $vipLevel,
+            'vip_level_name' => $vipLevelName,
         ];
     }
 

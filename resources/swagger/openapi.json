@@ -2580,9 +2580,12 @@
                       "name": "张三",
                       "phone": "138****8000",
                       "email": "zh****@example.com",
-                      "status": "active"
+                      "status": "active",
+                      "vip_level": "bronze",
+                      "vip_level_name": "Bronze"
                     },
                     "total_reward": 1234.56,
+                    "currency": "USD",
                     "reward_stats": [
                       {
                         "source_type": "deposit",
@@ -2592,7 +2595,8 @@
                       {
                         "source_type": "bet",
                         "count": 10,
-                        "total_amount": 734.56
+                        "total_amount": 734.56,
+                        "total_wager": 10000.00
                       }
                     ],
                     "invited_at": "2024-01-01T00:00:00.000000Z"
@@ -8999,6 +9003,16 @@
                   "status": {
                     "type": "string",
                     "description": "被邀请人状态"
+                  },
+                  "vip_level": {
+                    "type": "string",
+                    "nullable": true,
+                    "description": "VIP等级标识"
+                  },
+                  "vip_level_name": {
+                    "type": "string",
+                    "nullable": true,
+                    "description": "VIP等级名称"
                   }
                 }
               },
@@ -9006,6 +9020,11 @@
                 "type": "number",
                 "format": "float",
                 "description": "该邀请关系的奖励总额"
+              },
+              "currency": {
+                "type": "string",
+                "description": "货币代码",
+                "example": "USD"
               },
               "reward_stats": {
                 "type": "array",
@@ -9025,6 +9044,11 @@
                       "type": "number",
                       "format": "float",
                       "description": "该类型的奖励总额"
+                    },
+                    "total_wager": {
+                      "type": "number",
+                      "format": "float",
+                      "description": "该类型的下注总额（主要适用于 bet 类型）"
                     }
                   }
                 }

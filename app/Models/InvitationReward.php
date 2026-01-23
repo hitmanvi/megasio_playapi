@@ -20,11 +20,13 @@ class InvitationReward extends Model
         'source_type',
         'reward_type',
         'reward_amount',
+        'wager',
         'related_id',
     ];
 
     protected $casts = [
         'reward_amount' => 'decimal:8',
+        'wager' => 'decimal:8',
     ];
 
     /**
