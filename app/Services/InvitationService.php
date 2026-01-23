@@ -136,15 +136,11 @@ class InvitationService
         // 获取VIP等级信息
         if ($user->relationLoaded('vip') && $user->vip) {
             $vipLevel = $user->vip->level;
-            $levelInfo = $user->vip->getCurrentLevelInfo();
-            $vipLevelName = $levelInfo['name'] ?? null;
         } elseif ($user->vip) {
             // 如果关系未加载，尝试加载
             $user->load('vip');
             if ($user->vip) {
                 $vipLevel = $user->vip->level;
-                $levelInfo = $user->vip->getCurrentLevelInfo();
-                $vipLevelName = $levelInfo['name'] ?? null;
             }
         }
 
@@ -155,7 +151,6 @@ class InvitationService
             'email' => $this->maskEmail($user->email),
             'status' => $user->status,
             'vip_level' => $vipLevel,
-            'vip_level_name' => $vipLevelName,
         ];
     }
 
