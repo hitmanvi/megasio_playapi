@@ -28,6 +28,21 @@ class InvitationReward extends Model
     ];
 
     /**
+     * Boot the model.
+     */
+    protected static function boot()
+    {
+        parent::boot();
+
+        // 当创建奖励时，自动更新邀请关系的奖励总额
+        static::created(function ($reward) {
+            if ($reward->invitation_id && $reward->reward_amount > 0) {
+                $reward->invitation->increment('total_reward', $reward->reward_amount);
+            }
+        });
+    }
+
+    /**
      * 获得奖励的用户
      */
     public function user(): BelongsTo

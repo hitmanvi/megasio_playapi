@@ -16,18 +16,24 @@ class InvitationService
      */
     public function getInvitationStats(int $userId): array
     {
-        $totalInvited = Invitation::where('inviter_id', $userId)->count();
+        $baseQuery = Invitation::where('inviter_id', $userId);
+        
+        $totalInvited = $baseQuery->count();
         
         // 统计被邀请用户的状态
-        $activeInvited = Invitation::where('inviter_id', $userId)
+        $activeInvited = (clone $baseQuery)
             ->whereHas('invitee', function ($query) {
                 $query->where('status', 'active');
             })
             ->count();
 
+        // 统计获得的总奖励（直接从 invitation 表的 total_reward 字段获取）
+        $totalReward = (clone $baseQuery)->sum('total_reward');
+
         return [
             'total_invited' => $totalInvited,
             'active_invited' => $activeInvited,
+            'total_reward' => (float) $totalReward,
         ];
     }
 
@@ -65,6 +71,7 @@ class InvitationService
                 'email' => $invitee->email,
                 'status' => $invitee->status,
             ],
+            'total_reward' => (float) $invitation->total_reward,
             'invited_at' => $invitation->created_at->toIso8601String(),
         ];
     }

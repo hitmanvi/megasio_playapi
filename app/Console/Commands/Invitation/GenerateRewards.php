@@ -91,7 +91,7 @@ class GenerateRewards extends Command
                 continue;
             }
 
-            // 创建邀请奖励记录
+            // 创建邀请奖励记录（模型事件会自动更新 total_reward）
             DB::transaction(function () use ($invitation, $wager, $rewardAmount, $date, $inviteeId) {
                 InvitationReward::create([
                     'user_id' => $invitation->inviter_id, // 奖励给邀请人

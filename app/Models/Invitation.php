@@ -15,6 +15,11 @@ class Invitation extends Model
     protected $fillable = [
         'inviter_id',
         'invitee_id',
+        'total_reward',
+    ];
+
+    protected $casts = [
+        'total_reward' => 'decimal:8',
     ];
 
     /**
