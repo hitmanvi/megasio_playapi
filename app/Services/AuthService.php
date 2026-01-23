@@ -62,7 +62,7 @@ class AuthService
                 // invite_code 会在 boot 方法中自动生成
             ]);
 
-            // 如果有邀请人，创建邀请关系
+            // 如果有邀请人，创建邀请关系（默认状态为 inactive）
             if ($inviter) {
                 Invitation::create([
                     'inviter_id' => $inviter->id,
@@ -295,7 +295,7 @@ class AuthService
                         // invite_code 会在 boot 方法中自动生成
                     ]);
 
-                    // 如果有邀请人，创建邀请关系
+                    // 如果有邀请人，创建邀请关系（默认状态为 inactive）
                     if ($inviter) {
                         Invitation::create([
                             'inviter_id' => $inviter->id,

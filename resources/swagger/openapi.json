@@ -2586,6 +2586,7 @@
                     },
                     "total_reward": 1234.56,
                     "currency": "USD",
+                    "status": "inactive",
                     "reward_stats": [
                       {
                         "source_type": "deposit",
@@ -2673,6 +2674,7 @@
                         },
                         "total_reward": 100.50,
                         "currency": "USD",
+                        "status": "inactive",
                         "created_at": "2024-01-01T00:00:00.000000Z",
                         "invited_at": "2024-01-01T00:00:00.000000Z"
                       }
@@ -8973,6 +8975,11 @@
             "description": "货币代码",
             "example": "USD"
           },
+          "status": {
+            "type": "string",
+            "description": "邀请关系状态：active（活跃）、inactive（不活跃）",
+            "example": "inactive"
+          },
           "created_at": {
             "type": "string",
             "format": "date-time",
@@ -9049,6 +9056,11 @@
                 "type": "string",
                 "description": "货币代码",
                 "example": "USD"
+              },
+              "status": {
+                "type": "string",
+                "description": "邀请关系状态：active（活跃）、inactive（不活跃）",
+                "example": "inactive"
               },
               "reward_stats": {
                 "type": "array",

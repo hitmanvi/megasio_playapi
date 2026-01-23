@@ -71,6 +71,7 @@ class InvitationService
             'invitee' => $inviteeInfo,
             'total_reward' => (float) $invitation->total_reward,
             'currency' => 'USD', // 货币代码
+            'status' => $invitation->status ?? Invitation::STATUS_INACTIVE,
             'invited_at' => $invitation->created_at->toIso8601String(),
         ];
     }
@@ -117,6 +118,7 @@ class InvitationService
             'invitee' => $invitee,
             'total_reward' => (float) $invitation->total_reward,
             'currency' => 'USD', // 货币代码
+            'status' => $invitation->status ?? Invitation::STATUS_INACTIVE,
             'reward_stats' => $rewardStats,
             'invited_at' => $invitation->created_at->toIso8601String(),
         ];

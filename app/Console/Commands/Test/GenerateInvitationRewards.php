@@ -183,6 +183,7 @@ class GenerateInvitationRewards extends Command
                 $invitation = Invitation::create([
                     'inviter_id' => $inviterId,
                     'invitee_id' => $invitee->id,
+                    // status 默认为 inactive
                 ]);
                 
                 $createdInvitations->push($invitation);
