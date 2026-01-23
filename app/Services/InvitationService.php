@@ -73,6 +73,7 @@ class InvitationService
                 'status' => $invitee->status,
             ],
             'total_reward' => (float) $invitation->total_reward,
+            'currency' => 'USD', // 货币代码
             'invited_at' => $invitation->created_at->toIso8601String(),
         ];
     }

@@ -2670,6 +2670,7 @@
                           "status": "active"
                         },
                         "total_reward": 100.50,
+                        "currency": "USD",
                         "invited_at": "2024-01-01T00:00:00.000000Z"
                       }
                     ],
@@ -8953,6 +8954,11 @@
             "type": "number",
             "format": "float",
             "description": "该邀请关系获得的奖励总额"
+          },
+          "currency": {
+            "type": "string",
+            "description": "货币代码",
+            "example": "USD"
           },
           "invited_at": {
             "type": "string",
