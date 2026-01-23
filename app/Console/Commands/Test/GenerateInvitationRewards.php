@@ -21,6 +21,8 @@ class GenerateInvitationRewards extends Command
                             {--count=10 : 每个邀请关系生成的奖励数量}
                             {--min-amount=1 : 最小奖励金额}
                             {--max-amount=100 : 最大奖励金额}
+                            {--min-wager=10 : 最小下注金额（用于 bet 类型）}
+                            {--max-wager=1000 : 最大下注金额（用于 bet 类型）}
                             {--invitation-count=5 : 如果没有邀请关系，创建的邀请关系数量}';
 
     /**
@@ -39,6 +41,8 @@ class GenerateInvitationRewards extends Command
         $count = (int) $this->option('count');
         $minAmount = (float) $this->option('min-amount');
         $maxAmount = (float) $this->option('max-amount');
+        $minWager = (float) $this->option('min-wager');
+        $maxWager = (float) $this->option('max-wager');
 
         // 验证用户是否存在
         $user = User::find($userId);
@@ -87,19 +91,25 @@ class GenerateInvitationRewards extends Command
                 // 生成随机奖励金额
                 $rewardAmount = $this->randomFloat($minAmount, $maxAmount);
 
+                // 如果是 bet 类型，生成随机 wager；否则 wager 为 0
+                $wager = ($sourceType === InvitationReward::SOURCE_TYPE_BET) 
+                    ? $this->randomFloat($minWager, $maxWager) 
+                    : 0;
+
                 // 生成随机时间（最近30天内）
                 $createdAt = Carbon::now()
                     ->subDays(rand(0, 30))
                     ->subHours(rand(0, 23))
                     ->subMinutes(rand(0, 59));
 
-                DB::transaction(function () use ($invitation, $sourceType, $rewardAmount, $createdAt) {
+                DB::transaction(function () use ($invitation, $sourceType, $rewardAmount, $wager, $createdAt) {
                     InvitationReward::create([
                         'user_id' => $invitation->inviter_id,
                         'invitation_id' => $invitation->id,
                         'source_type' => $sourceType,
                         'reward_type' => config('app.currency', 'USD'),
                         'reward_amount' => $rewardAmount,
+                        'wager' => $wager,
                         'related_id' => null,
                         'created_at' => $createdAt,
                         'updated_at' => $createdAt,
