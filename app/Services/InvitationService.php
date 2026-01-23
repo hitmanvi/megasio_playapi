@@ -48,7 +48,7 @@ class InvitationService
     public function getInvitationListPaginated(int $userId, int $perPage = 20): LengthAwarePaginator
     {
         return Invitation::where('inviter_id', $userId)
-            ->with('invitee')
+            ->with(['invitee.vip'])
             ->orderBy('created_at', 'desc')
             ->paginate($perPage);
     }
@@ -63,15 +63,12 @@ class InvitationService
     {
         $invitee = $invitation->invitee;
 
+        // 格式化被邀请人信息（包含VIP等级和脱敏）
+        $inviteeInfo = $this->formatMaskedUserInfo($invitee);
+
         return [
             'id' => $invitation->id,
-            'invitee' => [
-                'uid' => $invitee->uid,
-                'name' => $invitee->name,
-                'phone' => $invitee->phone,
-                'email' => $invitee->email,
-                'status' => $invitee->status,
-            ],
+            'invitee' => $inviteeInfo,
             'total_reward' => (float) $invitation->total_reward,
             'currency' => 'USD', // 货币代码
             'invited_at' => $invitation->created_at->toIso8601String(),

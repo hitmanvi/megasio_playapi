@@ -2665,12 +2665,15 @@
                         "invitee": {
                           "uid": "01ARZ3NDEKTSV4RRFFQ69G5FAV",
                           "name": "张三",
-                          "phone": "13800138000",
-                          "email": "zhangsan@example.com",
-                          "status": "active"
+                          "phone": "138****8000",
+                          "email": "zh****@example.com",
+                          "status": "active",
+                          "vip_level": "bronze",
+                          "vip_level_name": "Bronze"
                         },
                         "total_reward": 100.50,
                         "currency": "USD",
+                        "created_at": "2024-01-01T00:00:00.000000Z",
                         "invited_at": "2024-01-01T00:00:00.000000Z"
                       }
                     ],
@@ -8937,16 +8940,26 @@
               "phone": {
                 "type": "string",
                 "nullable": true,
-                "description": "被邀请人手机号"
+                "description": "被邀请人手机号（已脱敏）"
               },
               "email": {
                 "type": "string",
                 "nullable": true,
-                "description": "被邀请人邮箱"
+                "description": "被邀请人邮箱（已脱敏）"
               },
               "status": {
                 "type": "string",
                 "description": "被邀请人状态"
+              },
+              "vip_level": {
+                "type": "string",
+                "nullable": true,
+                "description": "VIP等级标识"
+              },
+              "vip_level_name": {
+                "type": "string",
+                "nullable": true,
+                "description": "VIP等级名称"
               }
             }
           },
@@ -8959,6 +8972,11 @@
             "type": "string",
             "description": "货币代码",
             "example": "USD"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "创建时间"
           },
           "invited_at": {
             "type": "string",
