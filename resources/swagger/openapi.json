@@ -2545,6 +2545,85 @@
         }
       }
     },
+    "/invitations/{id}/rewards": {
+      "get": {
+        "tags": ["Invitation"],
+        "summary": "获取邀请关系的奖励统计",
+        "description": "获取指定邀请关系的奖励统计信息，包括按来源类型聚合的奖励总额和被邀请人详情（敏感数据已脱敏）",
+        "security": [{"bearerAuth": []}],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "邀请关系ID",
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "获取成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InvitationRewardStatsResponse"
+                },
+                "example": {
+                  "code": 0,
+                  "errmsg": "Success",
+                  "data": {
+                    "invitation_id": 1,
+                    "invitee": {
+                      "uid": "01ARZ3NDEKTSV4RRFFQ69G5FAV",
+                      "name": "张三",
+                      "phone": "138****8000",
+                      "email": "zh****@example.com",
+                      "status": "active"
+                    },
+                    "total_reward": 1234.56,
+                    "reward_stats": [
+                      {
+                        "source_type": "deposit",
+                        "count": 5,
+                        "total_amount": 500.00
+                      },
+                      {
+                        "source_type": "bet",
+                        "count": 10,
+                        "total_amount": 734.56
+                      }
+                    ],
+                    "invited_at": "2024-01-01T00:00:00.000000Z"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "未授权",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "邀请关系不存在",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/invitations": {
       "get": {
         "tags": ["Invitation"],
@@ -8875,6 +8954,87 @@
             "type": "string",
             "format": "date-time",
             "description": "邀请时间"
+          }
+        }
+      },
+      "InvitationRewardStatsResponse": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "integer",
+            "description": "响应码，0表示成功"
+          },
+          "errmsg": {
+            "type": "string",
+            "description": "响应消息"
+          },
+          "data": {
+            "type": "object",
+            "properties": {
+              "invitation_id": {
+                "type": "integer",
+                "description": "邀请关系ID"
+              },
+              "invitee": {
+                "type": "object",
+                "properties": {
+                  "uid": {
+                    "type": "string",
+                    "description": "被邀请人UID"
+                  },
+                  "name": {
+                    "type": "string",
+                    "description": "被邀请人姓名"
+                  },
+                  "phone": {
+                    "type": "string",
+                    "nullable": true,
+                    "description": "被邀请人手机号（已脱敏）"
+                  },
+                  "email": {
+                    "type": "string",
+                    "nullable": true,
+                    "description": "被邀请人邮箱（已脱敏）"
+                  },
+                  "status": {
+                    "type": "string",
+                    "description": "被邀请人状态"
+                  }
+                }
+              },
+              "total_reward": {
+                "type": "number",
+                "format": "float",
+                "description": "该邀请关系的奖励总额"
+              },
+              "reward_stats": {
+                "type": "array",
+                "description": "按来源类型聚合的奖励统计",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "source_type": {
+                      "type": "string",
+                      "description": "奖励来源类型：deposit（充值）、bet（下注）、vip（VIP）"
+                    },
+                    "count": {
+                      "type": "integer",
+                      "description": "该类型的奖励数量"
+                    },
+                    "total_amount": {
+                      "type": "number",
+                      "format": "float",
+                      "description": "该类型的奖励总额"
+                    }
+                  }
+                }
+              },
+              "invited_at": {
+                "type": "string",
+                "format": "date-time",
+                "description": "邀请时间"
+              }
+            }
           }
         }
       },

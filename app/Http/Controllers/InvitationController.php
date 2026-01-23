@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\ErrorCode;
 use App\Services\InvitationService;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
@@ -53,5 +54,20 @@ class InvitationController extends Controller
         );
 
         return $this->responseListWithPaginator($formattedPaginator);
+    }
+
+    /**
+     * 获取邀请关系的奖励统计
+     */
+    public function rewardStats(Request $request, int $id): JsonResponse
+    {
+        $user = $request->user();
+        
+        try {
+            $stats = $this->invitationService->getInvitationRewardStats($user->id, $id);
+            return $this->responseItem($stats);
+        } catch (\Exception $e) {
+            return $this->error(ErrorCode::NOT_FOUND, 'Invitation not found');
+        }
     }
 }

@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\Invitation;
+use App\Models\InvitationReward;
 use App\Models\User;
 use Illuminate\Pagination\LengthAwarePaginator;
 
@@ -74,6 +75,123 @@ class InvitationService
             'total_reward' => (float) $invitation->total_reward,
             'invited_at' => $invitation->created_at->toIso8601String(),
         ];
+    }
+
+    /**
+     * 获取邀请关系的奖励统计
+     *
+     * @param int $userId 邀请人ID
+     * @param int $invitationId 邀请关系ID
+     * @return array
+     */
+    public function getInvitationRewardStats(int $userId, int $invitationId): array
+    {
+        // 验证邀请关系是否存在且属于该用户
+        $invitation = Invitation::where('id', $invitationId)
+            ->where('inviter_id', $userId)
+            ->with('invitee')
+            ->first();
+
+        if (!$invitation) {
+            throw new \Exception('Invitation not found');
+        }
+
+        // 按来源类型聚合奖励总额
+        $rewardStats = InvitationReward::where('invitation_id', $invitationId)
+            ->selectRaw('source_type, COUNT(*) as count, SUM(reward_amount) as total_amount')
+            ->groupBy('source_type')
+            ->get()
+            ->map(function ($stat) {
+                return [
+                    'source_type' => $stat->source_type,
+                    'count' => (int) $stat->count,
+                    'total_amount' => (float) $stat->total_amount,
+                ];
+            })
+            ->values();
+
+        // 格式化被邀请人信息（脱敏）
+        $invitee = $this->formatMaskedUserInfo($invitation->invitee);
+
+        return [
+            'invitation_id' => $invitation->id,
+            'invitee' => $invitee,
+            'total_reward' => (float) $invitation->total_reward,
+            'reward_stats' => $rewardStats,
+            'invited_at' => $invitation->created_at->toIso8601String(),
+        ];
+    }
+
+    /**
+     * 格式化脱敏后的用户信息
+     *
+     * @param User $user
+     * @return array
+     */
+    protected function formatMaskedUserInfo(User $user): array
+    {
+        return [
+            'uid' => $user->uid,
+            'name' => $user->name,
+            'phone' => $this->maskPhone($user->phone),
+            'email' => $this->maskEmail($user->email),
+            'status' => $user->status,
+        ];
+    }
+
+    /**
+     * 脱敏手机号
+     * 格式：138****8000（保留前3位和后4位）
+     *
+     * @param string|null $phone
+     * @return string|null
+     */
+    protected function maskPhone(?string $phone): ?string
+    {
+        if (!$phone) {
+            return null;
+        }
+
+        $length = strlen($phone);
+        if ($length <= 7) {
+            // 如果手机号长度小于等于7位，只保留前2位和后2位
+            return substr($phone, 0, 2) . str_repeat('*', $length - 4) . substr($phone, -2);
+        }
+
+        // 保留前3位和后4位
+        return substr($phone, 0, 3) . str_repeat('*', $length - 7) . substr($phone, -4);
+    }
+
+    /**
+     * 脱敏邮箱
+     * 格式：zh****@example.com（保留@前的前2位和@后的完整域名）
+     *
+     * @param string|null $email
+     * @return string|null
+     */
+    protected function maskEmail(?string $email): ?string
+    {
+        if (!$email) {
+            return null;
+        }
+
+        $parts = explode('@', $email);
+        if (count($parts) !== 2) {
+            return $email; // 如果不是标准邮箱格式，直接返回
+        }
+
+        [$localPart, $domain] = $parts;
+        $localLength = strlen($localPart);
+
+        if ($localLength <= 2) {
+            // 如果@前部分长度小于等于2，全部用*代替
+            $maskedLocal = str_repeat('*', $localLength);
+        } else {
+            // 保留前2位，其余用*代替
+            $maskedLocal = substr($localPart, 0, 2) . str_repeat('*', $localLength - 2);
+        }
+
+        return $maskedLocal . '@' . $domain;
     }
 }
 
