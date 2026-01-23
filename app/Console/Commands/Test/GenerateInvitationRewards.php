@@ -20,7 +20,8 @@ class GenerateInvitationRewards extends Command
                             {user_id : 邀请人用户ID} 
                             {--count=10 : 每个邀请关系生成的奖励数量}
                             {--min-amount=1 : 最小奖励金额}
-                            {--max-amount=100 : 最大奖励金额}';
+                            {--max-amount=100 : 最大奖励金额}
+                            {--invitation-count=5 : 如果没有邀请关系，创建的邀请关系数量}';
 
     /**
      * The console command description.
@@ -51,12 +52,22 @@ class GenerateInvitationRewards extends Command
             ->with('invitee')
             ->get();
 
+        // 如果没有邀请关系，自动创建一些
         if ($invitations->isEmpty()) {
-            $this->error("用户 {$user->name} (ID: {$userId}) 没有邀请关系");
-            return Command::FAILURE;
+            $invitationCount = (int) $this->option('invitation-count');
+            $this->info("用户 {$user->name} (ID: {$userId}) 没有邀请关系，正在创建 {$invitationCount} 个邀请关系...");
+            
+            $invitations = $this->createInvitations($userId, $invitationCount);
+            
+            if ($invitations->isEmpty()) {
+                $this->error("无法创建邀请关系，可能没有足够的可用用户");
+                return Command::FAILURE;
+            }
+            
+            $this->info("成功创建 {$invitations->count()} 个邀请关系！");
+        } else {
+            $this->info("找到 {$invitations->count()} 个邀请关系，开始生成测试奖励数据...");
         }
-
-        $this->info("找到 {$invitations->count()} 个邀请关系，开始生成测试奖励数据...");
 
         $totalGenerated = 0;
         $sourceTypes = [
@@ -128,6 +139,51 @@ class GenerateInvitationRewards extends Command
         }
 
         return Command::SUCCESS;
+    }
+
+    /**
+     * 创建邀请关系
+     *
+     * @param int $inviterId 邀请人ID
+     * @param int $count 要创建的数量
+     * @return \Illuminate\Database\Eloquent\Collection
+     */
+    protected function createInvitations(int $inviterId, int $count)
+    {
+        // 获取已存在的被邀请人ID（invitee_id 必须是唯一的）
+        $existingInviteeIds = Invitation::pluck('invitee_id')->toArray();
+        
+        // 添加邀请人自己（不能邀请自己）
+        $existingInviteeIds[] = $inviterId;
+        
+        // 获取可用的用户（排除已经被邀请的用户和自己）
+        $availableUsers = User::whereNotIn('id', $existingInviteeIds)
+            ->inRandomOrder()
+            ->limit($count)
+            ->get();
+        
+        if ($availableUsers->isEmpty()) {
+            return collect([]);
+        }
+        
+        $createdInvitations = collect([]);
+        
+        DB::transaction(function () use ($inviterId, $availableUsers, &$createdInvitations) {
+            foreach ($availableUsers as $invitee) {
+                $invitation = Invitation::create([
+                    'inviter_id' => $inviterId,
+                    'invitee_id' => $invitee->id,
+                ]);
+                
+                $createdInvitations->push($invitation);
+            }
+        });
+        
+        // 重新加载邀请关系（包含关联数据）
+        return Invitation::where('inviter_id', $inviterId)
+            ->whereIn('id', $createdInvitations->pluck('id'))
+            ->with('invitee')
+            ->get();
     }
 
     /**
