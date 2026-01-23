@@ -143,8 +143,9 @@ class UserController extends Controller
             $rules['invite_code'] = [
                 'required',
                 'string',
-                'size:8',
-                'regex:/^[ABCDEFGHJKLMNPQRSTUVWXYZ23456789]{8}$/',
+                'min:6',
+                'max:8',
+                'regex:/^[ABCDEFGHJKLMNPQRSTUVWXYZ23456789]{6,8}$/',
                 'unique:users,invite_code,' . $user->id,
             ];
         }
