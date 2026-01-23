@@ -2510,7 +2510,7 @@
       "get": {
         "tags": ["Invitation"],
         "summary": "获取邀请统计数据",
-        "description": "获取当前用户的邀请统计数据，包括总邀请人数和活跃邀请人数",
+        "description": "获取当前用户的邀请统计数据，包括总邀请人数、活跃邀请人数和获得的总奖励",
         "security": [{"bearerAuth": []}],
         "responses": {
           "200": {
@@ -2525,7 +2525,8 @@
                   "errmsg": "Success",
                   "data": {
                     "total_invited": 10,
-                    "active_invited": 8
+                    "active_invited": 8,
+                    "total_reward": 1234.56
                   }
                 }
               }
@@ -2585,6 +2586,7 @@
                           "email": "zhangsan@example.com",
                           "status": "active"
                         },
+                        "total_reward": 100.50,
                         "invited_at": "2024-01-01T00:00:00.000000Z"
                       }
                     ],
@@ -8775,6 +8777,11 @@
               "active_invited": {
                 "type": "integer",
                 "description": "活跃邀请人数（状态为active的用户）"
+              },
+              "total_reward": {
+                "type": "number",
+                "format": "float",
+                "description": "获得的总奖励金额"
               }
             }
           }
@@ -8858,6 +8865,11 @@
                 "description": "被邀请人状态"
               }
             }
+          },
+          "total_reward": {
+            "type": "number",
+            "format": "float",
+            "description": "该邀请关系获得的奖励总额"
           },
           "invited_at": {
             "type": "string",
