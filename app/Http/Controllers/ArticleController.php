@@ -17,10 +17,16 @@ class ArticleController extends Controller
      */
     public function index(Request $request): JsonResponse
     {
+        $groupIds = $request->input('group_id');
+        // 如果 group_id 是字符串，转换为数组
+        if (is_string($groupIds)) {
+            $groupIds = explode(',', $groupIds);
+        }
+        
         $articles = Article::query()
             ->with('group')
             ->enabled()
-            ->byGroupId($request->input('group_id'))
+            ->byGroupIds($groupIds)
             ->search($request->input('keyword'))
             ->ordered()
             ->paginate($request->input('per_page', 10));
