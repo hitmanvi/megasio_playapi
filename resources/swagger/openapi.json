@@ -5559,16 +5559,11 @@
           {
             "name": "group_id",
             "in": "query",
-            "description": "分组ID筛选（支持多个，逗号分隔或数组形式），会包含所有下级分组",
+            "description": "分组ID筛选",
             "schema": {
-              "type": "array",
-              "items": {
-                "type": "integer"
-              },
+              "type": "integer",
               "nullable": true
-            },
-            "style": "form",
-            "explode": true
+            }
           },
           {
             "name": "keyword",

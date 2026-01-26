@@ -73,43 +73,9 @@ class Article extends Model
             return $query;
         }
 
+
         return $query->where('group_id', $groupId);
-    }
 
-    /**
-     * Scope to filter by multiple group IDs.
-     */
-    public function scopeByGroupIds($query, $groupIds = null)
-    {
-        if ($groupIds === null || empty($groupIds)) {
-            return $query;
-        }
-
-        // 确保是数组
-        if (!is_array($groupIds)) {
-            $groupIds = [$groupIds];
-        }
-
-        // 过滤掉空值
-        $groupIds = array_filter($groupIds);
-
-        if (empty($groupIds)) {
-            return $query;
-        }
-
-        // 获取所有 group_ids 及其所有下级分组
-        $allGroupIds = [];
-        foreach ($groupIds as $groupId) {
-            $allGroupIds[] = (int) $groupId;
-            // 获取该分组的所有下级分组ID
-            $descendantIds = ArticleGroup::getAllDescendantIds((int) $groupId);
-            $allGroupIds = array_merge($allGroupIds, $descendantIds);
-        }
-
-        // 去重
-        $allGroupIds = array_unique($allGroupIds);
-
-        return $query->whereIn('group_id', $allGroupIds);
     }
 
     /**
