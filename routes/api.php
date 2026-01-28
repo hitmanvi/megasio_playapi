@@ -108,6 +108,15 @@ Route::middleware('auth:sanctum')->prefix('bonus-tasks')->group(function () {
     Route::post('/{id}/claim', [BonusTaskController::class, 'claim']);
 });
 
+// 通知相关路由（需要认证）
+Route::middleware('auth:sanctum')->prefix('notifications')->group(function () {
+    Route::get('/', [NotificationController::class, 'index']);
+    Route::get('/unread-count', [NotificationController::class, 'unreadCount']);
+    Route::get('/{id}', [NotificationController::class, 'show']);
+    Route::put('/{id}/read', [NotificationController::class, 'markAsRead']);
+    Route::put('/mark-all-read', [NotificationController::class, 'markAllAsRead']);
+});
+
 // 品牌相关路由（只读）
 Route::prefix('brands')->group(function () {
     Route::get('/', [BrandController::class, 'index']);
