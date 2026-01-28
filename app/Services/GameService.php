@@ -16,9 +16,9 @@ class GameService
 {
     protected UserRecentGameService $userRecentGameService;
 
-    public function __construct(UserRecentGameService $userRecentGameService)
+    public function __construct()
     {
-        $this->userRecentGameService = $userRecentGameService;
+        $this->userRecentGameService = new UserRecentGameService();
     }
     /**
      * 获取游戏列表（分页）
