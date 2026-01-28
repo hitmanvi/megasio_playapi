@@ -84,6 +84,7 @@ Route::middleware('auth:sanctum')->prefix('invitations')->group(function () {
     Route::get('/stats', [InvitationController::class, 'stats']);
     Route::get('/', [InvitationController::class, 'index']);
     Route::get('/{id}/rewards', [InvitationController::class, 'rewardStats']);
+    Route::get('/settings', [InvitationController::class, 'settings']);
 });
 
 // KYC相关路由（需要认证）
