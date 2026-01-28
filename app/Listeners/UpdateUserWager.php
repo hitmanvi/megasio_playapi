@@ -52,6 +52,13 @@ class UpdateUserWager implements ShouldQueue
             return;
         }
 
+        // 检查订单货币是否为应用默认货币
+        $appCurrency = config('app.currency', 'USD');
+        if ($order->currency !== $appCurrency) {
+            // 订单货币不是应用默认货币，跳过
+            return;
+        }
+
         // 计算佣金（会判断游戏类型，如果不是 slot 类型返回 0）
         $reward = $this->rewardService->calculateReward(
             (float) $order->amount,

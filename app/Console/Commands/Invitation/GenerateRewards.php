@@ -4,6 +4,7 @@ namespace App\Console\Commands\Invitation;
 
 use App\Models\Invitation;
 use App\Models\InvitationReward;
+use App\Services\BalanceService;
 use App\Services\InvitationRewardService;
 use App\Services\UserWagerService;
 use Carbon\Carbon;
@@ -28,12 +29,14 @@ class GenerateRewards extends Command
 
     protected UserWagerService $wagerService;
     protected InvitationRewardService $rewardService;
+    protected BalanceService $balanceService;
 
     public function __construct()
     {
         parent::__construct();
         $this->wagerService = new UserWagerService();
         $this->rewardService = new InvitationRewardService();
+        $this->balanceService = new BalanceService();
     }
 
     /**
@@ -91,17 +94,29 @@ class GenerateRewards extends Command
                 continue;
             }
 
-            // 创建邀请奖励记录（模型事件会自动更新 total_reward）
-            DB::transaction(function () use ($invitation, $wager, $rewardAmount, $date, $inviteeId) {
-                InvitationReward::create([
+            $currency = config('app.currency', 'USD');
+
+            // 创建邀请奖励记录并更新余额（模型事件会自动更新 total_reward）
+            DB::transaction(function () use ($invitation, $wager, $rewardAmount, $date, $inviteeId, $currency) {
+                // 创建邀请奖励记录
+                $reward = InvitationReward::create([
                     'user_id' => $invitation->inviter_id, // 奖励给邀请人
                     'invitation_id' => $invitation->id,
                     'source_type' => InvitationReward::SOURCE_TYPE_BET,
-                    'reward_type' => config('app.currency'), // 可以根据需要调整
+                    'reward_type' => $currency,
                     'reward_amount' => $rewardAmount,
                     'wager' => $wager, // 记录下注金额
                     'related_id' => null, // 可以根据需要存储相关ID
                 ]);
+
+                // 使用 BalanceService 增加邀请人的余额并创建交易记录
+                $this->balanceService->invitationReward(
+                    $invitation->inviter_id,
+                    $currency,
+                    $rewardAmount,
+                    $reward->id,
+                    'bet_' . $date // 使用日期作为奖励类型标识
+                );
 
                 // 生成奖励后，删除 Redis 中的 wager 数据
                 $this->wagerService->deleteWager($inviteeId, $date);
