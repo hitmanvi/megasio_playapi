@@ -22,13 +22,12 @@ class InvitationRewardService
             return 0.0;
         }
 
-        // TODO: 实现佣金计算逻辑
-        // 暂时返回 0，等待实现
+        // 佣金的1% * 佣金奖励比例
         $settingService = new SettingService();
         $commissionBonus = $settingService->getValue('commission_bonus');
-        $reward = $wager * $commissionBonus['ratio'] / 100 / 100;
-        
-        return $reward;
+        $reward = $wager / 100 * $commissionBonus['ratio'] / 100;
+
+        return (float) $reward;
     }
 
     /**
