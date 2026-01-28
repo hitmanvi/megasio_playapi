@@ -46,6 +46,7 @@ class Transaction extends Model
     const TYPE_PAYOUT = 'PAYOUT';
     const TYPE_CHECK_IN_REWARD = 'CHECK_IN_REWARD';
     const TYPE_BONUS_TASK_REWARD = 'BONUS_TASK_REWARD';
+    const TYPE_INVITATION_REWARD = 'INVITATION_REWARD';
     /**
      * Transaction status constants.
      */

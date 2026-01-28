@@ -305,4 +305,27 @@ class BalanceService
             ];
         });
     }
+
+    /**
+     * Invitation 邀请奖励
+     */
+    public function invitationReward(int $userId, string $currency, float $amount, int $rewardId, string $rewardTypeKey): array
+    {
+        return DB::transaction(function () use ($userId, $currency, $amount, $rewardId, $rewardTypeKey) {
+            $balance = $this->updateBalance($userId, $currency, $amount, 'add', 'available');
+            $transaction = $this->transactionService->createTransaction(
+                $userId,
+                $currency,
+                $amount,
+                (float)$balance->available,
+                Transaction::TYPE_INVITATION_REWARD,
+                (string) $rewardId,
+                "Invitation reward: {$rewardTypeKey}"
+            );
+            return [
+                'balance' => $balance,
+                'transaction' => $transaction,
+            ];
+        });
+    }
 }

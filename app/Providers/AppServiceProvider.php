@@ -2,7 +2,9 @@
 
 namespace App\Providers;
 
+use App\Events\DepositCompleted;
 use App\Events\OrderCompleted;
+use App\Listeners\CreateInvitationDepositReward;
 use App\Listeners\RecordUserRecentGame;
 use App\Listeners\UpdateUserWager;
 use Illuminate\Cache\RateLimiting\Limit;
@@ -37,6 +39,7 @@ class AppServiceProvider extends ServiceProvider
     {
         Event::listen(OrderCompleted::class, RecordUserRecentGame::class);
         Event::listen(OrderCompleted::class, UpdateUserWager::class);
+        Event::listen(DepositCompleted::class, CreateInvitationDepositReward::class);
     }
 
     /**
