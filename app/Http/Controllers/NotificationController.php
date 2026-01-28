@@ -29,22 +29,22 @@ class NotificationController extends Controller
 
         // 如果是系统消息，查询所有用户都能看到的系统消息
         if ($type === 'system') {
-            $query->system();
+            $query->where('type', Notification::TYPE_SYSTEM)->whereNull('user_id');
         } else {
             // 默认查询用户个人消息
-            $query->user($user->id);
+            $query->where('type', Notification::TYPE_USER)->where('user_id', $user->id);
         }
 
         // 按分类筛选
         if ($category) {
-            $query->byCategory($category);
+            $query->where('category', $category);
         }
 
         // 按阅读状态筛选
         if ($read === 'true' || $read === '1') {
-            $query->read();
+            $query->whereNotNull('read_at');
         } elseif ($read === 'false' || $read === '0') {
-            $query->unread();
+            $query->whereNull('read_at');
         }
 
         // 游标分页：如果提供了 last_id，查询 ID 小于 last_id 的记录
@@ -88,8 +88,14 @@ class NotificationController extends Controller
     {
         $user = $request->user();
         
-        $userUnreadCount = Notification::user($user->id)->unread()->count();
-        $systemUnreadCount = Notification::system()->unread()->count();
+        $userUnreadCount = Notification::where('type', Notification::TYPE_USER)
+            ->where('user_id', $user->id)
+            ->whereNull('read_at')
+            ->count();
+        $systemUnreadCount = Notification::where('type', Notification::TYPE_SYSTEM)
+            ->whereNull('user_id')
+            ->whereNull('read_at')
+            ->count();
 
         return $this->responseItem([
             'user_unread_count' => $userUnreadCount,
@@ -169,9 +175,13 @@ class NotificationController extends Controller
         $query = Notification::query();
 
         if ($type === 'system') {
-            $query->system()->unread();
+            $query->where('type', Notification::TYPE_SYSTEM)
+                  ->whereNull('user_id')
+                  ->whereNull('read_at');
         } else {
-            $query->user($user->id)->unread();
+            $query->where('type', Notification::TYPE_USER)
+                  ->where('user_id', $user->id)
+                  ->whereNull('read_at');
         }
 
         $count = $query->update(['read_at' => now()]);

@@ -72,7 +72,7 @@ class Notification extends Model
     /**
      * Scope to filter user notifications.
      */
-    public function scopeUser($query, ?int $userId = null)
+    public function scopeUserNotifications($query, ?int $userId = null)
     {
         $query = $query->where('type', self::TYPE_USER);
         if ($userId !== null) {

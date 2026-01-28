@@ -187,7 +187,8 @@ class GenerateNotifications extends Command
         // 显示统计信息
         if ($type === Notification::TYPE_USER) {
             // 用户消息统计
-            $userStats = Notification::user($userId)
+            $userStats = Notification::where('type', Notification::TYPE_USER)
+                ->where('user_id', $userId)
                 ->selectRaw('category, COUNT(*) as count, SUM(CASE WHEN read_at IS NULL THEN 1 ELSE 0 END) as unread_count')
                 ->groupBy('category')
                 ->get();
@@ -212,7 +213,8 @@ class GenerateNotifications extends Command
 
             // 系统消息统计（如果生成了系统消息）
             if ($systemCount > 0) {
-                $systemStats = Notification::system()
+                $systemStats = Notification::where('type', Notification::TYPE_SYSTEM)
+                    ->whereNull('user_id')
                     ->selectRaw('category, COUNT(*) as count, SUM(CASE WHEN read_at IS NULL THEN 1 ELSE 0 END) as unread_count')
                     ->groupBy('category')
                     ->get();
@@ -237,7 +239,8 @@ class GenerateNotifications extends Command
             }
         } else {
             // 系统消息统计
-            $stats = Notification::system()
+            $stats = Notification::where('type', Notification::TYPE_SYSTEM)
+                ->whereNull('user_id')
                 ->selectRaw('category, COUNT(*) as count, SUM(CASE WHEN read_at IS NULL THEN 1 ELSE 0 END) as unread_count')
                 ->groupBy('category')
                 ->get();
