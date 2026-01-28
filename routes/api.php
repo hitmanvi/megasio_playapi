@@ -29,6 +29,7 @@ use App\Http\Controllers\CheckInController;
 use App\Http\Controllers\BonusTaskController;
 use App\Http\Controllers\ArticleGroupController;
 use App\Http\Controllers\ArticleController;
+use App\Http\Controllers\NotificationController;
 
 // 认证相关路由
 Route::prefix('auth')->group(function () {
