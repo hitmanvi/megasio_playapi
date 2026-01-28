@@ -73,8 +73,10 @@ class NotificationController extends Controller
 
         return $this->responseItem([
             'items' => $items->values(),
-            'has_more' => $hasMore,
-            'last_id' => $nextLastId,
+            'meta' => [ 
+                'has_more' => $hasMore,
+                'last_id' => $nextLastId,
+            ],
         ]);
     }
 
