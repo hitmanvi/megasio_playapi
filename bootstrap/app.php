@@ -9,6 +9,8 @@ use App\Exceptions\Exception;
 use Illuminate\Support\Facades\Log;
 use App\Http\Middleware\VerifyProviderIpWhitelist;
 use App\Http\Middleware\LogRequestResponse;
+use Illuminate\Auth\AuthenticationException;
+use Illuminate\Validation\ValidationException;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -30,7 +32,13 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withExceptions(function (Exceptions $exceptions): void {
         
         $exceptions->render(function (\Exception $e) {
-            Log::error($e->getMessage());
+            if ($e instanceof AuthenticationException) {
+                return response()->json([
+                    'code'   => ErrorCode::UNAUTHORIZED->value,
+                    'errmsg' => $e->getMessage(),
+                    'data'   => null,
+                ]);
+            }
             $resp = [
                 'code'   => ErrorCode::INTERNAL_ERROR->value,
                 'errmsg' => "Server error",
