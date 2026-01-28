@@ -1,17 +1,46 @@
 <?php
 
 return [
-    
-    'promotion' => [
-        'welcome_bonus' => [
+    [
+        'group' => 'referral',
+        'key' => 'deposit_bonus_starter',
+        'value' => [
             'method' => 'fixed',
-            'amount' => 20
+            'currency' => 'USD',
+            'deposit_min_amount' => 100,
+            'bonus_amount' => 20,
         ],
-        'fisrt_deposit_bonus' => [
+    ],
+    [
+        'group' => 'referral',
+        'key' => 'deposit_bonus_advanced',
+        'value' => [
+            'method' => 'fixed',
+            'currency' => 'USD',
+            'deposit_min_amount' => 1000,
+            'bonus_amount' => 80,
+        ],
+    ],
+    [
+        'group' => 'referral',
+        'key' => 'commission_bonus',
+        'value' => [
             'method' => 'ratio',
-            'amounts' => [10, 20, 30],
-            'ratio' => [100, 120, 140],
-            'max_amount' => 1000,             
+            'currency' => 'USD',
+            'ratio' => 30,
+        ],
+    ],
+    [
+        'group' => 'referral',
+        'key' => 'vip_upgrade_bonus',
+        'value' => [
+            'method' => 'fixed',
+            'currency' => 'USD',
+            'levels' => [
+                '1' => 0.25,
+                '2' => 0.25,
+                '3' => 0.25,
+            ]
         ],
     ],
 ];
