@@ -168,7 +168,7 @@ class FunkyController extends Controller
 
             $result = $this->providerCallbackService->handlePayout(
                 GameProviderEnum::FUNKY->value,
-                $txid,
+                $txid . '_settle',
                 $roundId,
                 $detail['winAmount'],
                 $request->all(),
@@ -196,7 +196,7 @@ class FunkyController extends Controller
 
             $this->providerCallbackService->handleRefund(
                 GameProviderEnum::FUNKY->value,
-                $txid,
+                $txid . '_cancel',
                 $roundId,
                 0,
                 $request->all(),
