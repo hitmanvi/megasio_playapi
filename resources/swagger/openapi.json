@@ -103,6 +103,10 @@
     {
       "name": "Notification",
       "description": "通知消息相关接口"
+    },
+    {
+      "name": "GameFavorite",
+      "description": "游戏收藏相关接口"
     }
   ],
   "paths": {
@@ -4389,6 +4393,277 @@
                 "schema": {
                   "$ref": "#/components/schemas/ErrorResponse"
                 }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/game-favorites": {
+      "get": {
+        "tags": ["GameFavorite"],
+        "summary": "获取用户收藏的游戏列表",
+        "description": "获取当前登录用户收藏的游戏列表（分页）",
+        "security": [{"bearerAuth": []}],
+        "parameters": [
+          {
+            "name": "Locale",
+            "in": "header",
+            "description": "语言代码",
+            "schema": {
+              "type": "string",
+              "default": "en"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "description": "页码",
+            "schema": {
+              "type": "integer",
+              "default": 1,
+              "minimum": 1
+            }
+          },
+          {
+            "name": "per_page",
+            "in": "query",
+            "description": "每页数量",
+            "schema": {
+              "type": "integer",
+              "default": 20,
+              "minimum": 1,
+              "maximum": 100
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "获取成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GameListResponse"
+                },
+                "example": {
+                  "code": 0,
+                  "errmsg": "Success",
+                  "data": {
+                    "items": [
+                      {
+                        "id": 1,
+                        "name": "Game Name",
+                        "thumbnail": "https://example.com/thumbnail.jpg",
+                        "sort_id": 1,
+                        "has_demo": true,
+                        "brand": {
+                          "id": 1,
+                          "name": "Brand Name"
+                        },
+                        "category": {
+                          "id": 1,
+                          "name": "Category Name"
+                        },
+                        "themes": []
+                      }
+                    ],
+                    "pagination": {
+                      "current_page": 1,
+                      "per_page": 20,
+                      "total": 10,
+                      "last_page": 1
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "未授权",
+            "content": {
+              "application/json": {
+                "$ref": "#/components/schemas/ErrorResponse"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/game-favorites/{game_id}": {
+      "post": {
+        "tags": ["GameFavorite"],
+        "summary": "添加游戏收藏",
+        "description": "将指定游戏添加到当前用户的收藏列表",
+        "security": [{"bearerAuth": []}],
+        "parameters": [
+          {
+            "name": "game_id",
+            "in": "path",
+            "required": true,
+            "description": "游戏ID",
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "添加成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GameFavoriteResponse"
+                },
+                "example": {
+                  "code": 0,
+                  "errmsg": "Success",
+                  "data": {
+                    "message": "Game favorited successfully"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "游戏已收藏",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "code": 4003,
+                  "errmsg": "Game already favorited",
+                  "data": null
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "游戏不存在或已禁用",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "code": 1004,
+                  "errmsg": "Game not found or disabled",
+                  "data": null
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "未授权",
+            "content": {
+              "application/json": {
+                "$ref": "#/components/schemas/ErrorResponse"
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": ["GameFavorite"],
+        "summary": "取消游戏收藏",
+        "description": "从当前用户的收藏列表中移除指定游戏",
+        "security": [{"bearerAuth": []}],
+        "parameters": [
+          {
+            "name": "game_id",
+            "in": "path",
+            "required": true,
+            "description": "游戏ID",
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "取消成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GameFavoriteResponse"
+                },
+                "example": {
+                  "code": 0,
+                  "errmsg": "Success",
+                  "data": {
+                    "message": "Game unfavorited successfully"
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "收藏记录不存在",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "code": 1004,
+                  "errmsg": "Favorite not found",
+                  "data": null
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "未授权",
+            "content": {
+              "application/json": {
+                "$ref": "#/components/schemas/ErrorResponse"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/game-favorites/{game_id}/check": {
+      "get": {
+        "tags": ["GameFavorite"],
+        "summary": "检查游戏是否已收藏",
+        "description": "检查指定游戏是否已被当前用户收藏",
+        "security": [{"bearerAuth": []}],
+        "parameters": [
+          {
+            "name": "game_id",
+            "in": "path",
+            "required": true,
+            "description": "游戏ID",
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "检查成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GameFavoriteCheckResponse"
+                },
+                "example": {
+                  "code": 0,
+                  "errmsg": "Success",
+                  "data": {
+                    "is_favorited": true
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "未授权",
+            "content": {
+              "application/json": {
+                "$ref": "#/components/schemas/ErrorResponse"
               }
             }
           }
@@ -9791,6 +10066,52 @@
                 }
               }
             ]
+          }
+        }
+      },
+      "GameFavoriteResponse": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "integer",
+            "description": "响应码，0表示成功"
+          },
+          "errmsg": {
+            "type": "string",
+            "description": "响应消息"
+          },
+          "data": {
+            "type": "object",
+            "properties": {
+              "message": {
+                "type": "string",
+                "description": "操作结果消息"
+              }
+            },
+            "required": ["message"]
+          }
+        }
+      },
+      "GameFavoriteCheckResponse": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "integer",
+            "description": "响应码，0表示成功"
+          },
+          "errmsg": {
+            "type": "string",
+            "description": "响应消息"
+          },
+          "data": {
+            "type": "object",
+            "properties": {
+              "is_favorited": {
+                "type": "boolean",
+                "description": "是否已收藏"
+              }
+            },
+            "required": ["is_favorited"]
           }
         }
       },

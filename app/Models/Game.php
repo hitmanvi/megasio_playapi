@@ -88,9 +88,19 @@ class Game extends Model
     public function gameGroups(): BelongsToMany
     {
         return $this->belongsToMany(GameGroup::class, 'game_group_game')
-                    ->withPivot('sort_id')
-                    ->withTimestamps()
-                    ->orderBy('sort_id', 'asc');
+            ->withPivot('sort_id')
+            ->withTimestamps()
+            ->orderBy('sort_id', 'asc');
+    }
+
+    /**
+     * Get the users who favorited this game.
+     */
+    public function favoritedBy(): BelongsToMany
+    {
+        return $this->belongsToMany(User::class, 'user_game_favorites')
+            ->withTimestamps()
+            ->orderBy('user_game_favorites.created_at', 'desc');
     }
 
     /**

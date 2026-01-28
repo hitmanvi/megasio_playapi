@@ -30,6 +30,7 @@ use App\Http\Controllers\BonusTaskController;
 use App\Http\Controllers\ArticleGroupController;
 use App\Http\Controllers\ArticleController;
 use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\GameFavoriteController;
 
 // 认证相关路由
 Route::prefix('auth')->group(function () {
@@ -141,6 +142,14 @@ Route::get('/currencies', [CurrencyController::class, 'index']);
 
 // 汇率相关路由（只读）
 Route::get('/exchange-rates', [ExchangeRateController::class, 'index']);
+
+// 游戏收藏相关路由（需要认证）
+Route::middleware('auth:sanctum')->prefix('game-favorites')->group(function () {
+    Route::get('/', [GameFavoriteController::class, 'index']);
+    Route::post('/{game_id}', [GameFavoriteController::class, 'store']);
+    Route::delete('/{game_id}', [GameFavoriteController::class, 'destroy']);
+    Route::get('/{game_id}/check', [GameFavoriteController::class, 'check']);
+});
 
 // 游戏相关路由
 Route::prefix('games')->group(function () {

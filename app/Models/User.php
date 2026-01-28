@@ -302,6 +302,16 @@ class User extends Authenticatable
     }
 
     /**
+     * Get the user's favorite games.
+     */
+    public function favoriteGames(): BelongsToMany
+    {
+        return $this->belongsToMany(Game::class, 'user_game_favorites')
+            ->withTimestamps()
+            ->orderBy('user_game_favorites.created_at', 'desc');
+    }
+
+    /**
      * 移除标签
      */
     public function removeTag(int $tagId): void
