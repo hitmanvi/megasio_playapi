@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Enums\ErrorCode;
 use App\Services\InvitationService;
+use App\Services\SettingService;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Pagination\LengthAwarePaginator;
@@ -69,5 +70,11 @@ class InvitationController extends Controller
         } catch (\Exception $e) {
             return $this->error(ErrorCode::NOT_FOUND, 'Invitation not found');
         }
+    }
+
+    public function settings()
+    {
+        $settingService = new SettingService();
+        return $this->responseItem($settingService->getGroup('referral'));
     }
 }

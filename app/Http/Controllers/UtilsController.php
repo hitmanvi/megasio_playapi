@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Enums\ErrorCode;
-use App\Models\Setting;
+use App\Services\SettingService;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Storage;
@@ -23,7 +23,8 @@ class UtilsController extends Controller
      */
     public function settings()
     {
-        return $this->responseItem(Setting::getGroup('app'));
+        $settingService = new SettingService();
+        return $this->responseItem($settingService->getGroup('app'));
     }
 
     /**

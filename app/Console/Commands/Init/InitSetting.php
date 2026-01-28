@@ -3,6 +3,7 @@
 namespace App\Console\Commands\Init;
 
 use App\Models\Setting;
+use App\Services\SettingService;
 use Illuminate\Console\Command;
 
 class InitSetting extends Command
@@ -36,6 +37,7 @@ class InitSetting extends Command
             return Command::FAILURE;
         }
 
+        $settingService = new SettingService();
         $createdCount = 0;
         $skippedCount = 0;
         $errorCount = 0;
@@ -79,7 +81,7 @@ class InitSetting extends Command
                 }
 
                 // 准备存储的值
-                $storedValue = $this->prepareValue($value, $type);
+                $storedValue = $settingService->prepareValue($value, $type);
 
                 // 创建设置
                 Setting::create([
@@ -122,21 +124,5 @@ class InitSetting extends Command
         }
 
         return Command::SUCCESS;
-    }
-
-    /**
-     * 准备存储的值（复制自 Setting 模型的逻辑）
-     */
-    private function prepareValue(mixed $value, string $type): string
-    {
-        if (in_array($type, ['json', 'array'])) {
-            return json_encode($value);
-        }
-
-        if (is_bool($value)) {
-            return $value ? '1' : '0';
-        }
-
-        return (string) $value;
     }
 }
