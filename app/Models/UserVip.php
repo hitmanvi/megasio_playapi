@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Events\VipLevelUpgraded;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
@@ -71,8 +72,19 @@ class UserVip extends Model
         $newLevel = VipLevel::calculateLevelFromExp($this->exp);
         
         if ($newLevel !== $this->level) {
+            $oldLevel = $this->level;
             $this->level = $newLevel;
             $this->save();
+            
+            // 确保 user 关系已加载
+            if (!$this->relationLoaded('user')) {
+                $this->load('user');
+            }
+            
+            // 触发 VIP 升级事件
+            if ($this->user) {
+                event(new VipLevelUpgraded($this->user, $oldLevel, $newLevel));
+            }
         }
     }
 
