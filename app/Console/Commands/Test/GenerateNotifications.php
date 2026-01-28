@@ -16,10 +16,11 @@ class GenerateNotifications extends Command
      * @var string
      */
     protected $signature = 'test:generate-notifications 
-                            {user_id : 用户ID} 
+                            {user_id? : 用户ID（生成system类型时可忽略）} 
                             {--count=10 : 生成的通知数量}
                             {--type=user : 消息类型：system（系统消息）、user（用户消息）}
-                            {--category= : 消息分类，不指定则随机生成}';
+                            {--category= : 消息分类，不指定则随机生成}
+                            {--system-count=5 : 同时生成的系统消息数量（仅在type=user时生效）}';
 
     /**
      * The console command description.
@@ -69,22 +70,29 @@ class GenerateNotifications extends Command
      */
     public function handle(): int
     {
-        $userId = (int) $this->argument('user_id');
+        $userId = $this->argument('user_id') ? (int) $this->argument('user_id') : null;
         $count = (int) $this->option('count');
         $type = $this->option('type');
         $category = $this->option('category');
-
-        // 验证用户是否存在
-        $user = User::find($userId);
-        if (!$user) {
-            $this->error("用户 ID {$userId} 不存在");
-            return Command::FAILURE;
-        }
+        $systemCount = (int) $this->option('system-count');
 
         // 验证类型
         if (!in_array($type, [Notification::TYPE_SYSTEM, Notification::TYPE_USER])) {
             $this->error("类型必须是 system 或 user");
             return Command::FAILURE;
+        }
+
+        // 如果是用户消息，验证用户是否存在
+        if ($type === Notification::TYPE_USER) {
+            if (!$userId) {
+                $this->error("生成用户消息时必须提供 user_id");
+                return Command::FAILURE;
+            }
+            $user = User::find($userId);
+            if (!$user) {
+                $this->error("用户 ID {$userId} 不存在");
+                return Command::FAILURE;
+            }
         }
 
         // 验证分类（如果指定）
@@ -94,14 +102,26 @@ class GenerateNotifications extends Command
             return Command::FAILURE;
         }
 
-        $this->info("为用户 {$user->name} (ID: {$userId}) 生成 {$count} 条 {$type} 类型的通知...");
+        $totalCount = $count;
+        if ($type === Notification::TYPE_USER && $systemCount > 0) {
+            $totalCount += $systemCount;
+            $this->info("为用户 {$user->name} (ID: {$userId}) 生成 {$count} 条用户消息和 {$systemCount} 条系统消息...");
+        } else {
+            if ($type === Notification::TYPE_USER) {
+                $this->info("为用户 {$user->name} (ID: {$userId}) 生成 {$count} 条 {$type} 类型的通知...");
+            } else {
+                $this->info("生成 {$count} 条 {$type} 类型的通知...");
+            }
+        }
 
-        $bar = $this->output->createProgressBar($count);
+        $bar = $this->output->createProgressBar($totalCount);
         $bar->start();
 
         $categories = $category ? [$category] : array_keys($this->categoryConfigs);
         $generated = 0;
+        $systemGenerated = 0;
 
+        // 生成指定类型的通知
         for ($i = 0; $i < $count; $i++) {
             // 随机选择分类（如果未指定）
             $selectedCategory = $category ?: $categories[array_rand($categories)];
@@ -127,38 +147,118 @@ class GenerateNotifications extends Command
             $bar->advance();
         }
 
+        // 如果生成用户消息且指定了系统消息数量，额外生成系统消息
+        if ($type === Notification::TYPE_USER && $systemCount > 0) {
+            for ($i = 0; $i < $systemCount; $i++) {
+                // 随机选择分类
+                $selectedCategory = $categories[array_rand($categories)];
+                $config = $this->categoryConfigs[$selectedCategory];
+
+                // 生成通知数据
+                $notificationData = $this->generateNotificationData($selectedCategory, $config, $generated + $systemGenerated + 1);
+
+                DB::transaction(function () use ($selectedCategory, $notificationData) {
+                    Notification::create([
+                        'user_id' => null,
+                        'type' => Notification::TYPE_SYSTEM,
+                        'category' => $selectedCategory,
+                        'title' => $notificationData['title'],
+                        'content' => $notificationData['content'],
+                        'data' => $notificationData['data'],
+                        'read_at' => rand(0, 100) < 30 ? Carbon::now()->subHours(rand(1, 24)) : null, // 30% 概率已读
+                        'created_at' => Carbon::now()->subDays(rand(0, 30))->subHours(rand(0, 23)),
+                    ]);
+                });
+
+                $systemGenerated++;
+                $bar->advance();
+            }
+        }
+
         $bar->finish();
         $this->newLine();
-        $this->info("成功生成 {$generated} 条通知！");
+        
+        if ($type === Notification::TYPE_USER && $systemCount > 0) {
+            $this->info("成功生成 {$generated} 条用户消息和 {$systemGenerated} 条系统消息！");
+        } else {
+            $this->info("成功生成 {$generated} 条 {$type} 类型的通知！");
+        }
 
         // 显示统计信息
-        $stats = Notification::where(function ($query) use ($userId, $type) {
-            if ($type === Notification::TYPE_SYSTEM) {
-                $query->system();
-            } else {
-                $query->user($userId);
+        if ($type === Notification::TYPE_USER) {
+            // 用户消息统计
+            $userStats = Notification::user($userId)
+                ->selectRaw('category, COUNT(*) as count, SUM(CASE WHEN read_at IS NULL THEN 1 ELSE 0 END) as unread_count')
+                ->groupBy('category')
+                ->get();
+
+            if ($userStats->isNotEmpty()) {
+                $this->newLine();
+                $this->info("用户消息统计：");
+                $tableData = $userStats->map(function ($stat) {
+                    return [
+                        'category' => $stat->category,
+                        'count' => $stat->count,
+                        'unread' => $stat->unread_count,
+                        'read' => $stat->count - $stat->unread_count,
+                    ];
+                })->toArray();
+
+                $this->table(
+                    ['分类', '总数', '未读', '已读'],
+                    $tableData
+                );
             }
-        })
-        ->selectRaw('category, COUNT(*) as count, SUM(CASE WHEN read_at IS NULL THEN 1 ELSE 0 END) as unread_count')
-        ->groupBy('category')
-        ->get();
 
-        if ($stats->isNotEmpty()) {
-            $this->newLine();
-            $this->info("通知统计：");
-            $tableData = $stats->map(function ($stat) {
-                return [
-                    'category' => $stat->category,
-                    'count' => $stat->count,
-                    'unread' => $stat->unread_count,
-                    'read' => $stat->count - $stat->unread_count,
-                ];
-            })->toArray();
+            // 系统消息统计（如果生成了系统消息）
+            if ($systemCount > 0) {
+                $systemStats = Notification::system()
+                    ->selectRaw('category, COUNT(*) as count, SUM(CASE WHEN read_at IS NULL THEN 1 ELSE 0 END) as unread_count')
+                    ->groupBy('category')
+                    ->get();
 
-            $this->table(
-                ['分类', '总数', '未读', '已读'],
-                $tableData
-            );
+                if ($systemStats->isNotEmpty()) {
+                    $this->newLine();
+                    $this->info("系统消息统计：");
+                    $tableData = $systemStats->map(function ($stat) {
+                        return [
+                            'category' => $stat->category,
+                            'count' => $stat->count,
+                            'unread' => $stat->unread_count,
+                            'read' => $stat->count - $stat->unread_count,
+                        ];
+                    })->toArray();
+
+                    $this->table(
+                        ['分类', '总数', '未读', '已读'],
+                        $tableData
+                    );
+                }
+            }
+        } else {
+            // 系统消息统计
+            $stats = Notification::system()
+                ->selectRaw('category, COUNT(*) as count, SUM(CASE WHEN read_at IS NULL THEN 1 ELSE 0 END) as unread_count')
+                ->groupBy('category')
+                ->get();
+
+            if ($stats->isNotEmpty()) {
+                $this->newLine();
+                $this->info("通知统计：");
+                $tableData = $stats->map(function ($stat) {
+                    return [
+                        'category' => $stat->category,
+                        'count' => $stat->count,
+                        'unread' => $stat->unread_count,
+                        'read' => $stat->count - $stat->unread_count,
+                    ];
+                })->toArray();
+
+                $this->table(
+                    ['分类', '总数', '未读', '已读'],
+                    $tableData
+                );
+            }
         }
 
         return Command::SUCCESS;
