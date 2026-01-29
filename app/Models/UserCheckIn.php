@@ -15,6 +15,7 @@ class UserCheckIn extends Model
         'consecutive_days',
         'reward_day',
         'rewards_granted',
+        'is_bonus_check_in',
     ];
 
     protected $casts = [
@@ -22,6 +23,7 @@ class UserCheckIn extends Model
         'consecutive_days' => 'integer',
         'reward_day' => 'integer',
         'rewards_granted' => 'array',
+        'is_bonus_check_in' => 'boolean',
     ];
 
     public function user(): BelongsTo

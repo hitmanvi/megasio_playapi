@@ -21,7 +21,8 @@ class CheckInController extends Controller
     public function store(Request $request): JsonResponse
     {
         $userId = $request->user()->id;
-        $checkIn = $this->checkInService->checkIn($userId);
+        $isBonusCheckIn = $request->input('bonus', false);
+        $checkIn = $this->checkInService->checkIn($userId, $isBonusCheckIn);
 
         return $this->responseItem($this->checkInService->formatCheckIn($checkIn));
     }

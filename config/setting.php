@@ -55,6 +55,7 @@ return [
             'currency' => 'USD',
             'rewards' => [0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25],
             'enabled' => true,
+            'payment_method_ids' => [], // 可以触发额外签到的支付通道 ID 列表，例如：[1, 2, 3]
         ],
     ],
 ];
