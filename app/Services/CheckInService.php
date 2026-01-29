@@ -89,7 +89,12 @@ class CheckInService
         // 从 setting 中获取签到奖励配置
         $checkInBonus = $this->settingService->getValue('check_in_bonus');
 
-        if (!$checkInBonus || !isset($checkInBonus['rewards']) || !is_array($checkInBonus['rewards'])) {
+        // 检查配置是否存在且已启用
+        if (!$checkInBonus || !isset($checkInBonus['enabled']) || !$checkInBonus['enabled']) {
+            return [];
+        }
+
+        if (!isset($checkInBonus['rewards']) || !is_array($checkInBonus['rewards'])) {
             return [];
         }
 

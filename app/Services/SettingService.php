@@ -75,13 +75,20 @@ class SettingService
      * @param string $group
      * @return array
      */
-    public function getGroup(string $group): array
+    public function getGroup(string $group, bool $filterEnabled = false): array
     {
         $settings = Setting::where('group', $group)->get();
 
         $result = [];
         foreach ($settings as $setting) {
-            $result[$setting->key] = $this->castValue($setting->value, $setting->type);
+            $value = $this->castValue($setting->value, $setting->type);
+            
+            // 如果启用过滤且配置项有 enabled 字段且为 false，则跳过
+            if ($filterEnabled && is_array($value) && isset($value['enabled']) && !$value['enabled']) {
+                continue;
+            }
+            
+            $result[$setting->key] = $value;
         }
 
         return $result;

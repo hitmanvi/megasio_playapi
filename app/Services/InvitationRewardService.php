@@ -25,6 +25,16 @@ class InvitationRewardService
         // 佣金的1% * 佣金奖励比例
         $settingService = new SettingService();
         $commissionBonus = $settingService->getValue('commission_bonus');
+
+        // 检查配置是否存在且已启用
+        if (!$commissionBonus || !isset($commissionBonus['enabled']) || !$commissionBonus['enabled']) {
+            return 0.0;
+        }
+
+        if (!isset($commissionBonus['ratio'])) {
+            return 0.0;
+        }
+
         $reward = $wager / 100 * $commissionBonus['ratio'] / 100;
 
         return (float) $reward;

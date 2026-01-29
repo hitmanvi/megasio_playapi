@@ -47,8 +47,14 @@ class CreateInvitationVipReward implements ShouldQueue
         // 获取 VIP 升级奖励配置
         $vipUpgradeConfig = $this->settingService->getValue('vip_upgrade_bonus');
 
-        if (!$vipUpgradeConfig || !isset($vipUpgradeConfig['levels']) || !is_array($vipUpgradeConfig['levels'])) {
-            // 配置不存在或不完整，跳过
+        // 检查配置是否存在且已启用
+        if (!$vipUpgradeConfig || !isset($vipUpgradeConfig['enabled']) || !$vipUpgradeConfig['enabled']) {
+            // 配置不存在或未启用，跳过
+            return;
+        }
+
+        if (!isset($vipUpgradeConfig['levels']) || !is_array($vipUpgradeConfig['levels'])) {
+            // 配置不完整，跳过
             return;
         }
 

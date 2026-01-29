@@ -80,8 +80,14 @@ class CreateInvitationDepositReward implements ShouldQueue
         // 获取奖励配置
         $bonusConfig = $this->settingService->getValue($rewardTypeKey);
 
-        if (!$bonusConfig || !isset($bonusConfig['deposit_min_amount']) || !isset($bonusConfig['bonus_amount'])) {
-            // 配置不存在或不完整，跳过
+        // 检查配置是否存在且已启用
+        if (!$bonusConfig || !isset($bonusConfig['enabled']) || !$bonusConfig['enabled']) {
+            // 配置不存在或未启用，跳过
+            return;
+        }
+
+        if (!isset($bonusConfig['deposit_min_amount']) || !isset($bonusConfig['bonus_amount'])) {
+            // 配置不完整，跳过
             return;
         }
 

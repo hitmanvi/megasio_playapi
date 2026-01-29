@@ -9,6 +9,7 @@ return [
             'currency' => 'USD',
             'deposit_min_amount' => 100,
             'bonus_amount' => 20,
+            'enabled' => true,
         ],
     ],
     [
@@ -19,6 +20,7 @@ return [
             'currency' => 'USD',
             'deposit_min_amount' => 1000,
             'bonus_amount' => 80,
+            'enabled' => true,
         ],
     ],
     [
@@ -28,6 +30,7 @@ return [
             'method' => 'ratio',
             'currency' => 'USD',
             'ratio' => 30,
+            'enabled' => true,
         ],
     ],
     [
@@ -40,7 +43,8 @@ return [
                 '1' => 0.25,
                 '2' => 0.25,
                 '3' => 0.25,
-            ]
+            ],
+            'enabled' => true,
         ],
     ],
     [
@@ -50,6 +54,7 @@ return [
             'method' => 'fixed',
             'currency' => 'USD',
             'rewards' => [0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25],
-        ]
+            'enabled' => true,
         ],
+    ],
 ];
