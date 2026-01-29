@@ -43,4 +43,13 @@ return [
             ]
         ],
     ],
+    [
+        'group' => 'promotion',
+        'key' => 'check_in_bonus',
+        'value' => [
+            'method' => 'fixed',
+            'currency' => 'USD',
+            'rewards' => [0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25],
+        ]
+        ],
 ];

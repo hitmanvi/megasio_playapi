@@ -328,4 +328,27 @@ class BalanceService
             ];
         });
     }
+
+    /**
+     * CheckIn 签到奖励
+     */
+    public function checkInReward(int $userId, string $currency, float $amount, int $checkInId, int $rewardDay): array
+    {
+        return DB::transaction(function () use ($userId, $currency, $amount, $checkInId, $rewardDay) {
+            $balance = $this->updateBalance($userId, $currency, $amount, 'add', 'available');
+            $transaction = $this->transactionService->createTransaction(
+                $userId,
+                $currency,
+                $amount,
+                (float)$balance->available,
+                Transaction::TYPE_CHECK_IN_REWARD,
+                (string) $checkInId,
+                "Check-in reward day {$rewardDay}"
+            );
+            return [
+                'balance' => $balance,
+                'transaction' => $transaction,
+            ];
+        });
+    }
 }

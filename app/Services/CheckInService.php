@@ -4,15 +4,24 @@ namespace App\Services;
 
 use App\Enums\ErrorCode;
 use App\Exceptions\Exception;
-use App\Models\CheckInReward;
-use App\Models\Currency;
 use App\Models\UserCheckIn;
+use App\Services\BalanceService;
+use App\Services\SettingService;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 
 class CheckInService
 {
     const REWARD_CYCLE = 7; // 奖励周期天数
+
+    protected BalanceService $balanceService;
+    protected SettingService $settingService;
+
+    public function __construct()
+    {
+        $this->balanceService = new BalanceService();
+        $this->settingService = new SettingService();
+    }
 
     /**
      * 用户签到
@@ -77,72 +86,56 @@ class CheckInService
      */
     protected function grantRewards(int $userId, int $rewardDay, int $checkInId): array
     {
-        $rewardConfig = CheckInReward::getRewardForDay($rewardDay);
+        // 从 setting 中获取签到奖励配置
+        $checkInBonus = $this->settingService->getValue('check_in_bonus');
 
-        if (!$rewardConfig || empty($rewardConfig->rewards)) {
+        if (!$checkInBonus || !isset($checkInBonus['rewards']) || !is_array($checkInBonus['rewards'])) {
             return [];
         }
 
-        $granted = [];
+        // rewardDay 是 1-7，rewards 数组索引是 0-6
+        $rewardIndex = $rewardDay - 1;
 
-        foreach ($rewardConfig->rewards as $reward) {
-            $type = $reward['type'] ?? '';
-            $amount = (float) ($reward['amount'] ?? 0);
-
-            if ($amount <= 0) {
-                continue;
-            }
-
-            // 根据奖励类型发放
-            $this->grantRewardByType($userId, $type, $amount, $checkInId);
-
-            $granted[] = [
-                'type' => $type,
-                'amount' => $amount,
-                'description' => $reward['description'] ?? null,
-            ];
+        if (!isset($checkInBonus['rewards'][$rewardIndex])) {
+            return [];
         }
 
-        return $granted;
+        $rewardAmount = (float) $checkInBonus['rewards'][$rewardIndex];
+
+        if ($rewardAmount <= 0) {
+            return [];
+        }
+
+        $currency = $checkInBonus['currency'] ?? config('app.currency', 'USD');
+
+        // 使用 BalanceService 增加用户余额并创建交易记录
+        $this->balanceService->checkInReward($userId, $currency, $rewardAmount, $checkInId, $rewardDay);
+
+        return [
+            [
+                'type' => $currency,
+                'amount' => $rewardAmount,
+                'description' => "Check-in reward day {$rewardDay}",
+            ],
+        ];
     }
 
     /**
-     * 根据类型发放奖励
-     * 注意：货币类型奖励现在通过 BonusTask 来发放，不再直接操作 balance
-     */
-    protected function grantRewardByType(int $userId, string $type, float $amount, int $checkInId): void
-    {
-        // 货币类型奖励现在通过 BonusTask 来发放
-        // 其他类型奖励暂不处理，可扩展
-        // 例如：exp -> VipService, item -> InventoryService 等
-    }
-
-    /**
-     * 判断是否为货币类型
-     */
-    protected function isCurrencyType(string $type): bool
-    {
-        return Currency::where('code', $type)->where('enabled', true)->exists();
-    }
-
-    /**
-     * 计算连续签到天数
+     * 计算连续签到天数（不会断签，基于最后一次签到继续累加）
      */
     protected function calculateConsecutiveDays(int $userId, Carbon $today): int
     {
-        $yesterday = $today->copy()->subDay();
-
-        // 查找昨天的签到记录
-        $yesterdayCheckIn = UserCheckIn::where('user_id', $userId)
-            ->where('check_in_date', $yesterday)
+        // 查找最后一次签到记录（按日期排序）
+        $lastCheckIn = UserCheckIn::where('user_id', $userId)
+            ->orderByDesc('check_in_date')
             ->first();
 
-        if ($yesterdayCheckIn) {
-            // 昨天有签到，连续天数 +1
-            return $yesterdayCheckIn->consecutive_days + 1;
+        if ($lastCheckIn) {
+            // 有签到记录，连续天数 = 最后一次签到的连续天数 + 1（不会断签）
+            return $lastCheckIn->consecutive_days + 1;
         }
 
-        // 昨天没签到，重新开始计数
+        // 没有签到记录，第一次签到
         return 1;
     }
 
