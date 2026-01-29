@@ -6470,11 +6470,86 @@
               }
             }
           }
+          }
         }
       }
-    }
-  },
-  "components": {
+    },
+    "/bonus-tasks/deposit-bonus-status": {
+      "get": {
+        "tags": ["BonusTask"],
+        "summary": "获取用户充值奖励状态",
+        "description": "获取用户充值奖励状态。如果首充/二充/三充未完成，返回当前可以获得的第一个奖励；如果都完成了，返回每日充值奖励状态。",
+        "security": [{"bearerAuth": []}],
+        "responses": {
+          "200": {
+            "description": "获取成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DepositBonusStatusResponse"
+                },
+                "examples": {
+                  "first_second_third": {
+                    "summary": "首充/二充/三充奖励",
+                    "value": {
+                      "code": 0,
+                      "errmsg": "Success",
+                      "data": {
+                        "type": "first_second_third",
+                        "current_reward": {
+                          "type": "first_deposit_bonus",
+                          "name": "First Deposit Bonus",
+                          "completed": false,
+                          "config": {
+                            "amounts": [10, 20, 30],
+                            "ratio": [100, 120, 140],
+                            "max_bonus_amount": 100,
+                            "currency": "USD"
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "daily": {
+                    "summary": "每日充值奖励",
+                    "value": {
+                      "code": 0,
+                      "errmsg": "Success",
+                      "data": {
+                        "type": "daily",
+                        "current_reward": {
+                          "enabled": true,
+                          "today_count": 1,
+                          "max_times": 3,
+                          "remaining_times": 2,
+                          "config": {
+                            "amounts": [50, 100, 150],
+                            "ratio": [50, 100, 150],
+                            "max_bonus_amount": 200,
+                            "currency": "USD"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "未授权",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "components": {
     "securitySchemes": {
       "bearerAuth": {
         "type": "http",
@@ -10253,6 +10328,149 @@
                     "description": "实际领取的金额"
                   }
                 }
+              }
+            ]
+          }
+        }
+      },
+      "DepositBonusStatusResponse": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "integer",
+            "description": "响应码，0表示成功"
+          },
+          "errmsg": {
+            "type": "string",
+            "description": "响应消息"
+          },
+          "data": {
+            "oneOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "type": {
+                    "type": "string",
+                    "enum": ["first_second_third"],
+                    "description": "奖励类型：首充/二充/三充"
+                  },
+                  "current_reward": {
+                    "type": "object",
+                    "properties": {
+                      "type": {
+                        "type": "string",
+                        "enum": ["first_deposit_bonus", "second_deposit_bonus", "third_deposit_bonus"],
+                        "description": "当前奖励类型"
+                      },
+                      "name": {
+                        "type": "string",
+                        "description": "奖励名称"
+                      },
+                      "completed": {
+                        "type": "boolean",
+                        "description": "是否已完成"
+                      },
+                      "config": {
+                        "type": "object",
+                        "nullable": true,
+                        "properties": {
+                          "amounts": {
+                            "type": "array",
+                            "items": {
+                              "type": "number",
+                              "format": "decimal"
+                            },
+                            "description": "充值金额阶梯"
+                          },
+                          "ratio": {
+                            "type": "array",
+                            "items": {
+                              "type": "number",
+                              "format": "decimal"
+                            },
+                            "description": "奖励比例阶梯（百分比）"
+                          },
+                          "max_bonus_amount": {
+                            "type": "number",
+                            "format": "decimal",
+                            "description": "最大奖励金额"
+                          },
+                          "currency": {
+                            "type": "string",
+                            "description": "币种"
+                          }
+                        }
+                      }
+                    },
+                    "required": ["type", "name", "completed"]
+                  }
+                },
+                "required": ["type", "current_reward"]
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "type": {
+                    "type": "string",
+                    "enum": ["daily"],
+                    "description": "奖励类型：每日充值奖励"
+                  },
+                  "current_reward": {
+                    "type": "object",
+                    "properties": {
+                      "enabled": {
+                        "type": "boolean",
+                        "description": "是否启用"
+                      },
+                      "today_count": {
+                        "type": "integer",
+                        "description": "今日已获得次数（仅当enabled为true时存在）"
+                      },
+                      "max_times": {
+                        "type": "integer",
+                        "description": "每日最大次数（仅当enabled为true时存在）"
+                      },
+                      "remaining_times": {
+                        "type": "integer",
+                        "description": "今日剩余次数（仅当enabled为true时存在）"
+                      },
+                      "config": {
+                        "type": "object",
+                        "nullable": true,
+                        "properties": {
+                          "amounts": {
+                            "type": "array",
+                            "items": {
+                              "type": "number",
+                              "format": "decimal"
+                            },
+                            "description": "充值金额阶梯"
+                          },
+                          "ratio": {
+                            "type": "array",
+                            "items": {
+                              "type": "number",
+                              "format": "decimal"
+                            },
+                            "description": "奖励比例阶梯（百分比）"
+                          },
+                          "max_bonus_amount": {
+                            "type": "number",
+                            "format": "decimal",
+                            "description": "最大奖励金额"
+                          },
+                          "currency": {
+                            "type": "string",
+                            "description": "币种"
+                          }
+                        },
+                        "description": "奖励配置（仅当enabled为true时存在）"
+                      }
+                    },
+                    "required": ["enabled"]
+                  }
+                },
+                "required": ["type", "current_reward"]
               }
             ]
           }

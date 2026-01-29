@@ -107,6 +107,7 @@ Route::middleware('auth:sanctum')->prefix('check-ins')->group(function () {
 // BonusTask 相关路由（需要认证）
 Route::middleware('auth:sanctum')->prefix('bonus-tasks')->group(function () {
     Route::get('/claimable', [BonusTaskController::class, 'claimable']);
+    Route::get('/deposit-bonus-status', [BonusTaskController::class, 'depositBonusStatus']);
     Route::post('/{id}/claim', [BonusTaskController::class, 'claim']);
 });
 

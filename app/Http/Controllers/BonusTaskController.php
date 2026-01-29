@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Services\BonusTaskService;
+use App\Services\PromotionService;
 use App\Enums\ErrorCode;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
@@ -10,10 +11,12 @@ use Illuminate\Http\JsonResponse;
 class BonusTaskController extends Controller
 {
     protected BonusTaskService $bonusTaskService;
+    protected PromotionService $promotionService;
 
     public function __construct(BonusTaskService $bonusTaskService)
     {
         $this->bonusTaskService = $bonusTaskService;
+        $this->promotionService = new PromotionService();
     }
     /**
      * 获取可领取的 BonusTask 列表
@@ -68,5 +71,23 @@ class BonusTaskController extends Controller
             }
             return $this->error(ErrorCode::INTERNAL_ERROR, $e->getMessage());
         }
+    }
+
+    /**
+     * 获取用户充值奖励状态
+     *
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function depositBonusStatus(Request $request): JsonResponse
+    {
+        $user = $request->user();
+        if (!$user) {
+            return $this->error(ErrorCode::UNAUTHORIZED, 'User not authenticated');
+        }
+
+        $status = $this->promotionService->getDepositBonusStatus($user->id);
+
+        return $this->responseItem($status);
     }
 }

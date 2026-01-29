@@ -58,4 +58,53 @@ return [
             'payment_method_ids' => [], // 可以触发额外签到的支付通道 ID 列表，例如：[1, 2, 3]
         ],
     ],
+    [
+        'group' => 'promotion',
+        'key' => 'first_deposit_bonus',
+        'value' => [
+            'method' => 'ratio',
+            'currency' => 'USD',
+            'amounts' => [10, 20, 30],
+            'ratio' => [100, 120, 140],
+            'max_bonus_amount' => 100,
+            'enabled' => true,
+        ],
+    ],
+    [
+        'group' => 'promotion',
+        'key' => 'second_deposit_bonus',
+        'value' => [
+            'method' => 'ratio',
+            'currency' => 'USD',
+            'amounts' => [10, 20, 30],
+            'ratio' => [100, 140, 160],
+            'max_bonus_amount' => 100,
+            'enabled' => true,
+        ],
+    ],
+    [
+        'group' => 'promotion',
+        'key' => 'third_deposit_bonus',
+        'value' => [
+            'method' => 'ratio',
+            'currency' => 'USD',
+            'amounts' => [10, 20, 30],
+            'ratio' => [100, 160, 180],
+            'max_bonus_amount' => 100,
+            'enabled' => true,
+        ],
+    ],
+    [
+        'group' => 'promotion',
+        'key' => 'daily_deposit_bonus',
+        'value' => [
+            'method' => 'ratio',
+            'currency' => 'USD',
+            'amounts' => [10, 20, 30],
+            'ratio' => [10, 20, 30],
+            'max_bonus_amount' => 100,
+            'times' => 3,
+            'enabled' => true,
+        ],
+    ],
 ];

@@ -5,6 +5,7 @@ namespace App\Providers;
 use App\Events\DepositCompleted;
 use App\Events\OrderCompleted;
 use App\Events\VipLevelUpgraded;
+use App\Listeners\CreateDepositBonusTask;
 use App\Listeners\CreateInvitationDepositReward;
 use App\Listeners\CreateInvitationVipReward;
 use App\Listeners\RecordUserRecentGame;
@@ -42,6 +43,7 @@ class AppServiceProvider extends ServiceProvider
         Event::listen(OrderCompleted::class, RecordUserRecentGame::class);
         Event::listen(OrderCompleted::class, UpdateUserWager::class);
         Event::listen(DepositCompleted::class, CreateInvitationDepositReward::class);
+        Event::listen(DepositCompleted::class, CreateDepositBonusTask::class);
         Event::listen(VipLevelUpgraded::class, CreateInvitationVipReward::class);
     }
 

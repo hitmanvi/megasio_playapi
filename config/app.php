@@ -152,6 +152,19 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Deposit Bonus Wager Multiplier
+    |--------------------------------------------------------------------------
+    |
+    | The multiplier for calculating the required wager amount for deposit bonus tasks.
+    | Required wager = bonus amount * multiplier
+    | Default: 40
+    |
+    */
+
+    'deposit_bonus_wager_multiplier' => (float) env('DEPOSIT_BONUS_WAGER_MULTIPLIER', 40),
+
+    /*
+    |--------------------------------------------------------------------------
     | SC to USD Exchange Rate
     |--------------------------------------------------------------------------
     |
