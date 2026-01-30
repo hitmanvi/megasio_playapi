@@ -101,4 +101,19 @@ class Rollover extends Model
 
         return false;
     }
+
+    /**
+     * 获取用户未完成的 rollover 总额
+     *
+     * @param int $userId
+     * @param string $currency
+     * @return float
+     */
+    public static function getUncompletedTotal(int $userId, string $currency): float
+    {
+        return (float) self::where('user_id', $userId)
+            ->where('currency', $currency)
+            ->whereIn('status', [self::STATUS_PENDING, self::STATUS_ACTIVE])
+            ->sum('deposit_amount');
+    }
 }

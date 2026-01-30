@@ -6,6 +6,7 @@ use App\Events\BalanceChanged;
 use App\Exceptions\Exception;
 use App\Exceptions\InsufficientBalanceException;
 use App\Models\Balance;
+use App\Models\Rollover;
 use App\Models\Transaction;
 use App\Enums\ErrorCode;
 use Illuminate\Support\Facades\DB;
@@ -233,6 +234,33 @@ class BalanceService
     {
         $balance = $this->getBalance($userId, $currency);
         return $balance && $balance->available >= $amount;
+    }
+
+    /**
+     * 计算用户可提现金额
+     * 可提现金额 = 可用余额 - 未完成的 rollover 总额
+     *
+     * @param int $userId
+     * @param string $currency
+     * @return float
+     */
+    public function getWithdrawableAmount(int $userId, string $currency): float
+    {
+        $balance = $this->getBalance($userId, $currency);
+        $availableBalance = $balance ? (float) $balance->available : 0.0;
+        
+        // 如果可用余额为 0，直接返回 0，避免不必要的查询
+        if ($availableBalance <= 0) {
+            return 0.0;
+        }
+        
+        // 获取未完成的 rollover 总额
+        $uncompletedRolloverTotal = Rollover::getUncompletedTotal($userId, $currency);
+        
+        // 计算可提现金额：余额 - 未完成的 rollover 总额
+        $withdrawableAmount = $availableBalance - $uncompletedRolloverTotal;
+        
+        return max(0.0, $withdrawableAmount);
     }
 
     /**

@@ -26,7 +26,14 @@ class BalanceController extends Controller
         $user = $request->user();
         $balances = $this->balanceService->getUserBalances($user->id);
 
-        return $this->responseList($balances->toArray());
+        // 为每个余额添加可提现金额
+        $balancesArray = $balances->map(function ($balance) use ($user) {
+            $balanceArray = $balance->toArray();
+            $balanceArray['withdrawable'] = $this->balanceService->getWithdrawableAmount($user->id, $balance->currency);
+            return $balanceArray;
+        })->toArray();
+
+        return $this->responseList($balancesArray);
     }
 
     /**
@@ -42,6 +49,7 @@ class BalanceController extends Controller
                 'available' => 0,
                 'frozen' => 0,
                 'currency' => $currency,
+                'withdrawable' => 0,
             ]);
         }
 
@@ -49,6 +57,7 @@ class BalanceController extends Controller
             'available' => $balance->available,
             'frozen' => $balance->frozen,
             'currency' => $balance->currency,
+            'withdrawable' => $this->balanceService->getWithdrawableAmount($user->id, $currency),
         ]);
     }
 
