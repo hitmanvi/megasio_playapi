@@ -8,6 +8,7 @@ use App\Events\VipLevelUpgraded;
 use App\Listeners\CreateDepositBonusTask;
 use App\Listeners\CreateInvitationDepositReward;
 use App\Listeners\CreateInvitationVipReward;
+use App\Listeners\CreateRollover;
 use App\Listeners\RecordUserRecentGame;
 use App\Listeners\UpdateUserWager;
 use Illuminate\Cache\RateLimiting\Limit;
@@ -44,6 +45,7 @@ class AppServiceProvider extends ServiceProvider
         Event::listen(OrderCompleted::class, UpdateUserWager::class);
         Event::listen(DepositCompleted::class, CreateInvitationDepositReward::class);
         Event::listen(DepositCompleted::class, CreateDepositBonusTask::class);
+        Event::listen(DepositCompleted::class, CreateRollover::class);
         Event::listen(VipLevelUpgraded::class, CreateInvitationVipReward::class);
     }
 
