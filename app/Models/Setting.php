@@ -17,6 +17,7 @@ class Setting extends Model
         'type',
         'group',
         'description',
+        'sort_id',
     ];
 }
 
