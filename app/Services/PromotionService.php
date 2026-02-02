@@ -339,4 +339,46 @@ class PromotionService
             ],
         ];
     }
+
+    /**
+     * 获取充值奖励配置
+     *
+     * @return array
+     */
+    public function getDepositBonusConfig(): array
+    {
+        $configKeys = [
+            'first_deposit_bonus',
+            'second_deposit_bonus',
+            'third_deposit_bonus',
+            'daily_deposit_bonus',
+        ];
+
+        $result = [];
+
+        foreach ($configKeys as $configKey) {
+            $config = $this->settingService->getValue($configKey);
+            
+            if ($config && is_array($config)) {
+                // 只返回启用的配置
+                if (isset($config['enabled']) && $config['enabled']) {
+                    $result[$configKey] = [
+                        'method' => $config['method'] ?? 'ratio',
+                        'currency' => $config['currency'] ?? config('app.currency', 'USD'),
+                        'amounts' => $config['amounts'] ?? [],
+                        'ratio' => $config['ratio'] ?? [],
+                        'max_bonus_amount' => (float) ($config['max_bonus_amount'] ?? 0),
+                        'enabled' => true,
+                    ];
+
+                    // 如果是每日充值奖励，添加 times 字段
+                    if ($configKey === 'daily_deposit_bonus' && isset($config['times'])) {
+                        $result[$configKey]['times'] = (int) $config['times'];
+                    }
+                }
+            }
+        }
+
+        return $result;
+    }
 }

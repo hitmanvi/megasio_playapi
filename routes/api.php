@@ -108,6 +108,7 @@ Route::middleware('auth:sanctum')->prefix('check-ins')->group(function () {
 Route::middleware('auth:sanctum')->prefix('bonus-tasks')->group(function () {
     Route::get('/claimable', [BonusTaskController::class, 'claimable']);
     Route::get('/deposit-bonus-status', [BonusTaskController::class, 'depositBonusStatus']);
+    Route::get('/deposit-bonus-config', [BonusTaskController::class, 'depositBonusConfig']);
     Route::post('/{id}/claim', [BonusTaskController::class, 'claim']);
 });
 

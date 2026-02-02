@@ -90,4 +90,17 @@ class BonusTaskController extends Controller
 
         return $this->responseItem($status);
     }
+
+    /**
+     * 获取充值奖励配置
+     *
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function depositBonusConfig(Request $request): JsonResponse
+    {
+        $config = $this->promotionService->getDepositBonusConfig();
+
+        return $this->responseItem($config);
+    }
 }
