@@ -107,7 +107,16 @@ class GenerateBonusTasks extends Command
         for ($i = 0; $i < $count; $i++) {
             // 随机选择任务编号前缀
             $taskNoPrefix = $this->taskNoPrefixes[array_rand($this->taskNoPrefixes)];
-            $taskNo = $taskNoPrefix . '_' . strtoupper(uniqid());
+            // 生成唯一的后缀，确保总长度不超过 50 个字符
+            $suffix = strtoupper(substr(uniqid(), -8)); // 使用 uniqid 的后 8 位
+            $taskNo = $taskNoPrefix . '_' . $suffix;
+            
+            // 确保 task_no 不超过 50 个字符
+            if (strlen($taskNo) > 50) {
+                $maxPrefixLength = 50 - strlen($suffix) - 1; // 减去下划线的长度
+                $taskNoPrefix = substr($taskNoPrefix, 0, $maxPrefixLength);
+                $taskNo = $taskNoPrefix . '_' . $suffix;
+            }
 
             // 随机选择奖励名称
             $bonusName = $this->bonusNames[array_rand($this->bonusNames)];
