@@ -207,6 +207,26 @@ class BonusTaskService
     }
 
     /**
+     * 获取用户的 BonusTask 列表
+     *
+     * @param int $userId
+     * @param string|null $status 状态过滤（可选）
+     * @return \Illuminate\Database\Eloquent\Collection
+     */
+    public function getTasks(int $userId, ?string $status = null)
+    {
+        $query = BonusTask::query()
+            ->where('user_id', $userId);
+
+        // 如果提供了 status 参数，进行过滤
+        if ($status !== null) {
+            $query->where('status', $status);
+        }
+
+        return $query->ordered()->get();
+    }
+
+    /**
      * 格式化 BonusTask 数据
      *
      * @param BonusTask $task

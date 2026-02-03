@@ -6339,6 +6339,80 @@
         }
       }
     },
+    "/bonus-tasks": {
+      "get": {
+        "tags": ["BonusTask"],
+        "summary": "获取奖励任务列表",
+        "description": "获取当前用户的所有奖励任务列表，支持按状态过滤，按创建时间倒序返回。",
+        "security": [{"bearerAuth": []}],
+        "parameters": [
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "description": "任务状态过滤（可选）",
+            "schema": {
+              "type": "string",
+              "enum": ["pending", "active", "completed", "claimed", "expired", "cancelled"]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "获取成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BonusTaskListResponse"
+                },
+                "example": {
+                  "code": 0,
+                  "errmsg": "Success",
+                  "data": [
+                    {
+                      "id": 1,
+                      "task_no": "FIRST_DEPOSIT_BONUS",
+                      "bonus_name": "First Deposit Bonus",
+                      "cap_bonus": 100.0000,
+                      "base_bonus": 50.0000,
+                      "last_bonus": 100.0000,
+                      "need_wager": 500.0000,
+                      "wager": 500.0000,
+                      "status": "completed",
+                      "currency": "USD",
+                      "expired_at": "2026-02-15T10:00:00Z",
+                      "progress_percent": 100.0,
+                      "created_at": "2026-01-15 10:00:00",
+                      "updated_at": "2026-01-15 12:00:00"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "未授权",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "参数验证失败",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/bonus-tasks/claimable": {
       "get": {
         "tags": ["BonusTask"],

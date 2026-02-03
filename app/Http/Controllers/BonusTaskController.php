@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\BonusTask;
 use App\Services\BonusTaskService;
 use App\Services\PromotionService;
 use App\Enums\ErrorCode;
@@ -13,11 +14,53 @@ class BonusTaskController extends Controller
     protected BonusTaskService $bonusTaskService;
     protected PromotionService $promotionService;
 
-    public function __construct(BonusTaskService $bonusTaskService)
+    public function __construct()
     {
-        $this->bonusTaskService = $bonusTaskService;
+        $this->bonusTaskService = new BonusTaskService();
         $this->promotionService = new PromotionService();
     }
+
+    /**
+     * 获取 BonusTask 列表
+     *
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function index(Request $request): JsonResponse
+    {
+        $user = $request->user();
+        if (!$user) {
+            return $this->error(ErrorCode::UNAUTHORIZED, 'User not authenticated');
+        }
+
+        // 获取 status 过滤参数（可选）
+        $status = $request->input('status');
+
+        // 验证 status 参数（如果提供）
+        if ($status !== null) {
+            $validStatuses = [
+                BonusTask::STATUS_PENDING,
+                BonusTask::STATUS_ACTIVE,
+                BonusTask::STATUS_COMPLETED,
+                BonusTask::STATUS_CLAIMED,
+                BonusTask::STATUS_EXPIRED,
+                BonusTask::STATUS_CANCELLED,
+            ];
+            
+            if (!in_array($status, $validStatuses)) {
+                return $this->error(ErrorCode::VALIDATION_ERROR, 'Invalid status value');
+            }
+        }
+
+        $tasks = $this->bonusTaskService->getTasks($user->id, $status);
+
+        $tasks = $tasks->map(function ($task) {
+            return $this->bonusTaskService->formatBonusTask($task);
+        });
+
+        return $this->responseList($tasks->toArray());
+    }
+
     /**
      * 获取可领取的 BonusTask 列表
      * 
