@@ -8,6 +8,7 @@ use App\Services\PromotionService;
 use App\Enums\ErrorCode;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Pagination\LengthAwarePaginator;
 
 class BonusTaskController extends Controller
 {
@@ -53,13 +54,25 @@ class BonusTaskController extends Controller
             }
         }
 
-        $tasks = $this->bonusTaskService->getTasks($user->id, $status);
+        $perPage = max(1, (int) $request->input('per_page', 20));
+        $tasksPaginator = $this->bonusTaskService->getTasksPaginated($user->id, $status, $perPage);
 
-        $tasks = $tasks->map(function ($task) {
+        // 格式化返回数据
+        $formattedTasks = $tasksPaginator->items();
+        $formattedTasks = collect($formattedTasks)->map(function ($task) {
             return $this->bonusTaskService->formatBonusTask($task);
         });
 
-        return $this->responseList($tasks->toArray());
+        // 创建新的分页器，使用格式化后的数据
+        $formattedPaginator = new LengthAwarePaginator(
+            $formattedTasks,
+            $tasksPaginator->total(),
+            $tasksPaginator->perPage(),
+            $tasksPaginator->currentPage(),
+            ['path' => $request->url(), 'query' => $request->query()]
+        );
+
+        return $this->responseListWithPaginator($formattedPaginator);
     }
 
     /**

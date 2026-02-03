@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\BonusTask;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
 
 class BonusTaskService
@@ -245,6 +246,27 @@ class BonusTaskService
         }
 
         return $query->ordered()->get();
+    }
+
+    /**
+     * 获取用户的 BonusTask 列表（分页）
+     *
+     * @param int $userId
+     * @param string|null $status 状态过滤（可选）
+     * @param int $perPage 每页数量
+     * @return \Illuminate\Contracts\Pagination\LengthAwarePaginator
+     */
+    public function getTasksPaginated(int $userId, ?string $status = null, int $perPage = 20)
+    {
+        $query = BonusTask::query()
+            ->where('user_id', $userId);
+
+        // 如果提供了 status 参数，进行过滤
+        if ($status !== null) {
+            $query->where('status', $status);
+        }
+
+        return $query->ordered()->paginate($perPage);
     }
 
     /**
