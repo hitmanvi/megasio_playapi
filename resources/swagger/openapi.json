@@ -3005,8 +3005,39 @@
       "post": {
         "tags": ["CheckIn"],
         "summary": "用户签到",
-        "description": "每日签到，每天只能签到一次",
+        "description": "每日签到功能。普通签到每天只能签到一次。额外签到（bonus）需要当天使用特定支付通道充值成功后才能使用，每天也只能使用一次额外签到。额外签到不影响连续签到天数，奖励档位与当天普通签到相同。",
         "security": [{ "bearerAuth": [] }],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "bonus": {
+                    "type": "boolean",
+                    "description": "是否为额外签到。true 表示额外签到，false 或不传表示普通签到。额外签到需要当天使用配置的支付通道充值成功后才能使用。",
+                    "default": false
+                  }
+                }
+              },
+              "examples": {
+                "normal": {
+                  "summary": "普通签到",
+                  "value": {
+                    "bonus": false
+                  }
+                },
+                "bonus": {
+                  "summary": "额外签到",
+                  "value": {
+                    "bonus": true
+                  }
+                }
+              }
+            }
+          }
+        },
         "responses": {
           "200": {
             "description": "签到成功",
@@ -3015,21 +3046,90 @@
                 "schema": {
                   "$ref": "#/components/schemas/CheckInResponse"
                 },
-                "example": {
-                  "code": 0,
-                  "errmsg": "Success",
-                  "data": {
-                    "id": 1,
-                    "check_in_date": "2026-01-12",
-                    "consecutive_days": 5,
-                    "created_at": "2026-01-12T09:00:00+00:00"
+                "examples": {
+                  "normal": {
+                    "summary": "普通签到成功",
+                    "value": {
+                      "code": 0,
+                      "errmsg": "Success",
+                      "data": {
+                        "id": 1,
+                        "check_in_date": "2026-01-12",
+                        "consecutive_days": 5,
+                        "reward_day": 5,
+                        "is_bonus_check_in": false,
+                        "rewards_granted": [
+                          {
+                            "type": "USD",
+                            "amount": 0.25,
+                            "description": "Check-in reward day 5"
+                          }
+                        ],
+                        "created_at": "2026-01-12T09:00:00+00:00"
+                      }
+                    }
+                  },
+                  "bonus": {
+                    "summary": "额外签到成功",
+                    "value": {
+                      "code": 0,
+                      "errmsg": "Success",
+                      "data": {
+                        "id": 2,
+                        "check_in_date": "2026-01-12",
+                        "consecutive_days": 5,
+                        "reward_day": 5,
+                        "is_bonus_check_in": true,
+                        "rewards_granted": [
+                          {
+                            "type": "USD",
+                            "amount": 0.25,
+                            "description": "Check-in reward day 5"
+                          }
+                        ],
+                        "created_at": "2026-01-12T15:00:00+00:00"
+                      }
+                    }
                   }
                 }
               }
             }
           },
           "400": {
-            "description": "今日已签到"
+            "description": "签到失败",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "examples": {
+                  "already_checked_in": {
+                    "summary": "今日已签到",
+                    "value": {
+                      "code": 1001,
+                      "errmsg": "Already checked in today",
+                      "data": null
+                    }
+                  },
+                  "bonus_already_used": {
+                    "summary": "今日已使用额外签到",
+                    "value": {
+                      "code": 1001,
+                      "errmsg": "Bonus check-in already used today",
+                      "data": null
+                    }
+                  },
+                  "bonus_not_available": {
+                    "summary": "额外签到不可用（未使用指定支付通道充值）",
+                    "value": {
+                      "code": 1001,
+                      "errmsg": "Bonus check-in not available. Please deposit using eligible payment channels.",
+                      "data": null
+                    }
+                  }
+                }
+              }
+            }
           },
           "401": {
             "description": "未授权"
@@ -6791,6 +6891,10 @@
           "reward_day": {
             "type": "integer",
             "description": "奖励档位（1-7循环）"
+          },
+          "is_bonus_check_in": {
+            "type": "boolean",
+            "description": "是否为额外签到"
           },
           "rewards_granted": {
             "type": "array",
