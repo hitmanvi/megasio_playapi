@@ -87,6 +87,7 @@ class GenerateBonusTasks extends Command
                 BonusTask::STATUS_CLAIMED,
                 BonusTask::STATUS_EXPIRED,
                 BonusTask::STATUS_CANCELLED,
+                BonusTask::STATUS_DEPLETED,
             ];
 
             if (!in_array($status, $validStatuses)) {
