@@ -102,6 +102,7 @@ Route::middleware('auth:sanctum')->prefix('check-ins')->group(function () {
     Route::post('/', [CheckInController::class, 'store']);
     Route::get('/status', [CheckInController::class, 'status']);
     Route::get('/history', [CheckInController::class, 'history']);
+    Route::get('/config', [CheckInController::class, 'config']);
 });
 
 // BonusTask 相关路由（需要认证）

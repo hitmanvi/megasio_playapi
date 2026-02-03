@@ -302,6 +302,37 @@ class CheckInService
     }
 
     /**
+     * 获取签到配置
+     *
+     * @return array
+     */
+    public function getCheckInConfig(): array
+    {
+        $checkInBonus = $this->settingService->getValue('check_in_bonus');
+
+        if (!$checkInBonus || !is_array($checkInBonus)) {
+            return [
+                'enabled' => false,
+            ];
+        }
+
+        // 只返回启用的配置
+        if (!isset($checkInBonus['enabled']) || !$checkInBonus['enabled']) {
+            return [
+                'enabled' => false,
+            ];
+        }
+
+        return [
+            'enabled' => true,
+            'method' => $checkInBonus['method'] ?? 'fixed',
+            'currency' => $checkInBonus['currency'] ?? config('app.currency', 'USD'),
+            'rewards' => $checkInBonus['rewards'] ?? [],
+            'payment_method_ids' => $checkInBonus['payment_method_ids'] ?? [],
+        ];
+    }
+
+    /**
      * 格式化签到记录
      */
     public function formatCheckIn(UserCheckIn $checkIn): array

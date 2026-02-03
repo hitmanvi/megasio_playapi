@@ -50,5 +50,15 @@ class CheckInController extends Controller
 
         return $this->responseListWithPaginator($history);
     }
+
+    /**
+     * 获取签到配置
+     */
+    public function config(Request $request): JsonResponse
+    {
+        $config = $this->checkInService->getCheckInConfig();
+
+        return $this->responseItem($config);
+    }
 }
 
