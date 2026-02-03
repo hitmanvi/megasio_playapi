@@ -3,7 +3,6 @@
 namespace App\Services;
 
 use App\Models\BonusTask;
-use App\Models\Transaction;
 use Illuminate\Support\Facades\DB;
 
 class BonusTaskService
