@@ -14,6 +14,7 @@ class BonusTask extends Model
     const STATUS_CLAIMED = 'claimed';        // 已领取
     const STATUS_EXPIRED = 'expired';        // 已过期
     const STATUS_CANCELLED = 'cancelled';   // 已取消
+    const STATUS_DEPLETED = 'depleted';      // bonus 余额已用完但未完成任务
 
     protected $fillable = [
         'user_id',
@@ -90,10 +91,19 @@ class BonusTask extends Model
     }
 
     /**
+     * 是否 bonus 余额已用完
+     */
+    public function isDepleted(): bool
+    {
+        return $this->status === self::STATUS_DEPLETED;
+    }
+
+    /**
      * 检查是否可领取（已完成即可领取，不受过期时间限制）
      */
     public function isClaimable(): bool
     {
+        // 只有 completed 状态可以领取，depleted 状态不能领取
         return $this->isCompleted();
     }
 
@@ -105,6 +115,11 @@ class BonusTask extends Model
         // completed 和 claimed 状态可以操作（已完成的任务不受过期限制）
         if ($this->isCompleted() || $this->isClaimed()) {
             return true;
+        }
+        
+        // depleted 状态不能操作
+        if ($this->isDepleted()) {
+            return false;
         }
         
         // pending 和 active 状态需要检查是否过期

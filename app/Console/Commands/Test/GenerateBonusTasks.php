@@ -206,6 +206,7 @@ class GenerateBonusTasks extends Command
             BonusTask::STATUS_CLAIMED,
             BonusTask::STATUS_EXPIRED,
             BonusTask::STATUS_CANCELLED,
+            BonusTask::STATUS_DEPLETED,
         ];
 
         return $statuses[array_rand($statuses)];
@@ -223,6 +224,7 @@ class GenerateBonusTasks extends Command
             BonusTask::STATUS_CLAIMED => $needWager, // 已领取的任务 wager 等于 need_wager
             BonusTask::STATUS_EXPIRED => $this->randomFloat(0, $needWager * 0.8), // 已过期的任务 wager 可能未完成
             BonusTask::STATUS_CANCELLED => $this->randomFloat(0, $needWager * 0.5), // 已取消的任务 wager 可能未完成
+            BonusTask::STATUS_DEPLETED => $this->randomFloat(0, $needWager * 0.9), // depleted 状态的任务 wager 未完成
             default => 0,
         };
     }

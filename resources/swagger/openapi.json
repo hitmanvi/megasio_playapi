@@ -6353,7 +6353,7 @@
             "description": "任务状态过滤（可选）",
             "schema": {
               "type": "string",
-              "enum": ["pending", "active", "completed", "claimed", "expired", "cancelled"]
+              "enum": ["pending", "active", "completed", "claimed", "expired", "cancelled", "depleted"]
             }
           }
         ],
@@ -10397,7 +10397,7 @@
           "status": {
             "type": "string",
             "description": "任务状态",
-            "enum": ["pending", "active", "completed", "claimed", "expired", "cancelled"]
+            "enum": ["pending", "active", "completed", "claimed", "expired", "cancelled", "depleted"]
           },
           "currency": {
             "type": "string",

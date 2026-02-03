@@ -142,6 +142,11 @@ class BonusTaskService
         // 扣减 bonus 余额
         $task->last_bonus -= $amount;
         
+        // 确保 last_bonus 不会小于 0
+        if ($task->last_bonus < 0) {
+            $task->last_bonus = 0;
+        }
+        
         // 增加 wager（流水）
         $task->wager = min($task->wager + $amount, $task->need_wager);
         
@@ -150,6 +155,11 @@ class BonusTaskService
             // 任务完成，发放奖励并更新状态
             $this->completeTask($task);
         } else {
+            // 检查 last_bonus 是否用完且任务未完成
+            if ($task->last_bonus <= 0 && ($task->isPending() || $task->isActive())) {
+                // bonus 余额已用完但任务未完成，更新状态为 depleted
+                $task->status = BonusTask::STATUS_DEPLETED;
+            }
             $task->save();
         }
         
@@ -197,6 +207,18 @@ class BonusTaskService
      */
     public function addBonus(BonusTask $task, float $amount): void
     {
+        // depleted 状态的任务可以恢复 bonus，但不能操作（需要先恢复状态）
+        if ($task->isDepleted()) {
+            // 如果增加 bonus 后余额大于 0，恢复为 active 状态
+            $newBonus = $task->last_bonus + $amount;
+            if ($newBonus > 0) {
+                $task->last_bonus = $newBonus;
+                $task->status = BonusTask::STATUS_ACTIVE;
+                $task->save();
+            }
+            return;
+        }
+        
         if (!$task->canOperate()) {
             return;
         }
