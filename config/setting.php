@@ -107,4 +107,17 @@ return [
             'enabled' => true,
         ],
     ],
+    [
+        'group' => 'vip',
+        'key' => 'vip',
+        'value' => [
+            'supported_game_categories' => ['slot'],
+            'weekly_cashback' => [
+                'enabled' => true,
+            ],
+            'monthly_cashback' => [
+                'enabled' => true,
+            ],
+        ],
+    ],
 ];
