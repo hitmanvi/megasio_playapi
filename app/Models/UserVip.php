@@ -160,7 +160,7 @@ class UserVip extends Model
         
         return [
             'level' => $nextLevel['level'],
-            'group' => $nextLevel['group'],
+            'group' => $nextLevel['group'] ?? null,
             'required_exp' => $requiredExp,
             'exp_needed' => $expNeeded,
             'progress_percentage' => $expRange > 0 
