@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use App\Models\VipLevel;
+use App\Models\VipLevelGroup;
 use Illuminate\Database\Seeder;
 
 class VipLevelSeeder extends Seeder
@@ -12,11 +13,60 @@ class VipLevelSeeder extends Seeder
      */
     public function run(): void
     {
+        // 创建VIP等级组
+        $groups = [
+            [
+                'name' => 'Bronze',
+                'icon' => 'vip-bronze',
+                'card_img' => 'vip-bronze-card',
+                'sort_id' => 1,
+                'enabled' => true,
+            ],
+            [
+                'name' => 'Silver',
+                'icon' => 'vip-silver',
+                'card_img' => 'vip-silver-card',
+                'sort_id' => 2,
+                'enabled' => true,
+            ],
+            [
+                'name' => 'Gold',
+                'icon' => 'vip-gold',
+                'card_img' => 'vip-gold-card',
+                'sort_id' => 3,
+                'enabled' => true,
+            ],
+            [
+                'name' => 'Platinum',
+                'icon' => 'vip-platinum',
+                'card_img' => 'vip-platinum-card',
+                'sort_id' => 4,
+                'enabled' => true,
+            ],
+            [
+                'name' => 'Diamond',
+                'icon' => 'vip-diamond',
+                'card_img' => 'vip-diamond-card',
+                'sort_id' => 5,
+                'enabled' => true,
+            ],
+        ];
+
+        $groupMap = [];
+        foreach ($groups as $groupData) {
+            $group = VipLevelGroup::updateOrCreate(
+                ['name' => $groupData['name']],
+                $groupData
+            );
+            $groupMap[$groupData['name']] = $group->id;
+        }
+
+        // 创建VIP等级，每个等级对应一个组
         $levels = [
             [
                 'level' => '1',
-                'name' => 'Bronze',
-                'icon' => 'vip-bronze',
+                'name' => 'Bronze I',
+                'group_id' => $groupMap['Bronze'],
                 'required_exp' => 0,
                 'description' => '初始等级，开启VIP之旅',
                 'benefits' => [
@@ -29,8 +79,8 @@ class VipLevelSeeder extends Seeder
             ],
             [
                 'level' => '2',
-                'name' => 'Silver',
-                'icon' => 'vip-silver',
+                'name' => 'Silver I',
+                'group_id' => $groupMap['Silver'],
                 'required_exp' => 500,
                 'description' => '累计500经验值可达此等级',
                 'benefits' => [
@@ -43,8 +93,8 @@ class VipLevelSeeder extends Seeder
             ],
             [
                 'level' => '3',
-                'name' => 'Gold',
-                'icon' => 'vip-gold',
+                'name' => 'Gold I',
+                'group_id' => $groupMap['Gold'],
                 'required_exp' => 2000,
                 'description' => '累计2000经验值可达此等级',
                 'benefits' => [
@@ -58,8 +108,8 @@ class VipLevelSeeder extends Seeder
             ],
             [
                 'level' => '4',
-                'name' => 'Platinum',
-                'icon' => 'vip-platinum',
+                'name' => 'Platinum I',
+                'group_id' => $groupMap['Platinum'],
                 'required_exp' => 5000,
                 'description' => '累计5000经验值可达此等级',
                 'benefits' => [
@@ -74,8 +124,8 @@ class VipLevelSeeder extends Seeder
             ],
             [
                 'level' => '5',
-                'name' => 'Diamond',
-                'icon' => 'vip-diamond',
+                'name' => 'Diamond I',
+                'group_id' => $groupMap['Diamond'],
                 'required_exp' => 10000,
                 'description' => '最高等级，尊享全部VIP特权',
                 'benefits' => [

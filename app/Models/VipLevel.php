@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Facades\Cache;
 
 class VipLevel extends Model
@@ -14,9 +15,9 @@ class VipLevel extends Model
     const CACHE_TTL = 3600; // 1 hour
 
     protected $fillable = [
+        'group_id',
         'level',
         'name',
-        'icon',
         'required_exp',
         'description',
         'benefits',
@@ -25,11 +26,20 @@ class VipLevel extends Model
     ];
 
     protected $casts = [
+        'group_id' => 'integer',
         'required_exp' => 'integer',
         'benefits' => 'array',
         'sort_id' => 'integer',
         'enabled' => 'boolean',
     ];
+
+    /**
+     * 关联VIP等级组
+     */
+    public function group(): BelongsTo
+    {
+        return $this->belongsTo(VipLevelGroup::class, 'group_id');
+    }
 
     /**
      * Boot the model
@@ -53,8 +63,19 @@ class VipLevel extends Model
     {
         return Cache::remember(self::CACHE_KEY, self::CACHE_TTL, function () {
             return self::where('enabled', true)
+                ->with('group')
                 ->orderBy('sort_id')
                 ->get()
+                ->map(function ($level) {
+                    $data = $level->toArray();
+                    // 如果有关联的组，添加组的 icon 和 card_img
+                    if ($level->group) {
+                        $data['group_icon'] = $level->group->icon;
+                        $data['group_card_img'] = $level->group->card_img;
+                        $data['group_name'] = $level->group->name;
+                    }
+                    return $data;
+                })
                 ->keyBy('level')
                 ->toArray();
         });
@@ -162,14 +183,26 @@ class VipLevel extends Model
      */
     public function toApiArray(): array
     {
-        return [
+        $data = [
             'level' => $this->level,
             'name' => $this->name,
-            'icon' => $this->icon,
             'required_exp' => $this->required_exp,
             'description' => $this->description,
             'benefits' => $this->benefits,
         ];
+
+        // 如果有关联的组，添加组信息
+        if ($this->relationLoaded('group') && $this->group) {
+            $data['group'] = $this->group->toApiArray();
+        } elseif ($this->group_id) {
+            // 如果没有加载关联，但存在 group_id，可以延迟加载
+            $this->load('group');
+            if ($this->group) {
+                $data['group'] = $this->group->toApiArray();
+            }
+        }
+
+        return $data;
     }
 }
 

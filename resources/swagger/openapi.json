@@ -107,6 +107,10 @@
     {
       "name": "GameFavorite",
       "description": "游戏收藏相关接口"
+    },
+    {
+      "name": "VIP",
+      "description": "VIP等级相关接口"
     }
   ],
   "paths": {
@@ -5316,6 +5320,79 @@
                       }
                     }
                   }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/vip/levels": {
+      "get": {
+        "tags": ["VIP"],
+        "summary": "获取所有VIP等级列表",
+        "description": "获取所有启用的VIP等级列表，包括等级信息和所属组信息",
+        "security": [{"bearerAuth": []}],
+        "responses": {
+          "200": {
+            "description": "获取成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VipLevelListResponse"
+                },
+                "example": {
+                  "code": 0,
+                  "errmsg": "Success",
+                  "data": {
+                    "items": [
+                      {
+                        "level": "1",
+                        "name": "Bronze I",
+                        "required_exp": 0,
+                        "description": "初始等级，开启VIP之旅",
+                        "benefits": {
+                          "daily_bonus": 100,
+                          "withdraw_limit": 1000,
+                          "cashback_rate": 0.01
+                        },
+                        "group": {
+                          "id": 1,
+                          "name": "Bronze",
+                          "icon": "vip-bronze",
+                          "card_img": "vip-bronze-card"
+                        }
+                      },
+                      {
+                        "level": "2",
+                        "name": "Silver I",
+                        "required_exp": 500,
+                        "description": "累计500经验值可达此等级",
+                        "benefits": {
+                          "daily_bonus": 200,
+                          "withdraw_limit": 3000,
+                          "cashback_rate": 0.02
+                        },
+                        "group": {
+                          "id": 2,
+                          "name": "Silver",
+                          "icon": "vip-silver",
+                          "card_img": "vip-silver-card"
+                        }
+                      }
+                    ],
+                    "meta": {}
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "未授权",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
             }
@@ -10942,6 +11019,90 @@
               }
             },
             "required": ["message"]
+          }
+        }
+      },
+      "VipLevelListResponse": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "integer",
+            "description": "响应码，0表示成功"
+          },
+          "errmsg": {
+            "type": "string",
+            "description": "响应消息"
+          },
+          "data": {
+            "type": "object",
+            "properties": {
+              "items": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/VipLevel"
+                }
+              },
+              "meta": {
+                "type": "object",
+                "description": "元数据（当前为空对象）"
+              }
+            }
+          }
+        }
+      },
+      "VipLevel": {
+        "type": "object",
+        "properties": {
+          "level": {
+            "type": "string",
+            "description": "等级标识"
+          },
+          "name": {
+            "type": "string",
+            "description": "等级名称"
+          },
+          "required_exp": {
+            "type": "integer",
+            "description": "所需经验值"
+          },
+          "description": {
+            "type": "string",
+            "nullable": true,
+            "description": "等级说明"
+          },
+          "benefits": {
+            "type": "object",
+            "nullable": true,
+            "description": "等级权益",
+            "additionalProperties": true
+          },
+          "group": {
+            "$ref": "#/components/schemas/VipLevelGroup",
+            "nullable": true,
+            "description": "VIP等级组信息"
+          }
+        }
+      },
+      "VipLevelGroup": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "description": "组ID"
+          },
+          "name": {
+            "type": "string",
+            "description": "组名称，如：Bronze, Silver, Gold"
+          },
+          "icon": {
+            "type": "string",
+            "nullable": true,
+            "description": "组图标"
+          },
+          "card_img": {
+            "type": "string",
+            "nullable": true,
+            "description": "组卡片图片"
           }
         }
       },
