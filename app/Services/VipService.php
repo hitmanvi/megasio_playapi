@@ -47,7 +47,7 @@ class VipService
     /**
      * 增加用户经验值
      */
-    public function addExp(User $user, int $exp): UserVip
+    public function addExp(User $user, float $exp): UserVip
     {
         $vip = $this->getOrCreateVip($user);
         $vip->addExp($exp);

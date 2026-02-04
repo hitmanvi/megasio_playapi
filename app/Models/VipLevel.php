@@ -102,7 +102,7 @@ class VipLevel extends Model
     /**
      * 根据经验值计算等级
      */
-    public static function calculateLevelFromExp(int $exp): string
+    public static function calculateLevelFromExp(float $exp): string
     {
         $levels = self::getAllCached();
         

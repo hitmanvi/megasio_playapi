@@ -25,7 +25,7 @@ class UserVip extends Model
      * @var array<string, string>
      */
     protected $casts = [
-        'exp' => 'integer',
+        'exp' => 'decimal:4',
     ];
 
     /**
@@ -39,9 +39,9 @@ class UserVip extends Model
     /**
      * Get required exp for a level.
      */
-    public static function getRequiredExp(string $level): int
+    public static function getRequiredExp(string $level): float
     {
-        return VipLevel::getRequiredExp($level);
+        return (float) VipLevel::getRequiredExp($level);
     }
 
     /**
@@ -55,13 +55,31 @@ class UserVip extends Model
     /**
      * Add experience points.
      */
-    public function addExp(int $exp): void
+    public function addExp(float $exp): void
     {
         $this->exp += $exp;
         $this->save();
         
         // Check if level should be upgraded
         $this->checkLevelUp();
+    }
+
+    /**
+     * 根据订单金额和币种计算应获得的经验值
+     * 
+     * @param float $amount 订单金额
+     * @param string $currency 币种
+     * @return float 应获得的经验值
+     */
+    public static function calculateExpFromOrder(float $amount, string $currency): float
+    {
+        // 目前只支持 USD: 1 USD = 1 EXP
+        if ($currency === 'USD') {
+            return $amount;
+        }
+        
+        // 其他币种暂时返回 0，后续可以扩展
+        return 0.0;
     }
 
     /**
@@ -152,11 +170,11 @@ class UserVip extends Model
             return null; // Already at max level
         }
         
-        $requiredExp = $nextLevel['required_exp'];
-        $expNeeded = max(0, $requiredExp - $this->exp);
-        $currentLevelExp = VipLevel::getRequiredExp($this->level);
+        $requiredExp = (float) $nextLevel['required_exp'];
+        $expNeeded = max(0, $requiredExp - (float) $this->exp);
+        $currentLevelExp = (float) VipLevel::getRequiredExp($this->level);
         $expRange = $requiredExp - $currentLevelExp;
-        $currentProgress = $this->exp - $currentLevelExp;
+        $currentProgress = (float) $this->exp - $currentLevelExp;
         
         return [
             'level' => $nextLevel['level'],
