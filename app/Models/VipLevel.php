@@ -180,13 +180,21 @@ class VipLevel extends Model
             $this->load('group');
         }
 
-        return [
+        $data = [
             'level' => $this->level,
             'required_exp' => $this->required_exp,
             'description' => $this->description,
             'benefits' => $this->benefits,
-            'group' => $this->group->toApiArray(),
         ];
+
+        // 添加 group 信息（如果存在）
+        if ($this->group) {
+            $data['group'] = $this->group->toApiArray();
+        } else {
+            $data['group'] = null;
+        }
+
+        return $data;
     }
 }
 
