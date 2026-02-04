@@ -111,7 +111,7 @@ return [
         'group' => 'vip',
         'key' => 'vip',
         'value' => [
-            'supported_game_categories' => ['slot'],
+            'supported_game_categories' => [1], // 游戏分类 ID 数组
             'weekly_cashback' => [
                 'enabled' => true,
             ],
