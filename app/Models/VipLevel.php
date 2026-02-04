@@ -17,7 +17,6 @@ class VipLevel extends Model
     protected $fillable = [
         'group_id',
         'level',
-        'name',
         'required_exp',
         'description',
         'benefits',
@@ -67,14 +66,7 @@ class VipLevel extends Model
                 ->orderBy('sort_id')
                 ->get()
                 ->map(function ($level) {
-                    $data = $level->toArray();
-                    // 如果有关联的组，添加组的 icon 和 card_img
-                    if ($level->group) {
-                        $data['group_icon'] = $level->group->icon;
-                        $data['group_card_img'] = $level->group->card_img;
-                        $data['group_name'] = $level->group->name;
-                    }
-                    return $data;
+                    return $level->toApiArray();
                 })
                 ->keyBy('level')
                 ->toArray();
@@ -183,26 +175,18 @@ class VipLevel extends Model
      */
     public function toApiArray(): array
     {
-        $data = [
+        // 确保 group 关系已加载
+        if (!$this->relationLoaded('group')) {
+            $this->load('group');
+        }
+
+        return [
             'level' => $this->level,
-            'name' => $this->name,
             'required_exp' => $this->required_exp,
             'description' => $this->description,
             'benefits' => $this->benefits,
+            'group' => $this->group->toApiArray(),
         ];
-
-        // 如果有关联的组，添加组信息
-        if ($this->relationLoaded('group') && $this->group) {
-            $data['group'] = $this->group->toApiArray();
-        } elseif ($this->group_id) {
-            // 如果没有加载关联，但存在 group_id，可以延迟加载
-            $this->load('group');
-            if ($this->group) {
-                $data['group'] = $this->group->toApiArray();
-            }
-        }
-
-        return $data;
     }
 }
 

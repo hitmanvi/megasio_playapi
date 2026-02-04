@@ -28,9 +28,7 @@ class VipService
         
         return [
             'level' => $vip->level,
-            'level_name' => $currentLevelInfo['name'] ?? null,
-            'level_icon' => $currentLevelInfo['group_icon'] ?? null,
-            'group' => $currentLevelInfo['group_name'] ?? null,
+            'group' => $currentLevelInfo['group'] ?? null,
             'exp' => $vip->exp,
             'benefits' => $vip->getBenefits(),
             'next_level' => $vip->getNextLevelInfo(),
@@ -82,12 +80,10 @@ class VipService
 
         return [
             'level' => $levelConfig['level'],
-            'name' => $levelConfig['name'],
-            'icon' => $levelConfig['group_icon'] ?? null,
-            'group' => $levelConfig['group_name'] ?? null,
             'required_exp' => $levelConfig['required_exp'],
             'description' => $levelConfig['description'],
             'benefits' => $levelConfig['benefits'],
+            'group' => $levelConfig['group'],
         ];
     }
 }

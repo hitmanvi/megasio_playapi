@@ -5348,7 +5348,6 @@
                     "items": [
                       {
                         "level": "1",
-                        "name": "Bronze I",
                         "required_exp": 0,
                         "description": "初始等级，开启VIP之旅",
                         "benefits": {
@@ -5365,7 +5364,6 @@
                       },
                       {
                         "level": "2",
-                        "name": "Silver I",
                         "required_exp": 500,
                         "description": "累计500经验值可达此等级",
                         "benefits": {
@@ -11056,10 +11054,6 @@
           "level": {
             "type": "string",
             "description": "等级标识"
-          },
-          "name": {
-            "type": "string",
-            "description": "等级名称"
           },
           "required_exp": {
             "type": "integer",
