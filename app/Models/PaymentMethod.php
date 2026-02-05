@@ -23,6 +23,7 @@ class PaymentMethod extends Model
         'amounts',
         'max_amount',
         'min_amount',
+        'default_amount',
         'enabled',
         'sort_id',
         'synced_at',
@@ -48,6 +49,7 @@ class PaymentMethod extends Model
         'sort_id' => 'integer',
         'max_amount' => 'decimal:8',
         'min_amount' => 'decimal:8',
+        'default_amount' => 'decimal:8',
         'synced_at' => 'datetime',
     ];
 
