@@ -193,7 +193,7 @@ class DepositService
             'deposit_info' => $depositInfo,
             'extra_info' => $extraInfo,
             'status' => Deposit::STATUS_PROCESSING,
-            'pay_status' => Deposit::PAY_STATUS_PENDING,
+            'pay_status' => SopayService::SOPAY_STATUS_PREPARING,
             'user_ip' => $userIp,
             'expired_at' => $expiredAt,
         ]);
@@ -283,8 +283,8 @@ class DepositService
 
     public function finishDeposit($status, $orderId, $outId, $amount)
     {
-        $deposit = Deposit::where('order_id', $orderId)
-            ->where('out_id', $outId)
+        $deposit = Deposit::where('order_no', $orderId)
+            ->where('out_trade_no', $outId)
             ->first();
 
         if (!$deposit) {

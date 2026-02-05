@@ -286,7 +286,7 @@ class WithdrawService
 
     public function finishWithdraw($orderId, $outId, $amount)
     {
-        $withdraw = Withdraw::where('order_no', $orderId)->where('out_id', $outId)->first();
+        $withdraw = Withdraw::where('order_no', $orderId)->where('out_trade_no', $outId)->first();
         if(!$withdraw) {
             return false;
         }
@@ -308,7 +308,7 @@ class WithdrawService
 
     public function failWithdraw($orderId, $outId, $errorMessage, $payStatus)
     {
-        $withdraw = Withdraw::where('order_no', $orderId)->where('out_id', $outId)->first();
+        $withdraw = Withdraw::where('order_no', $orderId)->where('out_trade_no', $outId)->first();
         if(!$withdraw) {
             return false;
         }

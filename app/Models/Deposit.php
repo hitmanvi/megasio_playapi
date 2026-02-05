@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use App\Services\SopayService;
 
 class Deposit extends Model
 {
@@ -62,14 +63,6 @@ class Deposit extends Model
     const STATUS_FAILED = 'FAILED';
     const STATUS_CANCELLED = 'CANCELLED';
     const STATUS_EXPIRED = 'EXPIRED';
-
-    /**
-     * Pay status constants.
-     */
-    const PAY_STATUS_PENDING = 'PENDING';
-    const PAY_STATUS_PAID = 'PAID';
-    const PAY_STATUS_FAILED = 'FAILED';
-    const PAY_STATUS_CANCELLED = 'CANCELLED';
 
     /**
      * Get the user that owns the deposit.
@@ -170,7 +163,7 @@ class Deposit extends Model
      */
     public function scopePaid($query)
     {
-        return $query->where('pay_status', self::PAY_STATUS_PAID);
+        return $query->where('pay_status', SopayService::SOPAY_STATUS_SUCCEED);
     }
 
     /**
@@ -195,7 +188,7 @@ class Deposit extends Model
      */
     public function isPaid(): bool
     {
-        return $this->pay_status === self::PAY_STATUS_PAID;
+        return $this->pay_status == SopayService::SOPAY_STATUS_SUCCEED;
     }
 }
 

@@ -5,6 +5,7 @@ namespace Database\Seeders;
 use App\Models\Deposit;
 use App\Models\PaymentMethod;
 use App\Models\User;
+use App\Services\SopayService;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Str;
 use Carbon\Carbon;
@@ -42,7 +43,7 @@ class DepositSeeder extends Seeder
                 'amount' => 100.00,
                 'currency' => 'USD',
                 'status' => Deposit::STATUS_PENDING,
-                'pay_status' => Deposit::PAY_STATUS_PENDING,
+                'pay_status' => SopayService::SOPAY_STATUS_PREPARING,
                 'days_ago' => 0,
                 'payment_method_key' => 'credit_card_usd',
                 'expired_at_offset' => 30, // 30分钟后过期
@@ -51,7 +52,7 @@ class DepositSeeder extends Seeder
                 'amount' => 500.00,
                 'currency' => 'USD',
                 'status' => Deposit::STATUS_PENDING,
-                'pay_status' => Deposit::PAY_STATUS_PENDING,
+                'pay_status' => SopayService::SOPAY_STATUS_PREPARING,
                 'days_ago' => 1,
                 'payment_method_key' => 'paypal_usd',
                 'expired_at_offset' => 30,
@@ -61,7 +62,7 @@ class DepositSeeder extends Seeder
                 'amount' => 200.00,
                 'currency' => 'USD',
                 'status' => Deposit::STATUS_PROCESSING,
-                'pay_status' => Deposit::PAY_STATUS_PENDING,
+                'pay_status' => SopayService::SOPAY_STATUS_PAYING,
                 'days_ago' => 2,
                 'payment_method_key' => 'debit_card_usd',
                 'expired_at_offset' => 30,
@@ -72,7 +73,7 @@ class DepositSeeder extends Seeder
                 'amount' => 1000.00,
                 'currency' => 'USD',
                 'status' => Deposit::STATUS_COMPLETED,
-                'pay_status' => Deposit::PAY_STATUS_PAID,
+                'pay_status' => SopayService::SOPAY_STATUS_SUCCEED,
                 'days_ago' => 5,
                 'payment_method_key' => 'credit_card_usd',
                 'actual_amount' => 1000.00,
@@ -84,7 +85,7 @@ class DepositSeeder extends Seeder
                 'amount' => 750.00,
                 'currency' => 'USD',
                 'status' => Deposit::STATUS_COMPLETED,
-                'pay_status' => Deposit::PAY_STATUS_PAID,
+                'pay_status' => SopayService::SOPAY_STATUS_SUCCEED,
                 'days_ago' => 7,
                 'payment_method_key' => 'bank_transfer_usd_deposit',
                 'actual_amount' => 745.00,
@@ -97,7 +98,7 @@ class DepositSeeder extends Seeder
                 'amount' => 300.00,
                 'currency' => 'USD',
                 'status' => Deposit::STATUS_FAILED,
-                'pay_status' => Deposit::PAY_STATUS_FAILED,
+                'pay_status' => SopayService::SOPAY_STATUS_FAILED,
                 'days_ago' => 3,
                 'payment_method_key' => 'paypal_usd',
                 'out_trade_no' => 'SOPAY' . strtoupper(Str::random(10)),
@@ -108,7 +109,7 @@ class DepositSeeder extends Seeder
                 'amount' => 150.00,
                 'currency' => 'USD',
                 'status' => Deposit::STATUS_CANCELLED,
-                'pay_status' => Deposit::PAY_STATUS_CANCELLED,
+                'pay_status' => SopayService::SOPAY_STATUS_REJECT,
                 'days_ago' => 4,
                 'payment_method_key' => 'ach_usd_deposit',
                 'completed_at_offset' => 4,
@@ -118,7 +119,7 @@ class DepositSeeder extends Seeder
                 'amount' => 50.00,
                 'currency' => 'USD',
                 'status' => Deposit::STATUS_EXPIRED,
-                'pay_status' => Deposit::PAY_STATUS_PENDING,
+                'pay_status' => SopayService::SOPAY_STATUS_EXPIRED,
                 'days_ago' => 10,
                 'payment_method_key' => 'debit_card_usd',
                 'expired_at_offset' => -14400, // 10天前过期（负数表示已经过期）

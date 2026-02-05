@@ -10,6 +10,7 @@ use App\Models\ProviderTransaction;
 use App\Models\Transaction;
 use App\Models\User;
 use App\Models\Withdraw;
+use App\Services\SopayService;
 use Illuminate\Console\Command;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
@@ -157,7 +158,7 @@ class GenerateTransactions extends Command
                 'actual_amount' => $amount,
                 'payment_method_id' => $paymentMethod->id,
                 'status' => Deposit::STATUS_COMPLETED,
-                'pay_status' => Deposit::PAY_STATUS_PAID,
+                'pay_status' => SopayService::SOPAY_STATUS_SUCCEED,
                 'finished_at' => now()->subDays(rand(1, 30)),
             ]);
         }
