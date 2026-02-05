@@ -28,6 +28,23 @@ class SopayController extends Controller
         $signData = $request->get('sign_data');
         $data = $signData ? json_decode($signData, true) : null;
 
+        // 获取请求体（支持 JSON 和 form-data）
+        $requestBody = [];
+        if ($request->isJson()) {
+            // JSON 请求
+            $requestBody = $request->json()->all();
+            // 如果没有解析到数据，尝试从原始内容解析
+            if (empty($requestBody)) {
+                $rawContent = $request->getContent();
+                if ($rawContent) {
+                    $requestBody = json_decode($rawContent, true) ?? [];
+                }
+            }
+        } else {
+            // Form-data 或 query 参数
+            $requestBody = $request->all();
+        }
+
         // 初始化日志数据
         $logData = [
             'order_id' => $data['order_id'] ?? null,
@@ -36,7 +53,7 @@ class SopayController extends Controller
             'status' => $data['status'] ?? null,
             'amount' => $data['amount'] ?? null,
             'request_headers' => $request->headers->all(),
-            'request_body' => $request->all(),
+            'request_body' => $requestBody,
             'sign_data' => $signData,
             'signature' => $signature,
             'signature_valid' => false,
@@ -59,7 +76,8 @@ class SopayController extends Controller
 
         Log::info('Sopay Callback Received', [
             'headers' => $request->headers->all(),
-            'body' => $request->all(),
+            'body' => $requestBody,
+            'raw_content' => $request->getContent(),
         ]);
 
         if (!$this->sopayService->verifySign($signData, $signature)) {
