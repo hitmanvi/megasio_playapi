@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Models\SopayCallbackLog;
-use App\Services\BundleService;
 use App\Services\DepositService;
 use App\Services\SopayService;
 use App\Services\WithdrawService;
@@ -15,14 +14,12 @@ class SopayController extends Controller
     protected SopayService $sopayService;
     protected DepositService $depositService;
     protected WithdrawService $withdrawService;
-    protected BundleService $bundleService;
     
     public function __construct()
     {
         $this->sopayService = new SopayService();
         $this->depositService = new DepositService();
         $this->withdrawService = new WithdrawService();
-        $this->bundleService = new BundleService();
     }
 
     public function callback(Request $request)
@@ -87,12 +84,7 @@ class SopayController extends Controller
         try {
             $result = '';
             if (isset($data['subject']) && $data['subject'] == 'deposit') {
-                // 根据 balance_mode 区分处理
-                if (BundleService::isBundleMode()) {
-                    $result = $this->handleBundle($data);
-                } else {
-                    $result = $this->handleDeposit($data);
-                }
+                $result = $this->handleDeposit($data);
             } elseif (isset($data['subject']) && $data['subject'] == 'withdraw') {
                 $result = $this->handleWithdraw($data);
             }
@@ -143,19 +135,5 @@ class SopayController extends Controller
         }
 
         return '';
-    }
-
-    private function handleBundle($data)
-    {
-        $status = $data['status'];
-        $orderNo = $data['out_trade_no'];
-        $outTradeNo = $data['order_id'];
-        $amount = $data['amount'];
-        
-        $result = $this->bundleService->finishBundlePurchase($status, $orderNo, $outTradeNo, $amount);
-        if(!$result) {
-            return '';
-        }
-        return 'ok';
     }
 }
