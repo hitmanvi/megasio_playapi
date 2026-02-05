@@ -84,9 +84,13 @@ class SopayController extends Controller
         try {
             $result = '';
             if (isset($data['subject']) && $data['subject'] == 'deposit') {
+                Log::info('Sopay Callback Deposit', ['data' => $data]);
                 $result = $this->handleDeposit($data);
             } elseif (isset($data['subject']) && $data['subject'] == 'withdraw') {
+                Log::info('Sopay Callback Withdraw', ['data' => $data]);
                 $result = $this->handleWithdraw($data);
+            } else {
+                Log::info('Sopay Callback Unknown', ['data' => $data]);
             }
 
             $logData['process_result'] = $result ?: 'empty';
