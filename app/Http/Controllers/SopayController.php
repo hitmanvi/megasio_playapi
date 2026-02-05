@@ -26,7 +26,7 @@ class SopayController extends Controller
     {
         $signature = $request->header('signature');
         $signData = $request->get('sign_data');
-        $data = $signData ? json_decode($signData, true) : null;
+        $data = $request->all();
 
         // 初始化日志数据
         $logData = [
