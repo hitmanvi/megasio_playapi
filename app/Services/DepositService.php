@@ -284,44 +284,18 @@ class DepositService
 
     public function finishDeposit($status, $orderId, $outId, $amount)
     {
-        Log::info('DepositService::finishDeposit called', [
-            'status' => $status,
-            'order_no' => $orderId,
-            'out_trade_no' => $outId,
-            'amount' => $amount,
-        ]);
-
         $deposit = Deposit::where('order_no', $orderId)
             ->where('out_trade_no', $outId)
             ->first();
 
         if (!$deposit) {
-            Log::warning('DepositService::finishDeposit - Deposit not found', [
-                'order_no' => $orderId,
-                'out_trade_no' => $outId,
-            ]);
             return false;
         }
-
-        Log::info('DepositService::finishDeposit - Deposit found', [
-            'deposit_id' => $deposit->id,
-            'user_id' => $deposit->user_id,
-            'order_no' => $deposit->order_no,
-            'out_trade_no' => $deposit->out_trade_no,
-            'current_status' => $deposit->status,
-            'current_pay_status' => $deposit->pay_status,
-            'current_amount' => $deposit->amount,
-            'currency' => $deposit->currency,
-        ]);
 
         // 更新最后回调时间
         $deposit->update(['last_callback_at' => Carbon::now()]);
 
         if ($deposit->status !== Deposit::STATUS_PROCESSING) {
-            Log::info('DepositService::finishDeposit - Deposit status is not PROCESSING, skipping update', [
-                'deposit_id' => $deposit->id,
-                'current_status' => $deposit->status,
-            ]);
             return true;
         }
 
@@ -335,22 +309,7 @@ class DepositService
             case (SopayService::SOPAY_STATUS_DELAYED && $deposit->amount <= $amount):
                 $updateData['status'] = Deposit::STATUS_COMPLETED;
                 $updateData['amount'] = $amount;
-                
-                Log::info('DepositService::finishDeposit - Processing SUCCEED/DELAYED status', [
-                    'deposit_id' => $deposit->id,
-                    'update_data' => $updateData,
-                    'is_delayed' => ($status == SopayService::SOPAY_STATUS_DELAYED),
-                ]);
-                
                 $deposit->update($updateData);
-                
-                Log::info('DepositService::finishDeposit - Adding balance', [
-                    'deposit_id' => $deposit->id,
-                    'user_id' => $deposit->user_id,
-                    'currency' => $deposit->currency,
-                    'amount' => $amount,
-                ]);
-                
                 $this->balanceService->deposit(
                     $deposit->user_id,
                     $deposit->currency,
@@ -358,48 +317,17 @@ class DepositService
                     'Deposit',
                     $deposit->id
                 );
-                
-                Log::info('DepositService::finishDeposit - Firing DepositCompleted event', [
-                    'deposit_id' => $deposit->id,
-                ]);
-                
                 event(new DepositCompleted($deposit));
                 break;
             case SopayService::SOPAY_STATUS_FAILED:
                 $updateData['status'] = Deposit::STATUS_FAILED;
-                
-                Log::info('DepositService::finishDeposit - Processing FAILED status', [
-                    'deposit_id' => $deposit->id,
-                    'update_data' => $updateData,
-                ]);
-                
                 $deposit->update($updateData);
                 break;
             case SopayService::SOPAY_STATUS_EXPIRED:
                 $updateData['status'] = Deposit::STATUS_EXPIRED;
-                
-                Log::info('DepositService::finishDeposit - Processing EXPIRED status', [
-                    'deposit_id' => $deposit->id,
-                    'update_data' => $updateData,
-                ]);
-                
-                $deposit->update($updateData);
-                break;
-            default:
-                Log::warning('DepositService::finishDeposit - Unknown status, no action taken', [
-                    'deposit_id' => $deposit->id,
-                    'status' => $status,
-                    'update_data' => $updateData,
-                ]);
                 $deposit->update($updateData);
                 break;
         }
-
-        Log::info('DepositService::finishDeposit - Completed', [
-            'deposit_id' => $deposit->id,
-            'final_status' => $deposit->status,
-            'final_pay_status' => $deposit->pay_status,
-        ]);
 
         return true;
     }
