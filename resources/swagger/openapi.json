@@ -3825,6 +3825,7 @@
                         "amounts": ["100", "500", "1000"],
                         "max_amount": 10000,
                         "min_amount": 100,
+                        "default_amount": 500,
                         "sort_id": 1,
                         "crypto_info": null,
                         "fields": null,
@@ -3842,6 +3843,7 @@
                         "amounts": null,
                         "max_amount": 5000,
                         "min_amount": 50,
+                        "default_amount": 100,
                         "sort_id": 2,
                         "crypto_info": null,
                         "fields": null,
@@ -8867,6 +8869,11 @@
             "type": "number",
             "nullable": true,
             "description": "最小金额"
+          },
+          "default_amount": {
+            "type": "number",
+            "nullable": true,
+            "description": "默认金额"
           },
           "sort_id": {
             "type": "integer",
