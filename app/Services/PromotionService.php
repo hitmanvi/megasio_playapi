@@ -10,10 +10,12 @@ use Illuminate\Support\Facades\DB;
 class PromotionService
 {
     protected SettingService $settingService;
+    protected BonusTaskService $bonusTaskService;
 
     public function __construct()
     {
         $this->settingService = new SettingService();
+        $this->bonusTaskService = new BonusTaskService();
     }
 
     /**
@@ -95,7 +97,7 @@ class PromotionService
 
         // 创建 BonusTask
         return DB::transaction(function () use ($deposit, $taskNo, $bonusName, $finalBonusAmount, $currency, $needWager) {
-            return BonusTask::create([
+            $task = BonusTask::create([
                 'user_id' => $deposit->user_id,
                 'task_no' => $taskNo,
                 'bonus_name' => $bonusName,
@@ -107,6 +109,11 @@ class PromotionService
                 'status' => BonusTask::STATUS_PENDING,
                 'currency' => $currency,
             ]);
+
+            // 检查并激活下一个待激活的任务
+            $this->bonusTaskService->activateNextPendingTask($deposit->user_id);
+
+            return $task;
         });
     }
 
@@ -180,7 +187,7 @@ class PromotionService
 
         // 创建 BonusTask
         return DB::transaction(function () use ($deposit, $taskNo, $bonusName, $finalBonusAmount, $currency, $needWager) {
-            return BonusTask::create([
+            $task = BonusTask::create([
                 'user_id' => $deposit->user_id,
                 'task_no' => $taskNo,
                 'bonus_name' => $bonusName,
@@ -192,6 +199,11 @@ class PromotionService
                 'status' => BonusTask::STATUS_PENDING,
                 'currency' => $currency,
             ]);
+
+            // 检查并激活下一个待激活的任务
+            $this->bonusTaskService->activateNextPendingTask($deposit->user_id);
+
+            return $task;
         });
     }
 

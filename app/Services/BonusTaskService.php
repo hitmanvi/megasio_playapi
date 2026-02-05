@@ -116,6 +116,40 @@ class BonusTaskService
     }
 
     /**
+     * 检查并激活下一个待激活的任务
+     * 如果当前没有激活的任务，自动激活第一个 pending 任务
+     *
+     * @param int $userId
+     * @return BonusTask|null 返回被激活的任务，如果没有则返回 null
+     */
+    public function activateNextPendingTask(int $userId): ?BonusTask
+    {
+        // 检查是否有激活的任务
+        $activeTask = $this->getActiveBonusTask($userId);
+        if ($activeTask) {
+            return null;
+        }
+
+        // 查找第一个待激活的任务（按创建时间排序）
+        $pendingTask = BonusTask::where('user_id', $userId)
+            ->where('status', BonusTask::STATUS_PENDING)
+            ->where(function ($query) {
+                // 只激活未过期的任务
+                $query->whereNull('expired_at')
+                      ->orWhere('expired_at', '>', now());
+            })
+            ->orderBy('created_at', 'asc')
+            ->first();
+
+        if ($pendingTask) {
+            $this->activate($pendingTask);
+            return $pendingTask;
+        }
+
+        return null;
+    }
+
+    /**
      * 扣减 bonus 余额（下注）
      * 同时增加 wager（流水）
      *
