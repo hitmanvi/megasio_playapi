@@ -70,11 +70,33 @@ class ReplaySopayCallback extends Command
             $requestBody['sign_data'] = $log->sign_data;
         }
 
+        // 检查 Content-Type 是否为 JSON
+        $contentType = null;
+        foreach ($requestHeaders as $key => $value) {
+            if (strtolower($key) === 'content-type') {
+                if (is_array($value) && !empty($value)) {
+                    $contentType = is_array($value[0]) ? $value[0][0] ?? '' : $value[0];
+                } elseif (is_string($value)) {
+                    $contentType = $value;
+                }
+                break;
+            }
+        }
+
+        // 如果是 JSON 请求，将请求体编码为 JSON 字符串
+        $isJson = $contentType && strpos($contentType, 'application/json') !== false;
+        $jsonContent = $isJson ? json_encode($requestBody) : null;
+
         // 构建 Request 对象
+        // 对于 JSON 请求，需要将 JSON 字符串作为 $content 参数传入
         $request = Request::create(
             '/api/sopay/callback',
             'POST',
-            $requestBody
+            $isJson ? [] : $requestBody, // JSON 请求时参数为空，内容在 $content 中
+            [],
+            [],
+            [],
+            $jsonContent // JSON 请求体内容
         );
 
         // 设置请求头
@@ -88,7 +110,10 @@ class ReplaySopayCallback extends Command
             }
         }
 
-        // 确保 signature header 存在（优先级最高）
+        // 确保 Content-Type 和 signature header 存在（优先级最高）
+        if ($isJson && !$request->header('content-type')) {
+            $request->headers->set('Content-Type', 'application/json');
+        }
         $request->headers->set('signature', $log->signature);
 
         $this->info('开始重放回调请求...');
