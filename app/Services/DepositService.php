@@ -295,6 +295,12 @@ class DepositService
         // 更新最后回调时间
         $deposit->update(['last_callback_at' => Carbon::now()]);
 
+        // 如果 deposit 已经是完成状态，直接返回，避免重复处理
+        if ($deposit->status === Deposit::STATUS_COMPLETED) {
+            return true;
+        }
+
+        // 如果状态不是 PROCESSING，直接返回
         if ($deposit->status !== Deposit::STATUS_PROCESSING) {
             return true;
         }
@@ -310,14 +316,21 @@ class DepositService
                 $updateData['status'] = Deposit::STATUS_COMPLETED;
                 $updateData['amount'] = $amount;
                 $deposit->update($updateData);
-                $this->balanceService->deposit(
-                    $deposit->user_id,
-                    $deposit->currency,
-                    $amount,
-                    'Deposit',
-                    $deposit->id
-                );
-                event(new DepositCompleted($deposit));
+                
+                // 重新加载 deposit 以确保状态已更新
+                $deposit->refresh();
+                
+                // 只有在状态确实是 COMPLETED 时才触发事件和添加余额
+                if ($deposit->status === Deposit::STATUS_COMPLETED) {
+                    $this->balanceService->deposit(
+                        $deposit->user_id,
+                        $deposit->currency,
+                        $amount,
+                        'Deposit',
+                        $deposit->id
+                    );
+                    event(new DepositCompleted($deposit));
+                }
                 break;
             case SopayService::SOPAY_STATUS_FAILED:
                 $updateData['status'] = Deposit::STATUS_FAILED;
