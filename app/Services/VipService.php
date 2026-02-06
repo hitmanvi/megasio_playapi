@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\User;
 use App\Models\UserVip;
 use App\Models\VipLevel;
+use App\Models\VipLevelGroup;
 
 class VipService
 {
@@ -85,5 +86,18 @@ class VipService
             'benefits' => $levelConfig['benefits'],
             'group' => $levelConfig['group'],
         ];
+    }
+
+    /**
+     * 获取所有VIP等级组列表（分页）
+     *
+     * @param int $perPage 每页数量
+     * @return \Illuminate\Contracts\Pagination\LengthAwarePaginator
+     */
+    public function getAllGroupsPaginated(int $perPage = 20): \Illuminate\Contracts\Pagination\LengthAwarePaginator
+    {
+        return VipLevelGroup::enabled()
+            ->ordered()
+            ->paginate($perPage);
     }
 }

@@ -5400,6 +5400,78 @@
         }
       }
     },
+    "/vip/groups": {
+      "get": {
+        "tags": ["VIP"],
+        "summary": "获取所有VIP等级组列表",
+        "description": "获取所有启用的VIP等级组列表（分页）",
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "description": "页码",
+            "schema": {
+              "type": "integer",
+              "default": 1,
+              "minimum": 1
+            }
+          },
+          {
+            "name": "per_page",
+            "in": "query",
+            "description": "每页数量",
+            "schema": {
+              "type": "integer",
+              "default": 20,
+              "minimum": 1
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "获取成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VipLevelGroupListResponse"
+                },
+                "example": {
+                  "code": 0,
+                  "errmsg": "Success",
+                  "data": {
+                    "items": [
+                      {
+                        "id": 1,
+                        "name": "Bronze",
+                        "icon": "vip-bronze",
+                        "card_img": "vip-bronze-card"
+                      },
+                      {
+                        "id": 2,
+                        "name": "Silver",
+                        "icon": "vip-silver",
+                        "card_img": "vip-silver-card"
+                      },
+                      {
+                        "id": 3,
+                        "name": "Gold",
+                        "icon": "vip-gold",
+                        "card_img": "vip-gold-card"
+                      }
+                    ],
+                    "meta": {
+                      "current_page": 1,
+                      "last_page": 1,
+                      "total": 3
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/bundles": {
       "get": {
         "tags": ["Bundle"],
@@ -11104,6 +11176,47 @@
             "type": "string",
             "nullable": true,
             "description": "组卡片图片"
+          }
+        }
+      },
+      "VipLevelGroupListResponse": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "integer",
+            "description": "响应码，0表示成功"
+          },
+          "errmsg": {
+            "type": "string",
+            "description": "响应消息"
+          },
+          "data": {
+            "type": "object",
+            "properties": {
+              "items": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/VipLevelGroup"
+                }
+              },
+              "meta": {
+                "type": "object",
+                "properties": {
+                  "current_page": {
+                    "type": "integer",
+                    "description": "当前页码"
+                  },
+                  "last_page": {
+                    "type": "integer",
+                    "description": "最后一页页码"
+                  },
+                  "total": {
+                    "type": "integer",
+                    "description": "总记录数"
+                  }
+                }
+              }
+            }
           }
         }
       },
