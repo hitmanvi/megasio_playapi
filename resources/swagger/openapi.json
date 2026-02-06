@@ -6784,6 +6784,77 @@
         }
       }
     },
+    "/bonus-tasks/{id}": {
+      "get": {
+        "tags": ["BonusTask"],
+        "summary": "获取奖励任务详情",
+        "description": "获取指定奖励任务的详细信息",
+        "security": [{"bearerAuth": []}],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "奖励任务ID",
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "获取成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BonusTaskResponse"
+                },
+                "example": {
+                  "code": 0,
+                  "errmsg": "Success",
+                  "data": {
+                    "id": 1,
+                    "task_no": "TASK001",
+                    "bonus_name": "首充奖励",
+                    "cap_bonus": 100.0000,
+                    "base_bonus": 50.0000,
+                    "last_bonus": 100.0000,
+                    "need_wager": 500.0000,
+                    "wager": 250.0000,
+                    "status": "active",
+                    "currency": "USD",
+                    "expired_at": "2026-02-15T10:00:00Z",
+                    "progress_percent": 50.0,
+                    "created_at": "2026-01-15 10:00:00",
+                    "updated_at": "2026-01-15 12:00:00"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "未授权",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "奖励任务不存在",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/bonus-tasks/{id}/claim": {
       "post": {
         "tags": ["BonusTask"],

@@ -162,6 +162,31 @@ class BonusTaskController extends Controller
     }
 
     /**
+     * 获取 BonusTask 详情
+     *
+     * @param Request $request
+     * @param int $id
+     * @return JsonResponse
+     */
+    public function show(Request $request, int $id): JsonResponse
+    {
+        $user = $request->user();
+        if (!$user) {
+            return $this->error(ErrorCode::UNAUTHORIZED, 'User not authenticated');
+        }
+
+        $task = BonusTask::where('user_id', $user->id)
+            ->where('id', $id)
+            ->first();
+
+        if (!$task) {
+            return $this->error(ErrorCode::NOT_FOUND, 'Bonus task not found');
+        }
+
+        return $this->responseItem($this->bonusTaskService->formatBonusTask($task));
+    }
+
+    /**
      * 激活指定的 BonusTask
      *
      * @param Request $request

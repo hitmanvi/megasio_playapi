@@ -3,8 +3,10 @@
 namespace App\Services;
 
 use App\Models\BonusTask;
+use App\Jobs\SendWebSocketMessage;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class BonusTaskService
 {
@@ -189,6 +191,8 @@ class BonusTaskService
         if ($task->wager >= $task->need_wager && $task->isActive()) {
             // 任务完成，发放奖励并更新状态
             $this->completeTask($task);
+            // 刷新任务对象以获取最新状态
+            $task->refresh();
         } else {
             // 检查 last_bonus 是否用完且任务未完成
             if ($task->last_bonus <= 0 && ($task->isPending() || $task->isActive())) {
@@ -197,6 +201,9 @@ class BonusTaskService
             }
             $task->save();
         }
+        
+        // 发送 WebSocket 推送
+        $this->sendBonusTaskUpdate($task, 'deduct', $amount);
         
         return true;
     }
@@ -244,13 +251,6 @@ class BonusTaskService
     {
         // depleted 状态的任务可以恢复 bonus，但不能操作（需要先恢复状态）
         if ($task->isDepleted()) {
-            // 如果增加 bonus 后余额大于 0，恢复为 active 状态
-            $newBonus = $task->last_bonus + $amount;
-            if ($newBonus > 0) {
-                $task->last_bonus = $newBonus;
-                $task->status = BonusTask::STATUS_ACTIVE;
-                $task->save();
-            }
             return;
         }
         
@@ -260,6 +260,9 @@ class BonusTaskService
         
         $task->last_bonus = $task->last_bonus + $amount;
         $task->save();
+        
+        // 发送 WebSocket 推送
+        $this->sendBonusTaskUpdate($task, 'add', $amount);
     }
 
     /**
@@ -327,5 +330,54 @@ class BonusTaskService
             'created_at' => $task->created_at,
             'updated_at' => $task->updated_at,
         ];
+    }
+
+    /**
+     * 发送 BonusTask 更新 WebSocket 推送
+     *
+     * @param BonusTask $task
+     * @param string $operation 操作类型 (add/deduct)
+     * @param float $amount 变动金额
+     * @return void
+     */
+    protected function sendBonusTaskUpdate(BonusTask $task, string $operation, float $amount): void
+    {
+        try {
+            // 加载用户关联以获取 uid
+            if (!$task->relationLoaded('user')) {
+                $task->load('user');
+            }
+
+            if (!$task->user || !$task->user->uid) {
+                return;
+            }
+
+            // 准备 WebSocket 消息数据
+            $data = [
+                'task_id' => $task->id,
+                'task_no' => $task->task_no,
+                'bonus_name' => $task->bonus_name,
+                'last_bonus' => (string) $task->last_bonus,
+                'status' => $task->status,
+                'currency' => $task->currency,
+                'progress_percent' => $task->getProgressPercent(),
+                'operation' => $operation,
+                'amount' => (string) $amount,
+            ];
+
+            // 分发 WebSocket 推送任务
+            SendWebSocketMessage::dispatch(
+                $task->user->uid,
+                'bonus_task.updated',
+                $data
+            );
+        } catch (\Exception $e) {
+            // 记录错误但不影响主流程
+            Log::warning('Failed to send bonus task update via WebSocket', [
+                'task_id' => $task->id,
+                'user_id' => $task->user_id,
+                'error' => $e->getMessage(),
+            ]);
+        }
     }
 }
