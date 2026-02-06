@@ -47,7 +47,7 @@ class AppServiceProvider extends ServiceProvider
         Event::listen(OrderCompleted::class, AddVipExpOnOrderCompleted::class);
         Event::listen(DepositCompleted::class, CreateInvitationDepositReward::class);
         Event::listen(DepositCompleted::class, CreateDepositBonusTask::class);
-        Event::listen(DepositCompleted::class, CreateRollover::class);
+        // Event::listen(DepositCompleted::class, CreateRollover::class);
         Event::listen(VipLevelUpgraded::class, CreateInvitationVipReward::class);
     }
 
