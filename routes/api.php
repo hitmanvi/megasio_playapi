@@ -113,6 +113,7 @@ Route::middleware('auth:sanctum')->prefix('bonus-tasks')->group(function () {
     Route::get('/deposit-bonus-status', [BonusTaskController::class, 'depositBonusStatus']);
     Route::get('/deposit-bonus-config', [BonusTaskController::class, 'depositBonusConfig']);
     Route::post('/{id}/claim', [BonusTaskController::class, 'claim']);
+    Route::post('/{id}/active', [BonusTaskController::class, 'active']);
 });
 
 // 通知相关路由（需要认证）

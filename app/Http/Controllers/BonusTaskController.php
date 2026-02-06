@@ -160,4 +160,54 @@ class BonusTaskController extends Controller
 
         return $this->responseItem($config);
     }
+
+    /**
+     * 激活指定的 BonusTask
+     *
+     * @param Request $request
+     * @param int $id
+     * @return JsonResponse
+     */
+    public function active(Request $request, int $id): JsonResponse
+    {
+        $user = $request->user();
+        if (!$user) {
+            return $this->error(ErrorCode::UNAUTHORIZED, 'User not authenticated');
+        }
+
+        try {
+            $task = BonusTask::where('user_id', $user->id)
+                ->where('id', $id)
+                ->first();
+
+            if (!$task) {
+                return $this->error(ErrorCode::NOT_FOUND, 'Bonus task not found');
+            }
+
+            // 检查任务状态
+            if (!$task->isPending()) {
+                return $this->error(ErrorCode::OPERATION_NOT_ALLOWED, 'Only pending tasks can be activated');
+            }
+
+            // 检查任务是否过期
+            if ($task->isExpired()) {
+                return $this->error(ErrorCode::OPERATION_NOT_ALLOWED, 'Task has expired');
+            }
+
+            // 检查是否已有激活的任务，如果有则将其变为 pending
+            $activeTask = $this->bonusTaskService->getActiveBonusTask($user->id);
+            if ($activeTask && $activeTask->id !== $task->id) {
+                $activeTask->status = BonusTask::STATUS_PENDING;
+                $activeTask->save();
+            }
+
+            // 激活任务
+            $this->bonusTaskService->activate($task);
+            $task->refresh();
+
+            return $this->responseItem($this->bonusTaskService->formatBonusTask($task));
+        } catch (\Exception $e) {
+            return $this->error(ErrorCode::INTERNAL_ERROR, $e->getMessage());
+        }
+    }
 }
