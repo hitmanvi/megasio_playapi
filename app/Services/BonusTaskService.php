@@ -264,17 +264,23 @@ class BonusTaskService
      * 获取用户的 BonusTask 列表
      *
      * @param int $userId
-     * @param string|null $status 状态过滤（可选）
+     * @param string|array|null $status 状态过滤（可选，支持单个值或数组）
      * @return \Illuminate\Database\Eloquent\Collection
      */
-    public function getTasks(int $userId, ?string $status = null)
+    public function getTasks(int $userId, $status = null)
     {
         $query = BonusTask::query()
             ->where('user_id', $userId);
 
         // 如果提供了 status 参数，进行过滤
         if ($status !== null) {
-            $query->where('status', $status);
+            if (is_array($status)) {
+                // 如果是数组，使用 whereIn
+                $query->whereIn('status', $status);
+            } else {
+                // 如果是单个值，使用 where
+                $query->where('status', $status);
+            }
         }
 
         return $query->ordered()->get();
@@ -284,18 +290,24 @@ class BonusTaskService
      * 获取用户的 BonusTask 列表（分页）
      *
      * @param int $userId
-     * @param string|null $status 状态过滤（可选）
+     * @param string|array|null $status 状态过滤（可选，支持单个值或数组）
      * @param int $perPage 每页数量
      * @return \Illuminate\Contracts\Pagination\LengthAwarePaginator
      */
-    public function getTasksPaginated(int $userId, ?string $status = null, int $perPage = 20)
+    public function getTasksPaginated(int $userId, $status = null, int $perPage = 20)
     {
         $query = BonusTask::query()
             ->where('user_id', $userId);
 
         // 如果提供了 status 参数，进行过滤
         if ($status !== null) {
-            $query->where('status', $status);
+            if (is_array($status)) {
+                // 如果是数组，使用 whereIn
+                $query->whereIn('status', $status);
+            } else {
+                // 如果是单个值，使用 where
+                $query->where('status', $status);
+            }
         }
 
         return $query->ordered()->paginate($perPage);

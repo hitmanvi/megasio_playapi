@@ -34,11 +34,16 @@ class BonusTaskController extends Controller
             return $this->error(ErrorCode::UNAUTHORIZED, 'User not authenticated');
         }
 
-        // 获取 status 过滤参数（可选）
+        // 获取 status 过滤参数（可选，支持单个值或数组）
         $status = $request->input('status');
+        
+        // 确保是数组格式（如果提供）
+        if ($status !== null && !is_array($status)) {
+            $status = [$status];
+        }
 
         // 验证 status 参数（如果提供）
-        if ($status !== null) {
+        if ($status !== null && is_array($status)) {
             $validStatuses = [
                 BonusTask::STATUS_PENDING,
                 BonusTask::STATUS_ACTIVE,
@@ -49,8 +54,11 @@ class BonusTaskController extends Controller
                 BonusTask::STATUS_DEPLETED,
             ];
             
-            if (!in_array($status, $validStatuses)) {
-                return $this->error(ErrorCode::VALIDATION_ERROR, 'Invalid status value');
+            // 验证数组中的每个状态值
+            foreach ($status as $s) {
+                if (!in_array($s, $validStatuses)) {
+                    return $this->error(ErrorCode::VALIDATION_ERROR, 'Invalid status value: ' . $s);
+                }
             }
         }
 

@@ -6640,11 +6640,24 @@
             "name": "status",
             "in": "query",
             "required": false,
-            "description": "任务状态过滤（可选）",
+            "description": "任务状态过滤（可选，支持单个值或数组，例如：status=pending 或 status[]=pending&status[]=active）",
             "schema": {
-              "type": "string",
-              "enum": ["pending", "active", "completed", "claimed", "expired", "cancelled", "depleted"]
-            }
+              "oneOf": [
+                {
+                  "type": "string",
+                  "enum": ["pending", "active", "completed", "claimed", "expired", "cancelled", "depleted"]
+                },
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "enum": ["pending", "active", "completed", "claimed", "expired", "cancelled", "depleted"]
+                  }
+                }
+              ]
+            },
+            "style": "form",
+            "explode": true
           },
           {
             "name": "per_page",
