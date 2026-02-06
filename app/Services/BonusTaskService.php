@@ -249,11 +249,6 @@ class BonusTaskService
      */
     public function addBonus(BonusTask $task, float $amount): void
     {
-        // depleted 状态的任务可以恢复 bonus，但不能操作（需要先恢复状态）
-        if ($task->isDepleted()) {
-            return;
-        }
-        
         if (!$task->canOperate()) {
             return;
         }
