@@ -3,7 +3,6 @@
 namespace App\Services;
 
 use App\Events\WithdrawCompleted;
-use App\Models\Rollover;
 use App\Models\Withdraw;
 use App\Models\PaymentMethod;
 use Illuminate\Support\Str;
@@ -176,24 +175,6 @@ class WithdrawService
         string $userIp = ''
     ): Withdraw {
         return DB::transaction(function () use ($userId, $paymentMethod, $currency, $amount, $withdrawInfo, $extraInfo, $userIp) {
-            // 检查 rollover 限制
-            $balance = $this->balanceService->getBalance($userId, $currency);
-            $availableBalance = $balance ? (float) $balance->available : 0.0;
-            
-            // 获取未完成的 rollover 总额
-            $uncompletedRolloverTotal = Rollover::getUncompletedTotal($userId, $currency);
-            
-            // 计算可提现金额：余额 - 未完成的 rollover 总额
-            $withdrawableAmount = $availableBalance - $uncompletedRolloverTotal;
-            
-            // 如果可提现金额小于提现金额，则不允许提现
-            if ($withdrawableAmount < $amount) {
-                throw new Exception(
-                    ErrorCode::INSUFFICIENT_BALANCE,
-                    "Insufficient withdrawable balance. Available: {$withdrawableAmount}, Required: {$amount}, Uncompleted rollover: {$uncompletedRolloverTotal}"
-                );
-            }
-
             // Generate unique order number
             $orderNo = 'WTD' . strtoupper(Str::ulid()->toString());
 
