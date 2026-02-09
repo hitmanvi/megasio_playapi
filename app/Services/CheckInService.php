@@ -238,8 +238,10 @@ class CheckInService
         // 获取当前连续签到天数
         $consecutiveDays = 0;
         if ($todayNormalCheckIn) {
+            // 今日已签到，使用今日的连续天数
             $consecutiveDays = $todayNormalCheckIn->consecutive_days;
         } else if ($lastCheckIn) {
+            // 今日未签到，直接使用最后一次签到的连续天数（不判断是否昨天）
             $consecutiveDays = $lastCheckIn->consecutive_days;
         }
 
