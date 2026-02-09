@@ -195,6 +195,24 @@ class BonusTaskController extends Controller
     }
 
     /**
+     * 获取 BonusTask 统计数据
+     *
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function stats(Request $request): JsonResponse
+    {
+        $user = $request->user();
+        if (!$user) {
+            return $this->error(ErrorCode::UNAUTHORIZED, 'User not authenticated');
+        }
+
+        $stats = $this->bonusTaskService->getStats($user->id);
+
+        return $this->responseItem($stats);
+    }
+
+    /**
      * 激活指定的 BonusTask
      *
      * @param Request $request

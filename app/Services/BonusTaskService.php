@@ -387,4 +387,21 @@ class BonusTaskService
             ]);
         }
     }
+
+    /**
+     * 获取用户的 BonusTask 统计数据
+     *
+     * @param int $userId
+     * @return array
+     */
+    public function getStats(int $userId): array
+    {
+        // 计算所有 task 的 base_bonus 总和
+        $totalBaseBonus = (float) BonusTask::where('user_id', $userId)
+            ->sum('base_bonus');
+
+        return [
+            'total_base_bonus' => $totalBaseBonus,
+        ];
+    }
 }
