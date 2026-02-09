@@ -396,12 +396,13 @@ class BonusTaskService
      */
     public function getStats(int $userId): array
     {
-        // 计算所有 task 的 base_bonus 总和
-        $totalBaseBonus = (float) BonusTask::where('user_id', $userId)
-            ->sum('base_bonus');
+        // 计算所有 task 的 cap_bonus 总和
+        $totalCapBonus = (float) BonusTask::where('user_id', $userId)
+            ->sum('cap_bonus');
 
         return [
-            'total_base_bonus' => $totalBaseBonus,
+            'total' => $totalCapBonus,
+            'currency' => config('app.currency', 'USD'),
         ];
     }
 }

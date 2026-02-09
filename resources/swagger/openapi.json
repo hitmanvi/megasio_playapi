@@ -6801,7 +6801,7 @@
       "get": {
         "tags": ["BonusTask"],
         "summary": "获取奖励任务统计数据",
-        "description": "获取当前用户的奖励任务统计数据，包括所有任务的 base_bonus 总和",
+        "description": "获取当前用户的奖励任务统计数据，包括所有任务的 cap_bonus 总和",
         "security": [{"bearerAuth": []}],
         "responses": {
           "200": {
@@ -6815,7 +6815,8 @@
                   "code": 0,
                   "errmsg": "Success",
                   "data": {
-                    "total_base_bonus": 500.0000
+                    "total": 500.0000,
+                    "currency": "USD"
                   }
                 }
               }
@@ -11032,13 +11033,17 @@
           "data": {
             "type": "object",
             "properties": {
-              "total_base_bonus": {
+              "total": {
                 "type": "number",
                 "format": "decimal",
-                "description": "所有任务的 base_bonus 总和"
+                "description": "所有任务的 cap_bonus 总和"
+              },
+              "currency": {
+                "type": "string",
+                "description": "币种"
               }
             },
-            "required": ["total_base_bonus"]
+            "required": ["total", "currency"]
           }
         }
       },
