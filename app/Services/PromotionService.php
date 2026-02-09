@@ -26,154 +26,176 @@ class PromotionService
      */
     public function processDepositBonus(Deposit $deposit): ?BonusTask
     {
-        // 防止重复处理：检查这个 deposit 是否已经创建过 bonus task
-        // 通过检查在 deposit 完成时间附近（前后5秒）是否已经创建过 bonus task
-        if ($deposit->completed_at) {
+        // 早期返回：如果没有完成时间，无法处理
+        if (!$deposit->completed_at) {
+            return null;
+        }
+
+        $depositAmount = (float) $deposit->amount;
+        if ($depositAmount <= 0) {
+            return null;
+        }
+
+        // 在事务中统一处理，避免重复查询和并发问题
+        return DB::transaction(function () use ($deposit, $depositAmount) {
+            // 防止重复处理：检查这个 deposit 是否已经创建过 bonus task
             $checkStartTime = $deposit->completed_at->copy()->subSeconds(5);
             $checkEndTime = $deposit->completed_at->copy()->addSeconds(5);
             
             $existingTaskForDeposit = BonusTask::where('user_id', $deposit->user_id)
                 ->whereBetween('created_at', [$checkStartTime, $checkEndTime])
+                ->lockForUpdate()
                 ->first();
             
             if ($existingTaskForDeposit) {
-                // 这个 deposit 已经创建过 bonus task，跳过
                 return null;
             }
-        }
 
-        $depositAmount = (float) $deposit->amount;
+            // 统计用户已经获得过首充/二充/三充奖励的次数（在事务内查询，确保准确性）
+            $rewardedCount = BonusTask::where('user_id', $deposit->user_id)
+                ->whereIn('task_no', ['FIRST_DEPOSIT_BONUS', 'SECOND_DEPOSIT_BONUS', 'THIRD_DEPOSIT_BONUS'])
+                ->lockForUpdate()
+                ->count();
 
-        // 统计用户已经获得过首充/二充/三充奖励的次数
-        $rewardedCount = BonusTask::where('user_id', $deposit->user_id)
-            ->whereIn('task_no', ['FIRST_DEPOSIT_BONUS', 'SECOND_DEPOSIT_BONUS', 'THIRD_DEPOSIT_BONUS'])
-            ->count();
+            // 如果已完成首充/二充/三充奖励，则处理每日充值奖励
+            if ($rewardedCount >= 3) {
+                return $this->processDailyDepositBonus($deposit, $depositAmount);
+            }
 
-        // 如果已完成首充/二充/三充奖励，则处理每日充值奖励
-        if ($rewardedCount >= 3) {
-            return $this->processDailyDepositBonus($deposit);
-        }
+            // 处理首充/二充/三充奖励
+            return $this->processFirstSecondThirdBonus($deposit, $depositAmount, $rewardedCount);
+        });
+    }
 
-        // 处理首充/二充/三充奖励
+    /**
+     * 处理首充/二充/三充奖励
+     *
+     * @param Deposit $deposit
+     * @param float $depositAmount
+     * @param int $rewardedCount
+     * @return BonusTask|null
+     */
+    protected function processFirstSecondThirdBonus(Deposit $deposit, float $depositAmount, int $rewardedCount): ?BonusTask
+    {
         $configKeys = ['first_deposit_bonus', 'second_deposit_bonus', 'third_deposit_bonus'];
         $configKey = $configKeys[$rewardedCount];
+        $taskNo = strtoupper($configKey);
+
+        // 检查是否已经给过该次数的奖励（在事务内检查）
+        $existingTask = BonusTask::where('user_id', $deposit->user_id)
+            ->where('task_no', $taskNo)
+            ->lockForUpdate()
+            ->first();
+
+        if ($existingTask) {
+            return null;
+        }
 
         // 获取奖励配置
         $bonusConfig = $this->settingService->getValue($configKey);
 
-        // 检查配置是否存在且已启用
-        if (!$bonusConfig || !isset($bonusConfig['enabled']) || !$bonusConfig['enabled']) {
+        // 验证配置并计算奖励
+        $bonusData = $this->validateAndCalculateBonus($bonusConfig, $depositAmount);
+        if (!$bonusData) {
             return null;
         }
 
-        // 检查是否已经给过该次数的奖励
-        $taskNo = strtoupper($configKey);
-        $existingTask = BonusTask::where('user_id', $deposit->user_id)
-            ->where('task_no', $taskNo)
-            ->first();
+        // 创建 BonusTask
+        $task = BonusTask::create([
+            'user_id' => $deposit->user_id,
+            'task_no' => $taskNo,
+            'bonus_name' => $this->getBonusName($rewardedCount),
+            'cap_bonus' => $bonusData['amount'],
+            'base_bonus' => $bonusData['amount'],
+            'last_bonus' => $bonusData['amount'],
+            'need_wager' => $bonusData['need_wager'],
+            'wager' => 0,
+            'status' => BonusTask::STATUS_PENDING,
+            'currency' => $bonusData['currency'],
+        ]);
 
-        if ($existingTask) {
-            // 已经给过该次数的奖励，跳过
-            return null;
-        }
+        // 检查并激活下一个待激活的任务
+        $this->bonusTaskService->activateNextPendingTask($deposit->user_id);
 
-        // 检查充值金额是否满足 amounts 阶梯
-        $amounts = $bonusConfig['amounts'] ?? [];
-        $ratios = $bonusConfig['ratio'] ?? [];
-
-        if (empty($amounts) || empty($ratios) || count($amounts) !== count($ratios)) {
-            return null;
-        }
-
-        // 找到满足的最高阶梯
-        $matchedTier = $this->findMatchedTier($depositAmount, $amounts);
-
-        if ($matchedTier === -1) {
-            // 充值金额不满足任何阶梯，跳过
-            return null;
-        }
-
-        // 计算奖励金额
-        $finalBonusAmount = $this->calculateBonusAmount($depositAmount, $ratios[$matchedTier], $bonusConfig);
-
-        if ($finalBonusAmount <= 0) {
-            return null;
-        }
-
-        $currency = $bonusConfig['currency'] ?? config('app.currency', 'USD');
-
-        // 获取流水倍数配置，默认 40
-        $wagerMultiplier = (float) config('app.deposit_bonus_wager_multiplier', 40);
-
-        // 计算需要的流水 = 奖励金额 * 倍数
-        $needWager = $finalBonusAmount * $wagerMultiplier;
-
-        // 生成奖励名称
-        $bonusName = $this->getBonusName($rewardedCount);
-
-        // 创建 BonusTask（使用数据库锁防止并发创建）
-        return DB::transaction(function () use ($deposit, $taskNo, $bonusName, $finalBonusAmount, $currency, $needWager) {
-            // 再次检查是否已经存在相同的 task_no（防止并发）
-            $existingTask = BonusTask::where('user_id', $deposit->user_id)
-                ->where('task_no', $taskNo)
-                ->lockForUpdate()
-                ->first();
-            
-            if ($existingTask) {
-                // 已经存在，跳过
-                return null;
-            }
-
-            $task = BonusTask::create([
-                'user_id' => $deposit->user_id,
-                'task_no' => $taskNo,
-                'bonus_name' => $bonusName,
-                'cap_bonus' => $finalBonusAmount,
-                'base_bonus' => $finalBonusAmount,
-                'last_bonus' => $finalBonusAmount,
-                'need_wager' => $needWager,
-                'wager' => 0,
-                'status' => BonusTask::STATUS_PENDING,
-                'currency' => $currency,
-            ]);
-
-            // 检查并激活下一个待激活的任务
-            $this->bonusTaskService->activateNextPendingTask($deposit->user_id);
-
-            return $task;
-        });
+        return $task;
     }
 
     /**
      * 处理每日充值奖励
      *
      * @param Deposit $deposit
+     * @param float $depositAmount
      * @return BonusTask|null
      */
-    protected function processDailyDepositBonus(Deposit $deposit): ?BonusTask
+    protected function processDailyDepositBonus(Deposit $deposit, float $depositAmount): ?BonusTask
     {
-        // 防止重复处理：检查这个 deposit 是否已经创建过 bonus task
-        if ($deposit->completed_at) {
-            $checkStartTime = $deposit->completed_at->copy()->subSeconds(5);
-            $checkEndTime = $deposit->completed_at->copy()->addSeconds(5);
-            
-            $existingTaskForDeposit = BonusTask::where('user_id', $deposit->user_id)
-                ->where('task_no', 'LIKE', 'DAILY_DEPOSIT_BONUS_%')
-                ->whereBetween('created_at', [$checkStartTime, $checkEndTime])
-                ->first();
-            
-            if ($existingTaskForDeposit) {
-                // 这个 deposit 已经创建过 bonus task，跳过
-                return null;
-            }
-        }
-
-        $depositAmount = (float) $deposit->amount;
         $today = Carbon::today();
 
         // 获取每日充值奖励配置
         $bonusConfig = $this->settingService->getValue('daily_deposit_bonus');
 
+        // 验证配置并计算奖励
+        $bonusData = $this->validateAndCalculateBonus($bonusConfig, $depositAmount);
+        if (!$bonusData) {
+            return null;
+        }
+
+        // 在事务中检查当天任务数量（已经在外部事务中，不需要再嵌套事务）
+        $maxTimes = (int) ($bonusConfig['times'] ?? 3);
+        $todayTaskCount = BonusTask::where('user_id', $deposit->user_id)
+            ->where('task_no', 'LIKE', 'DAILY_DEPOSIT_BONUS_%')
+            ->whereDate('created_at', $today)
+            ->lockForUpdate()
+            ->count();
+
+        if ($todayTaskCount >= $maxTimes) {
+            return null;
+        }
+
+        // 生成任务编号（包含日期，用于区分不同天的奖励）
+        $taskNo = 'DAILY_DEPOSIT_BONUS_' . $today->format('Ymd') . '_' . ($todayTaskCount + 1);
+
+        // 再次检查是否已经存在相同的 task_no（防止并发）
+        $existingTask = BonusTask::where('user_id', $deposit->user_id)
+            ->where('task_no', $taskNo)
+            ->lockForUpdate()
+            ->first();
+        
+        if ($existingTask) {
+            return null;
+        }
+
+        // 生成奖励名称
+        $bonusName = 'Daily Deposit Bonus (' . ($todayTaskCount + 1) . '/' . $maxTimes . ')';
+
+        $task = BonusTask::create([
+            'user_id' => $deposit->user_id,
+            'task_no' => $taskNo,
+            'bonus_name' => $bonusName,
+            'cap_bonus' => $bonusData['amount'],
+            'base_bonus' => $bonusData['amount'],
+            'last_bonus' => $bonusData['amount'],
+            'need_wager' => $bonusData['need_wager'],
+            'wager' => 0,
+            'status' => BonusTask::STATUS_PENDING,
+            'currency' => $bonusData['currency'],
+        ]);
+
+        // 检查并激活下一个待激活的任务
+        $this->bonusTaskService->activateNextPendingTask($deposit->user_id);
+
+        return $task;
+    }
+
+    /**
+     * 验证配置并计算奖励金额
+     *
+     * @param array|null $bonusConfig
+     * @param float $depositAmount
+     * @return array|null 返回包含 amount, currency, need_wager 的数组，失败返回 null
+     */
+    protected function validateAndCalculateBonus(?array $bonusConfig, float $depositAmount): ?array
+    {
         // 检查配置是否存在且已启用
         if (!$bonusConfig || !isset($bonusConfig['enabled']) || !$bonusConfig['enabled']) {
             return null;
@@ -189,76 +211,25 @@ class PromotionService
 
         // 找到满足的最高阶梯
         $matchedTier = $this->findMatchedTier($depositAmount, $amounts);
-
         if ($matchedTier === -1) {
-            // 充值金额不满足任何阶梯，跳过
             return null;
         }
 
         // 计算奖励金额
         $finalBonusAmount = $this->calculateBonusAmount($depositAmount, $ratios[$matchedTier], $bonusConfig);
-
         if ($finalBonusAmount <= 0) {
             return null;
         }
 
         $currency = $bonusConfig['currency'] ?? config('app.currency', 'USD');
-
-        // 获取流水倍数配置，默认 40
         $wagerMultiplier = (float) config('app.deposit_bonus_wager_multiplier', 40);
-
-        // 计算需要的流水 = 奖励金额 * 倍数
         $needWager = $finalBonusAmount * $wagerMultiplier;
 
-        // 创建 BonusTask（使用数据库锁防止并发创建）
-        return DB::transaction(function () use ($deposit, $today, $finalBonusAmount, $currency, $needWager, $bonusConfig) {
-            // 在事务中重新计算当天任务数量（使用锁防止并发）
-            $maxTimes = (int) ($bonusConfig['times'] ?? 3);
-            $todayTaskCount = BonusTask::where('user_id', $deposit->user_id)
-                ->where('task_no', 'LIKE', 'DAILY_DEPOSIT_BONUS_%')
-                ->whereDate('created_at', $today)
-                ->lockForUpdate()
-                ->count();
-
-            if ($todayTaskCount >= $maxTimes) {
-                // 当天已经给过最大次数，跳过
-                return null;
-            }
-
-            // 生成任务编号（包含日期，用于区分不同天的奖励）
-            $taskNo = 'DAILY_DEPOSIT_BONUS_' . $today->format('Ymd') . '_' . ($todayTaskCount + 1);
-
-            // 再次检查是否已经存在相同的 task_no（防止并发）
-            $existingTask = BonusTask::where('user_id', $deposit->user_id)
-                ->where('task_no', $taskNo)
-                ->first();
-            
-            if ($existingTask) {
-                // 已经存在，跳过
-                return null;
-            }
-
-            // 生成奖励名称
-            $bonusName = 'Daily Deposit Bonus (' . ($todayTaskCount + 1) . '/' . $maxTimes . ')';
-
-            $task = BonusTask::create([
-                'user_id' => $deposit->user_id,
-                'task_no' => $taskNo,
-                'bonus_name' => $bonusName,
-                'cap_bonus' => $finalBonusAmount,
-                'base_bonus' => $finalBonusAmount,
-                'last_bonus' => $finalBonusAmount,
-                'need_wager' => $needWager,
-                'wager' => 0,
-                'status' => BonusTask::STATUS_PENDING,
-                'currency' => $currency,
-            ]);
-
-            // 检查并激活下一个待激活的任务
-            $this->bonusTaskService->activateNextPendingTask($deposit->user_id);
-
-            return $task;
-        });
+        return [
+            'amount' => $finalBonusAmount,
+            'currency' => $currency,
+            'need_wager' => $needWager,
+        ];
     }
 
     /**
