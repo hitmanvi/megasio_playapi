@@ -136,7 +136,7 @@ class GameController extends Controller
     public function session(Request $request, int $id): JsonResponse
     {
         $request->validate([
-            'currency' => 'required|string|size:3',
+            'currency' => 'required|string',
         ]);
 
         $user = $request->user();
