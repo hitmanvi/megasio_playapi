@@ -71,6 +71,7 @@ class AddVipExpOnOrderCompleted implements ShouldQueue
      */
     protected function isSupportedGameCategory($game): bool
     {
+        return true;
         if (!$game->category_id) {
             return false;
         }
