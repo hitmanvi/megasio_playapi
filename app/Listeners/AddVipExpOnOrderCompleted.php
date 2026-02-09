@@ -72,23 +72,5 @@ class AddVipExpOnOrderCompleted implements ShouldQueue
     protected function isSupportedGameCategory($game): bool
     {
         return true;
-        if (!$game->category_id) {
-            return false;
-        }
-
-        // 获取 VIP 配置
-        $settingService = new SettingService();
-        $vipConfig = $settingService->getValue('vip', []);
-
-        // 获取支持的游戏分类 ID 列表
-        $supportedCategoryIds = $vipConfig['supported_game_categories'] ?? [];
-
-        if (empty($supportedCategoryIds)) {
-            // 如果没有配置，默认允许所有类型
-            return true;
-        }
-
-        // 检查分类 ID 是否在支持列表中
-        return in_array($game->category_id, $supportedCategoryIds, true);
     }
 }
