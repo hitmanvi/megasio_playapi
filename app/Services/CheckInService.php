@@ -224,9 +224,7 @@ class CheckInService
         $today = Carbon::today();
 
         // 获取今日所有签到记录
-        $todayCheckIns = UserCheckIn::where('user_id', $userId)
-            ->where('check_in_date', $today)
-            ->get();
+        $todayCheckIns = UserCheckIn::where('user_id', $userId)->where('check_in_date', $today)->get();
 
         // 今日普通签到记录
         $todayNormalCheckIn = $todayCheckIns->where('is_bonus_check_in', false)->first();
@@ -235,15 +233,13 @@ class CheckInService
         $todayBonusCheckIn = $todayCheckIns->where('is_bonus_check_in', true)->first();
 
         // 获取最后一次签到记录（用于计算连续天数）
-        $lastCheckIn = UserCheckIn::where('user_id', $userId)
-            ->orderByDesc('created_at')
-            ->first();
+        $lastCheckIn = UserCheckIn::where('user_id', $userId)->orderByDesc('created_at')->first();
 
         // 获取当前连续签到天数
         $consecutiveDays = 0;
         if ($todayNormalCheckIn) {
             $consecutiveDays = $todayNormalCheckIn->consecutive_days;
-        } else if ($lastCheckIn && $lastCheckIn->check_in_date->isYesterday()) {
+        } else if ($lastCheckIn) {
             $consecutiveDays = $lastCheckIn->consecutive_days;
         }
 
