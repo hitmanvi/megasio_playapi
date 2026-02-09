@@ -135,7 +135,7 @@ class UserRecentGameService
         }
         
         // 获取详细数据
-        $dataList = Redis::hmget($dataKey, ...$gameIds);
+        $dataList = Redis::hmget($dataKey, is_array($gameIds) ? $gameIds : [$gameIds]);
         
         // 获取游戏信息
         $games = Game::with(['brand', 'category', 'themes'])
