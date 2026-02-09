@@ -8,6 +8,7 @@ use App\Services\GameService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Facades\Log;
 
 class GameController extends Controller
 {
@@ -148,8 +149,10 @@ class GameController extends Controller
                 'url' => $sessionUrl,
             ]);
         } catch (Exception $e) {
+            Log::error('Game session error', ['error' => $e->getMessage(), 'trace' => $e->getTraceAsString()]);
             return $this->error($e->getErrorCode(), $e->getMessage());
         } catch (\Exception $e) {
+            Log::error('Game session error', ['error' => $e->getMessage(), 'trace' => $e->getTraceAsString()]);
             return $this->error(ErrorCode::INTERNAL_ERROR, $e->getMessage());
         }
     }
