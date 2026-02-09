@@ -90,14 +90,12 @@ class FunkyProvider implements GameProviderInterface
     protected function loadCurrencyConfig(string $currency): void
     {
         if($currency == 'BONUS') {
-            $this->realCurrency = 'BONUS';
-            $this->currency = config('providers.default_currency');
+            $this->realCurrency = config('providers.default_currency');
         } else {
             $this->realCurrency = $currency;
-            $this->currency = $currency;
         }
         // 先尝试加载币种特定配置
-        $currencyConfig = config("providers.funky.{$this->currency}", []);
+        $currencyConfig = config("providers.funky.{$this->realCurrency}", []);
         
         // 如果没有币种特定配置，使用通用配置（default 或直接在 funky 下的配置）
         if (empty($currencyConfig)) {
@@ -143,12 +141,12 @@ class FunkyProvider implements GameProviderInterface
 
         $path = '/Funky/Game/LaunchGame';
         $user = User::find($userId);
-        $token = $this->tokenService->issue(GameProviderEnum::FUNKY->value, $userId, $this->realCurrency, 60*24);
+        $token = $this->tokenService->issue(GameProviderEnum::FUNKY->value, $userId, $this->currency, 60*24);
         if (!$token) {
             throw new Exception(ErrorCode::TOKEN_INVALID);
         }
         $data = [
-            'currency'    => $this->currency,
+            'currency'    => $this->realCurrency,
             'gameCode'    => $gameId,
             'language'    => $this->lang,
             'playerId'    => $this->genUid($user->uid),
