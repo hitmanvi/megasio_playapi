@@ -69,6 +69,22 @@ class CheckInService
         }
 
         return DB::transaction(function () use ($userId, $today, $isBonusCheckIn) {
+            // 使用 lockForUpdate 防止并发插入
+            // 再次检查是否已存在相同类型的签到记录（防止并发问题）
+            $existingCheckIn = UserCheckIn::where('user_id', $userId)
+                ->where('check_in_date', $today)
+                ->where('is_bonus_check_in', $isBonusCheckIn)
+                ->lockForUpdate()
+                ->first();
+
+            if ($existingCheckIn) {
+                if ($isBonusCheckIn) {
+                    throw new Exception(ErrorCode::VALIDATION_ERROR, 'Bonus check-in already used today');
+                } else {
+                    throw new Exception(ErrorCode::VALIDATION_ERROR, 'Already checked in today');
+                }
+            }
+
             // 计算连续签到天数（额外签到不影响连续天数）
             $consecutiveDays = $isBonusCheckIn 
                 ? $this->getTodayConsecutiveDays($userId, $today)
