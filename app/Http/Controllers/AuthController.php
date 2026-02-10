@@ -15,10 +15,10 @@ class AuthController extends Controller
     protected AuthService $authService;
     protected VerificationCodeService $verificationCodeService;
 
-    public function __construct(AuthService $authService, VerificationCodeService $verificationCodeService)
+    public function __construct()
     {
-        $this->authService = $authService;
-        $this->verificationCodeService = $verificationCodeService;
+        $this->authService = new AuthService();
+        $this->verificationCodeService = new VerificationCodeService();
     }
     /**
      * 用户注册
@@ -27,17 +27,24 @@ class AuthController extends Controller
     {
         $request->validate([
             'name' => 'string|max:255',
-            'phone' => 'nullable|string|unique:users,phone',
+            'phone' => 'nullable|string',
             'area_code' => 'nullable|string|max:10',
-            'email' => 'nullable|string|email|max:255|unique:users,email',
+            'email' => 'nullable|string|email|max:255',
             'password' => 'required|string|min:6',
             'invite_code' => 'nullable|string|size:8',
-        ], [
-            'phone.unique' => ErrorCode::PHONE_ALREADY_EXISTS->getMessage(),
-            'email.unique' => ErrorCode::EMAIL_ALREADY_EXISTS->getMessage(),
         ]);
 
         try {
+            if ($request->filled('email')) {
+                if ($this->authService->emailExists($request->email)) {
+                    throw new AppException(ErrorCode::EMAIL_ALREADY_EXISTS, 'Email already exists');
+                }
+            }
+            if ($request->filled('phone')) {
+                if ($this->authService->phoneExists($request->phone)) {
+                    throw new AppException(ErrorCode::PHONE_ALREADY_EXISTS, 'Phone number already exists');
+                }
+            }
             $result = $this->authService->register([
                 'name' => $request->name,
                 'phone' => $request->phone,

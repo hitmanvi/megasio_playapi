@@ -23,6 +23,28 @@ class AuthService
     }
 
     /**
+     * 检查邮箱是否已存在
+     *
+     * @param string $email
+     * @return bool
+     */
+    public function emailExists(string $email): bool
+    {
+        return User::where('email', $email)->exists();
+    }
+
+    /**
+     * 检查手机号是否已存在
+     *
+     * @param string $phone
+     * @return bool
+     */
+    public function phoneExists(string $phone): bool
+    {
+        return User::where('phone', $phone)->exists();
+    }
+
+    /**
      * 注册新用户
      *
      * @param array $data 用户数据
