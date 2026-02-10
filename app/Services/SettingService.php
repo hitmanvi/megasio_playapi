@@ -10,7 +10,7 @@ class SettingService
     /**
      * 缓存时间（秒）
      */
-    const CACHE_TTL = 60;
+    const CACHE_TTL = 10;
 
     /**
      * 缓存 key 前缀
