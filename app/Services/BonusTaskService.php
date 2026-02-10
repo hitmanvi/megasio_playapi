@@ -139,7 +139,7 @@ class BonusTaskService
 
     /**
      * 检查并激活下一个待激活的任务
-     * 如果当前没有激活的任务，自动激活第一个 pending 任务
+     * 如果当前没有激活的任务，自动激活最快要过期的 pending 任务
      *
      * @param int $userId
      * @return BonusTask|null 返回被激活的任务，如果没有则返回 null
@@ -152,7 +152,8 @@ class BonusTaskService
             return null;
         }
 
-        // 查找第一个待激活的任务（按创建时间排序）
+        // 查找最快要过期的待激活任务
+        // 优先激活有过期时间的任务（按过期时间升序），然后是没有过期时间的任务（按创建时间升序）
         $pendingTask = BonusTask::where('user_id', $userId)
             ->where('status', BonusTask::STATUS_PENDING)
             ->where(function ($query) {
@@ -160,7 +161,9 @@ class BonusTaskService
                 $query->whereNull('expired_at')
                       ->orWhere('expired_at', '>', now());
             })
-            ->orderBy('created_at', 'asc')
+            ->orderByRaw('CASE WHEN expired_at IS NULL THEN 1 ELSE 0 END') // 有过期时间的优先
+            ->orderBy('expired_at', 'asc') // 按过期时间升序（最快要过期的在前）
+            ->orderBy('created_at', 'asc') // 如果都没有过期时间，按创建时间升序
             ->first();
 
         if ($pendingTask) {
@@ -257,6 +260,9 @@ class BonusTaskService
             // 更新任务状态为已领取（因为奖励已自动发放）
             $task->status = BonusTask::STATUS_CLAIMED;
             $task->save();
+
+            // 任务完成后，激活下一个待激活的任务
+            $this->activateNextPendingTask($task->user_id);
         });
     }
 
