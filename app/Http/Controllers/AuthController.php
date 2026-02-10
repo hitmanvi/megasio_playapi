@@ -31,7 +31,7 @@ class AuthController extends Controller
             'area_code' => 'nullable|string|max:10',
             'email' => 'nullable|string|email|max:255',
             'password' => 'required|string|min:6',
-            'invite_code' => 'nullable|string|size:8',
+            'invite_code' => 'nullable|string',
         ]);
 
         try {
