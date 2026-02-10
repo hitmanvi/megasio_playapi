@@ -76,8 +76,6 @@ class UserController extends Controller
         }
 
         // 更新基准币种
-        // 使用 array_key_exists 检查原始请求数据中是否存在该参数
-        // 这样可以检测到即使中间件处理过的参数
         if ($request->has('base_currency')) {
             $currency = $request->input('base_currency');
             if ($currency) {

@@ -184,7 +184,7 @@ class User extends Authenticatable
      */
     public function getBaseCurrency(): ?string
     {
-        return $this->base_currency ?? 'USD';
+        return $this->base_currency;
     }
 
     /**
