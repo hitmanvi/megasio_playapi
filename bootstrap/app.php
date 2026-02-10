@@ -47,6 +47,7 @@ return Application::configure(basePath: dirname(__DIR__))
                     'data'   => null,
                 ]);
             }
+            Log::error('Server error', ['error' => $e->getMessage(), 'trace' => $e->getTraceAsString()]);
             $resp = [
                 'code'   => ErrorCode::INTERNAL_ERROR->value,
                 'errmsg' => "Server error",
