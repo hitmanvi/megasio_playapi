@@ -174,4 +174,16 @@ return [
     */
 
     'sc_to_usd_rate' => (float) env('SC_TO_USD_RATE', 1.0),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Bonus Expire Days
+    |--------------------------------------------------------------------------
+    |
+    | The number of days after which a bonus (such as deposit or promotion bonus)
+    | will expire if not used or claimed. Set to null to disable expiry.
+    |
+    */
+
+    'bonus_expire_days' => env('BONUS_EXPIRE_DAYS', 7),
 ];

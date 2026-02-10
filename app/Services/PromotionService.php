@@ -101,7 +101,7 @@ class PromotionService
         }
 
         // 创建 BonusTask
-        $task = BonusTask::create([
+        $task = $this->bonusTaskService->createTask([
             'user_id' => $deposit->user_id,
             'task_no' => $taskNo,
             'bonus_name' => $this->getBonusName($rewardedCount),
@@ -168,7 +168,7 @@ class PromotionService
         // 生成奖励名称
         $bonusName = 'Daily Deposit Bonus (' . ($todayTaskCount + 1) . '/' . $maxTimes . ')';
 
-        $task = BonusTask::create([
+        $task = $this->bonusTaskService->createTask([
             'user_id' => $deposit->user_id,
             'task_no' => $taskNo,
             'bonus_name' => $bonusName,

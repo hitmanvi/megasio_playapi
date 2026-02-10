@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\BonusTask;
 use App\Jobs\SendWebSocketMessage;
+use Carbon\Carbon;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -101,6 +102,25 @@ class BonusTaskService
                 'currency' => $currency,
             ];
         });
+    }
+
+    /**
+     * 创建 BonusTask
+     *
+     * @param array $data 任务数据
+     * @return BonusTask
+     */
+    public function createTask(array $data): BonusTask
+    {
+        // 如果没有设置 expired_at，根据配置计算过期时间
+        if (!isset($data['expired_at'])) {
+            $expireDays = config('app.bonus_expire_days');
+            if ($expireDays !== null) {
+                $data['expired_at'] = Carbon::now()->addDays($expireDays);
+            }
+        }
+
+        return BonusTask::create($data);
     }
 
     /**
