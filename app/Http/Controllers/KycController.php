@@ -41,6 +41,9 @@ class KycController extends Controller
         // 查找或创建 KYC 记录
         $kyc = Kyc::firstOrNew(['user_id' => $user->id]);
 
+        // 保存当前状态，用于检查是否需要保持状态
+        $previousStatus = $kyc->exists ? $kyc->status : null;
+
         // 更新字段
         $kyc->fill([
             'user_id' => $user->id,
@@ -55,7 +58,14 @@ class KycController extends Controller
         if ($kyc->exists && $kyc->isRejected()) {
             $kyc->status = Kyc::STATUS_PENDING;
             $kyc->reject_reason = null;
+        } elseif (!$kyc->exists) {
+            // 新创建的记录，设置为待审核状态
+            $kyc->status = Kyc::STATUS_PENDING;
+        } elseif ($previousStatus === Kyc::STATUS_PENDING) {
+            // 如果之前是待审核状态，保持待审核状态（不改变状态）
+            $kyc->status = Kyc::STATUS_PENDING;
         }
+        // 如果之前是 approved 或更高级的状态，保持原状态不变
 
         $kyc->save();
 
@@ -78,13 +88,19 @@ class KycController extends Controller
             return $this->error(ErrorCode::NOT_FOUND, 'KYC not found, please submit basic info first');
         }
 
-        if (!$kyc->canSubmitAdvanced()) {
-            return $this->error(ErrorCode::OPERATION_NOT_ALLOWED, 'Cannot submit advanced verification at current status');
-        }
-
+        // 保存上传的材料
         $kyc->selfie = $request->input('selfie');
-        $kyc->status = Kyc::STATUS_ADVANCED_PENDING;
-        $kyc->reject_reason = null;
+
+        // 检查上一级（初审）是否审核通过
+        // 如果初审通过或高级认证被拒绝后重新提交，更新状态为 advanced_pending
+        // 如果初审未通过，保持当前状态不变
+        if ($kyc->isApproved() || $kyc->isAdvancedRejected()) {
+            // 上一级已通过，可以提交高级认证，更新状态
+            $kyc->status = Kyc::STATUS_ADVANCED_PENDING;
+            $kyc->reject_reason = null;
+        }
+        // 如果上一级未通过（pending 或 rejected），保持当前状态不变
+
         $kyc->save();
 
         return $this->responseItem($kyc);
