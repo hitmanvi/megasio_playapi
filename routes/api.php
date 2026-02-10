@@ -31,6 +31,7 @@ use App\Http\Controllers\ArticleGroupController;
 use App\Http\Controllers\ArticleController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\GameFavoriteController;
+use Illuminate\Http\Request;
 
 // 认证相关路由
 Route::prefix('auth')->group(function () {
