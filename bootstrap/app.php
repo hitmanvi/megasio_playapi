@@ -11,6 +11,7 @@ use App\Http\Middleware\VerifyProviderIpWhitelist;
 use App\Http\Middleware\LogRequestResponse;
 use Illuminate\Auth\AuthenticationException;
 use Illuminate\Validation\ValidationException;
+use App\Exceptions\Exception as AppException;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -36,6 +37,13 @@ return Application::configure(basePath: dirname(__DIR__))
                 return response()->json([
                     'code'   => ErrorCode::UNAUTHORIZED->value,
                     'errmsg' => $e->getMessage(),
+                    'data'   => null,
+                ]);
+            }
+            if ($e instanceof AppException) {
+                return response()->json([
+                    'code'   => $e->getErrorCode()->value,
+                    'errmsg' => $e->getErrorCode()->getMessage(),
                     'data'   => null,
                 ]);
             }
