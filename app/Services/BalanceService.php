@@ -30,6 +30,30 @@ class BalanceService
     }
 
     /**
+     * 创建用户默认币种的 balance（如果不存在）
+     *
+     * @param int $userId
+     * @param string|null $currency 币种，如果为 null 则使用 app.currency 配置
+     * @return Balance
+     */
+    public function createDefaultBalance(int $userId, ?string $currency = null): Balance
+    {
+        $currency = $currency ?? config('app.currency', 'USD');
+        
+        return Balance::firstOrCreate(
+            [
+                'user_id' => $userId,
+                'currency' => $currency,
+            ],
+            [
+                'available' => 0,
+                'frozen' => 0,
+                'version' => 0,
+            ]
+        );
+    }
+
+    /**
      * Create or update balance with optimistic locking.
      */
     public function updateBalance(int $userId, string $currency, float $amount, string $operation = 'add', string $type = 'available'): Balance

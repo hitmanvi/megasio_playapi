@@ -195,7 +195,7 @@ class BonusTaskService
             $task->refresh();
         } else {
             // 检查 last_bonus 是否用完且任务未完成
-            if ($task->last_bonus <= 0 && ($task->isPending() || $task->isActive())) {
+            if ($task->last_bonus < 0.1 && ($task->isPending() || $task->isActive())) {
                 // bonus 余额已用完但任务未完成，更新状态为 depleted
                 $task->status = BonusTask::STATUS_DEPLETED;
             }

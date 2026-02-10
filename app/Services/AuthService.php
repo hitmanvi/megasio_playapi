@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\User;
 use App\Models\Invitation;
+use App\Services\BalanceService;
 use App\Enums\ErrorCode;
 use App\Events\UserLoggedIn;
 use App\Exceptions\Exception;
@@ -14,6 +15,13 @@ use Google\Client as GoogleClient;
 
 class AuthService
 {
+    protected BalanceService $balanceService;
+
+    public function __construct()
+    {
+        $this->balanceService = new BalanceService();
+    }
+
     /**
      * 注册新用户
      *
@@ -69,6 +77,9 @@ class AuthService
                     'invitee_id' => $user->id,
                 ]);
             }
+
+            // 创建默认币种的 balance
+            $this->balanceService->createDefaultBalance($user->id);
 
             // 生成 token
             $token = $user->createToken('auth_token')->plainTextToken;
@@ -302,6 +313,9 @@ class AuthService
                             'invitee_id' => $user->id,
                         ]);
                     }
+
+                    // 创建默认币种的 balance
+                    $this->balanceService->createDefaultBalance($user->id);
                 } else {
                     // 更新用户信息（如果 Google 信息有变化）
                     $updateData = [];
