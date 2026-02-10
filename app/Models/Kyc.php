@@ -136,7 +136,7 @@ class Kyc extends Model
      */
     public function canSubmitEnhanced(): bool
     {
-        return in_array($this->status, [self::STATUS_ADVANCED_APPROVED, self::STATUS_ENHANCED_REJECTED]);
+        return true;
     }
 
     /**
