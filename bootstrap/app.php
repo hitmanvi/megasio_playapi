@@ -40,6 +40,13 @@ return Application::configure(basePath: dirname(__DIR__))
                     'data'   => null,
                 ]);
             }
+            if ($e instanceof ValidationException) {
+                return response()->json([
+                    'code'   => ErrorCode::VALIDATION_ERROR->value,
+                    'errmsg' => $e->getMessage(),
+                    'data'   => null,
+                ]);
+            }
             if ($e instanceof AppException) {
                 return response()->json([
                     'code'   => $e->getErrorCode()->value,
@@ -47,7 +54,6 @@ return Application::configure(basePath: dirname(__DIR__))
                     'data'   => null,
                 ]);
             }
-            Log::error('Server error', ['error' => $e->getMessage(), 'trace' => $e->getTraceAsString()]);
             $resp = [
                 'code'   => ErrorCode::INTERNAL_ERROR->value,
                 'errmsg' => "Server error",
