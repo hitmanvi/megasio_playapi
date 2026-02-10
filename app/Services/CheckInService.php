@@ -120,7 +120,7 @@ class CheckInService
         $hasEligibleDeposit = Deposit::where('user_id', $userId)
             ->where('status', Deposit::STATUS_COMPLETED)
             ->whereDate('completed_at', $today)
-            ->whereIn('id', $allowedPaymentIds)
+            ->whereIn('payment_method_id', $allowedPaymentIds)
             ->exists();
 
         return $hasEligibleDeposit;
