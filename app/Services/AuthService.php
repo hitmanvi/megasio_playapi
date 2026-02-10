@@ -58,6 +58,9 @@ class AuthService
 
         // 创建用户和邀请关系
         return DB::transaction(function () use ($data, $name, $areaCode, $inviter) {
+            // 获取默认币种
+            $defaultCurrency = config('app.currency', 'USD');
+            
             // 创建用户
             $user = User::create([
                 'uid' => User::generateUid(),
@@ -67,6 +70,9 @@ class AuthService
                 'email' => $data['email'] ?? null,
                 'password' => Hash::make($data['password']),
                 'status' => 'active',
+                'display_currencies' => [$defaultCurrency],
+                'base_currency' => $defaultCurrency,
+                'current_currency' => $defaultCurrency,
                 // invite_code 会在 boot 方法中自动生成
             ]);
 
@@ -296,6 +302,9 @@ class AuthService
 
                 // 如果还是不存在，创建新用户
                 if (!$user) {
+                    // 获取默认币种
+                    $defaultCurrency = config('app.currency', 'USD');
+                    
                     $user = User::create([
                         'uid' => User::generateUid(),
                         'name' => $name,
@@ -303,6 +312,9 @@ class AuthService
                         'google_id' => $googleId,
                         'password' => null, // Google 登录不需要密码
                         'status' => 'active',
+                        'display_currencies' => [$defaultCurrency],
+                        'base_currency' => $defaultCurrency,
+                        'current_currency' => $defaultCurrency,
                         // invite_code 会在 boot 方法中自动生成
                     ]);
 
