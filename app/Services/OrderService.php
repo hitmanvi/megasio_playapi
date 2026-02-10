@@ -127,7 +127,7 @@ class OrderService
             ->first();
     }
 
-    public function bet($userId, $amount, $currency, $game, $roundId)
+    public function bet($userId, $amount, $currency, $game, $roundId, $bonusTaskId = null)
     {
         $order = Order::where('user_id', $userId)
             ->where('game_id', $game->id)
@@ -135,7 +135,7 @@ class OrderService
             ->first();
 
         if (!$order) {
-            $order = Order::create([
+            $orderData = [
                 'order_id' => Str::ulid()->toString(),
                 'user_id' => $userId,
                 'amount' => $amount,
@@ -144,9 +144,20 @@ class OrderService
                 'brand_id' => $game->brand_id,
                 'status' => Order::STATUS_PENDING,
                 'out_id' => $roundId,
-            ]);
+            ];
+            
+            // 如果提供了 bonus_task_id，绑定到订单
+            if ($bonusTaskId !== null) {
+                $orderData['bonus_task_id'] = $bonusTaskId;
+            }
+            
+            $order = Order::create($orderData);
         } else {
             $order->amount += $amount;
+            // 如果订单还没有 bonus_task_id 且提供了，则绑定
+            if ($order->bonus_task_id === null && $bonusTaskId !== null) {
+                $order->bonus_task_id = $bonusTaskId;
+            }
             $order->save();
         }
 

@@ -107,8 +107,9 @@ class ProviderCallbackService
                 $balance = $result['balance']['available'];
             }
 
-            // 创建或更新订单
-            $order = $this->orderService->bet($userId, $amount, $currency, $game, $roundId);
+            // 创建或更新订单，如果是 bonus 订单则绑定 bonus_task_id
+            $bonusTaskId = $isBonus && $bonusTask ? $bonusTask->id : null;
+            $order = $this->orderService->bet($userId, $amount, $currency, $game, $roundId, $bonusTaskId);
 
             // 更新 provider transaction 的 order_id
             $this->providerTransactionService->updateOrderId($transaction, $order->id);
@@ -162,7 +163,14 @@ class ProviderCallbackService
 
         // 根据 currency 判断是否是 bonus 模式
         $isBonus = $this->isBonusCurrency($currency);
-        $bonusTask = $isBonus ? $this->bonusTaskService->getActiveBonusTask($userId) : null;
+        // 优先使用订单中绑定的 bonus_task_id，如果没有则查询当前 active 的 bonus task
+        if ($isBonus && $order->bonus_task_id) {
+            $bonusTask = BonusTask::find($order->bonus_task_id);
+        } elseif ($isBonus) {
+            $bonusTask = $this->bonusTaskService->getActiveBonusTask($userId);
+        } else {
+            $bonusTask = null;
+        }
 
         return DB::transaction(function () use ($provider, $gameId, $userId, $txid, $roundId, $amount, $currency, $detail, $isFinished, $order, $isBonus, $bonusTask) {
             // 创建 provider transaction 记录

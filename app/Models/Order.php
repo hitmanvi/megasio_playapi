@@ -14,6 +14,7 @@ class Order extends Model
      */
     protected $fillable = [
         'user_id',
+        'bonus_task_id',
         'game_id',
         'brand_id',
         'amount',
@@ -73,6 +74,14 @@ class Order extends Model
     public function brand(): BelongsTo
     {
         return $this->belongsTo(Brand::class);
+    }
+
+    /**
+     * Get the bonus task for this order.
+     */
+    public function bonusTask(): BelongsTo
+    {
+        return $this->belongsTo(BonusTask::class);
     }
 
     /**
