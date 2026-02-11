@@ -16,5 +16,8 @@ Schedule::command('tokens:clean-expired')->daily();
 // 每天归档一个月前的订单
 Schedule::command('orders:archive')->daily();
 
-// 每天生成邀请奖励（基于前一天的 wager）
-Schedule::command(GenerateRewards::class)->daily();
+// 每天生成邀请奖励（基于前一天的 wager），每天凌晨2点执行
+Schedule::command(GenerateRewards::class)->dailyAt('02:00');
+
+// 每天运行一次 Funky 游戏同步
+Schedule::command('import:funky_games')->daily();

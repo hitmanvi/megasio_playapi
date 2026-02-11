@@ -4,6 +4,7 @@ namespace App\Console\Commands\Test;
 
 use App\Models\Notification;
 use App\Models\User;
+use App\Services\NotificationService;
 use Carbon\Carbon;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
@@ -20,7 +21,8 @@ class GenerateNotifications extends Command
                             {--count=10 : 生成的通知数量}
                             {--type=user : 消息类型：system（系统消息）、user（用户消息）}
                             {--category= : 消息分类，不指定则随机生成}
-                            {--system-count=5 : 同时生成的系统消息数量（仅在type=user时生效）}';
+                            {--system-count=5 : 同时生成的系统消息数量（仅在type=user时生效）}
+                            {--no-websocket : 禁用 WebSocket 推送（测试时使用）}';
 
     /**
      * The console command description.
@@ -28,6 +30,14 @@ class GenerateNotifications extends Command
      * @var string
      */
     protected $description = '为指定用户生成测试通知数据';
+
+    protected NotificationService $notificationService;
+
+    public function __construct()
+    {
+        parent::__construct();
+        $this->notificationService = new NotificationService();
+    }
 
     /**
      * 消息分类配置
@@ -39,24 +49,24 @@ class GenerateNotifications extends Command
             'data_template' => [],
         ],
         Notification::CATEGORY_DEPOSIT_SUCCESS => [
-            'title' => '充值成功',
-            'content_template' => '您的充值已成功到账，金额：{amount} {currency}',
+            'title' => 'deposit',
+            'content_template' => '${amount} credited to your game balance.',
             'data_template' => ['amount' => 100.00, 'currency' => 'USD', 'order_no' => 'DEP{id}'],
         ],
         Notification::CATEGORY_WITHDRAW_SUCCESS => [
-            'title' => '提现成功',
-            'content_template' => '您的提现已成功处理，金额：{amount} {currency}',
+            'title' => 'withdrawal',
+            'content_template' => '${amount} has been processed successfully.',
             'data_template' => ['amount' => 50.00, 'currency' => 'USD', 'order_no' => 'WD{id}'],
         ],
         Notification::CATEGORY_VIP_LEVEL_UP => [
-            'title' => 'VIP等级提升',
-            'content_template' => '恭喜您！您的VIP等级已提升至 {level}',
-            'data_template' => ['level' => 'Gold', 'level_name' => 'Gold'],
+            'title' => 'vip level up to {level}',
+            'content_template' => 'Congratulations! You\'ve been upgraded to VIP Level {level}!',
+            'data_template' => ['level' => 4, 'level_number' => 4],
         ],
         Notification::CATEGORY_BONUS_TASK => [
             'title' => 'bonus',
-            'content_template' => '${amount} credited to your bonus balance. Via First Deposit.',
-            'data_template' => ['amount' => 20.00, 'currency' => 'USD', 'task_no' => 'FIRST_DEPOSIT_BONUS'],
+            'content_template' => '${amount} credited to your bonus balance. Via {via}.',
+            'data_template' => ['amount' => 20.00, 'currency' => 'USD', 'task_no' => 'FIRST_DEPOSIT_BONUS', 'via' => 'First Deposit'],
         ],
         Notification::CATEGORY_BONUS_TASK_COMPLETED => [
             'title' => '奖励任务完成',
@@ -85,6 +95,7 @@ class GenerateNotifications extends Command
         $type = $this->option('type');
         $category = $this->option('category');
         $systemCount = (int) $this->option('system-count');
+        $noWebSocket = $this->option('no-websocket');
 
         // 验证类型
         if (!in_array($type, [Notification::TYPE_SYSTEM, Notification::TYPE_USER])) {
@@ -140,17 +151,34 @@ class GenerateNotifications extends Command
             // 生成通知数据
             $notificationData = $this->generateNotificationData($selectedCategory, $config, $generated + 1);
 
-            DB::transaction(function () use ($userId, $type, $selectedCategory, $notificationData) {
-                Notification::create([
-                    'user_id' => $type === Notification::TYPE_SYSTEM ? null : $userId,
-                    'type' => $type,
-                    'category' => $selectedCategory,
-                    'title' => $notificationData['title'],
-                    'content' => $notificationData['content'],
-                    'data' => $notificationData['data'],
-                    'read_at' => rand(0, 100) < 30 ? Carbon::now()->subHours(rand(1, 24)) : null, // 30% 概率已读
-                    'created_at' => Carbon::now()->subDays(rand(0, 30))->subHours(rand(0, 23)),
-                ]);
+            DB::transaction(function () use ($userId, $type, $selectedCategory, $notificationData, $noWebSocket) {
+                if ($type === Notification::TYPE_USER && !$noWebSocket) {
+                    // 使用 NotificationService 创建用户通知（会自动推送 WebSocket）
+                    $notification = $this->notificationService->createUserNotification(
+                        $userId,
+                        $selectedCategory,
+                        $notificationData['title'],
+                        $notificationData['content'],
+                        $notificationData['data']
+                    );
+                    
+                    // 设置随机的 read_at 和 created_at
+                    $notification->read_at = rand(0, 100) < 30 ? Carbon::now()->subHours(rand(1, 24)) : null;
+                    $notification->created_at = Carbon::now()->subDays(rand(0, 30))->subHours(rand(0, 23));
+                    $notification->save();
+                } else {
+                    // 直接创建通知（系统通知或禁用 WebSocket 时）
+                    Notification::create([
+                        'user_id' => $type === Notification::TYPE_SYSTEM ? null : $userId,
+                        'type' => $type,
+                        'category' => $selectedCategory,
+                        'title' => $notificationData['title'],
+                        'content' => $notificationData['content'],
+                        'data' => $notificationData['data'],
+                        'read_at' => rand(0, 100) < 30 ? Carbon::now()->subHours(rand(1, 24)) : null, // 30% 概率已读
+                        'created_at' => Carbon::now()->subDays(rand(0, 30))->subHours(rand(0, 23)),
+                    ]);
+                }
             });
 
             $generated++;
@@ -287,7 +315,7 @@ class GenerateNotifications extends Command
      */
     protected function generateNotificationData(string $category, array $config, int $index): array
     {
-        $title = $config['title'];
+        $titleTemplate = $config['title'];
         $contentTemplate = $config['content_template'];
         $dataTemplate = $config['data_template'];
 
@@ -302,7 +330,12 @@ class GenerateNotifications extends Command
                     ? round($value * (0.5 + rand(0, 100) / 100), 2)
                     : rand((int)($value * 0.5), (int)($value * 1.5));
                 $data[$key] = $randomValue;
-                $replacements['{' . $key . '}'] = $randomValue;
+                // 对于 level_number，需要转换为字符串
+                if ($key === 'level_number') {
+                    $replacements['{' . $key . '}'] = (string) $randomValue;
+                } else {
+                    $replacements['{' . $key . '}'] = $randomValue;
+                }
             } elseif (str_contains($value, '{id}')) {
                 // 如果包含 {id}，替换为索引
                 $data[$key] = str_replace('{id}', str_pad($index, 6, '0', STR_PAD_LEFT), $value);
@@ -312,8 +345,14 @@ class GenerateNotifications extends Command
                 $replacements['{' . $key . '}'] = $value;
             }
         }
+        
+        // 特殊处理：如果 category 是 VIP_LEVEL_UP，确保 level_number 是字符串
+        if ($category === Notification::CATEGORY_VIP_LEVEL_UP && isset($data['level']) && !isset($data['level_number'])) {
+            $data['level_number'] = (string) $data['level'];
+        }
 
-        // 替换内容模板中的占位符
+        // 替换标题和内容模板中的占位符
+        $title = str_replace(array_keys($replacements), array_values($replacements), $titleTemplate);
         $content = str_replace(array_keys($replacements), array_values($replacements), $contentTemplate);
 
         return [

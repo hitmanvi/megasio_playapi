@@ -180,17 +180,22 @@ class NotificationService
         
         // 根据 task_no 或 bonus_name 判断类型，生成 "Via ..." 文本
         $viaText = 'Via Deposit';
+        $viaValue = 'Deposit';
         if ($taskNo === 'FIRST_DEPOSIT_BONUS' || ($bonusName && stripos($bonusName, 'First Deposit') !== false)) {
             $viaText = 'Via First Deposit';
+            $viaValue = 'First Deposit';
         } elseif ($taskNo === 'SECOND_DEPOSIT_BONUS' || ($bonusName && stripos($bonusName, 'Second Deposit') !== false)) {
             $viaText = 'Via Second Deposit';
+            $viaValue = 'Second Deposit';
         } elseif ($taskNo === 'THIRD_DEPOSIT_BONUS' || ($bonusName && stripos($bonusName, 'Third Deposit') !== false)) {
             $viaText = 'Via Third Deposit';
+            $viaValue = 'Third Deposit';
         } elseif (strpos($taskNo, 'DAILY_DEPOSIT_BONUS') === 0 || ($bonusName && stripos($bonusName, 'Daily Deposit') !== false)) {
             $viaText = 'Via Daily Deposit';
+            $viaValue = 'Daily Deposit';
         }
         
-        $content = "\${$formattedAmount} credited to your bonus balance. {$viaText}.";
+        $content = "\${$formattedAmount} credited to your bonus balance. Via {$viaText}.";
 
         return $this->createUserNotification(
             $userId,
@@ -201,6 +206,7 @@ class NotificationService
                 'amount' => $amount,
                 'currency' => $currency,
                 'task_no' => $taskNo,
+                'via' => $viaValue,
             ]
         );
     }

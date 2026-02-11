@@ -27,8 +27,7 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
     })
     ->withSchedule(function (Schedule $schedule): void {
-        // 每天运行一次 Funky 游戏同步
-        $schedule->command('import:funky_games')->daily();
+        // 定时任务配置已移至 routes/console.php
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         
