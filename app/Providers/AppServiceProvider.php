@@ -9,6 +9,7 @@ use App\Listeners\AddVipExpOnOrderCompleted;
 use App\Listeners\CreateDepositBonusTask;
 use App\Listeners\CreateInvitationDepositReward;
 use App\Listeners\CreateInvitationVipReward;
+use App\Listeners\NotifyVipLevelUpgraded;
 use App\Listeners\CreateRollover;
 use App\Listeners\RecordUserRecentGame;
 use App\Listeners\UpdateUserWager;
@@ -49,6 +50,7 @@ class AppServiceProvider extends ServiceProvider
         Event::listen(DepositCompleted::class, CreateDepositBonusTask::class);
         // Event::listen(DepositCompleted::class, CreateRollover::class);
         Event::listen(VipLevelUpgraded::class, CreateInvitationVipReward::class);
+        Event::listen(VipLevelUpgraded::class, NotifyVipLevelUpgraded::class);
     }
 
     /**

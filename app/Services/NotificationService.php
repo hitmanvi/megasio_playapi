@@ -146,4 +146,34 @@ class NotificationService
             ]
         );
     }
+
+    /**
+     * 创建 VIP 等级提升通知
+     *
+     * @param int $userId 用户ID
+     * @param string $newLevel 新等级（如 "4"）
+     * @return Notification
+     */
+    public function createVipLevelUpNotification(int $userId, string $newLevel): Notification
+    {
+        // 提取等级数字（如果 level 是 "4" 或 "level_4" 等格式）
+        $levelNumber = preg_replace('/[^0-9]/', '', $newLevel);
+        if (empty($levelNumber)) {
+            $levelNumber = $newLevel;
+        }
+        
+        $title = "vip level up to {$levelNumber}";
+        $content = "Congratulations! You've been upgraded to VIP Level {$levelNumber}!";
+
+        return $this->createUserNotification(
+            $userId,
+            Notification::CATEGORY_VIP_LEVEL_UP,
+            $title,
+            $content,
+            [
+                'level' => $newLevel,
+                'level_number' => $levelNumber,
+            ]
+        );
+    }
 }
