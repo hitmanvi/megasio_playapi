@@ -42,7 +42,7 @@ class PayPendingRewards extends Command
         // 查找所有有未发放奖励的邀请关系
         $invitationsWithPendingRewards = Invitation::whereHas('rewards', function ($query) {
             $query->where('status', InvitationReward::STATUS_PENDING);
-        })->with(['invitee'])->get();
+        })->with(['invitee', 'inviter'])->get();
 
         if ($invitationsWithPendingRewards->isEmpty()) {
             $this->info('No invitations with pending rewards found.');
@@ -57,6 +57,7 @@ class PayPendingRewards extends Command
 
         foreach ($invitationsWithPendingRewards as $invitation) {
             $invitee = $invitation->invitee;
+            $inviter = $invitation->inviter;
             
             if (!$invitee) {
                 $this->warn("Invitation {$invitation->id} has no invitee, skipping...");
@@ -64,16 +65,27 @@ class PayPendingRewards extends Command
                 continue;
             }
 
-            // 检查被邀请人的 KYC 状态
-            $kyc = Kyc::where('user_id', $invitee->id)->first();
-            
-            if (!$kyc || !$kyc->isVerified()) {
-                // KYC 未认证，跳过
+            if (!$inviter) {
+                $this->warn("Invitation {$invitation->id} has no inviter, skipping...");
                 $skipped++;
                 continue;
             }
 
-            // KYC 已认证，发放未发放的奖励
+            // 检查被邀请人的 KYC 状态
+            $inviteeKyc = Kyc::where('user_id', $invitee->id)->first();
+            $isInviteeKycVerified = $inviteeKyc && $inviteeKyc->isVerified();
+
+            // 检查邀请方的 KYC 状态
+            $inviterKyc = Kyc::where('user_id', $inviter->id)->first();
+            $isInviterKycVerified = $inviterKyc && $inviterKyc->isVerified();
+
+            // 只有双方 KYC 都已认证才能发放
+            if (!$isInviteeKycVerified || !$isInviterKycVerified) {
+                $skipped++;
+                continue;
+            }
+
+            // 双方 KYC 都已认证，发放未发放的奖励
             $paidCount = $this->rewardService->payPendingRewardsForUser($invitee->id);
             
             if ($paidCount > 0) {

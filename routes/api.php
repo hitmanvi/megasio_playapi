@@ -31,6 +31,7 @@ use App\Http\Controllers\ArticleGroupController;
 use App\Http\Controllers\ArticleController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\GameFavoriteController;
+use App\Http\Controllers\AdminController;
 use Illuminate\Http\Request;
 
 // 认证相关路由
@@ -220,6 +221,11 @@ Route::prefix('gp')->middleware(['throttle:gp'])->group(function () {
 
 // Sopay 回调路由
 Route::post('/sopay/callback', [SopayController::class, 'callback']);
+
+// Admin 接口路由（后台管理系统调用）
+Route::prefix('admin')->group(function () {
+    Route::post('/kyc/completed', [AdminController::class, 'notifyKycCompleted']);
+});
 
     
 // 存款相关路由（需要认证）

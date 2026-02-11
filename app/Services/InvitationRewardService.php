@@ -73,8 +73,8 @@ class InvitationRewardService
     }
 
     /**
-     * 检查被邀请人的 KYC 状态并创建奖励
-     * 如果 KYC 已认证，则自动发放；否则设置为未发放状态
+     * 检查邀请方和被邀请人的 KYC 状态并创建奖励
+     * 如果双方 KYC 都已认证，则自动发放；否则设置为未发放状态
      *
      * @param Invitation $invitation
      * @param array $rewardData 奖励数据
@@ -84,8 +84,16 @@ class InvitationRewardService
     {
         // 检查被邀请人的 KYC 状态
         $invitee = $invitation->invitee;
-        $kyc = Kyc::where('user_id', $invitee->id)->first();
-        $isKycVerified = $kyc && $kyc->isVerified();
+        $inviteeKyc = Kyc::where('user_id', $invitee->id)->first();
+        $isInviteeKycVerified = $inviteeKyc && $inviteeKyc->isVerified();
+
+        // 检查邀请方的 KYC 状态
+        $inviter = $invitation->inviter;
+        $inviterKyc = Kyc::where('user_id', $inviter->id)->first();
+        $isInviterKycVerified = $inviterKyc && $inviterKyc->isVerified();
+
+        // 只有双方 KYC 都已认证才能发放
+        $isKycVerified = $isInviteeKycVerified && $isInviterKycVerified;
 
         // 设置默认状态
         $rewardData['status'] = $isKycVerified 
@@ -96,7 +104,7 @@ class InvitationRewardService
             // 创建邀请奖励记录
             $reward = InvitationReward::create($rewardData);
 
-            // 如果 KYC 已认证，立即发放奖励
+            // 如果双方 KYC 都已认证，立即发放奖励
             if ($isKycVerified) {
                 $this->balanceService->invitationReward(
                     $invitation->inviter_id,
@@ -143,6 +151,7 @@ class InvitationRewardService
 
     /**
      * 为指定用户发放所有未发放的邀请奖励
+     * 需要同时检查邀请方和被邀请方的 KYC 状态
      *
      * @param int $userId 被邀请人用户ID
      * @return int 发放的奖励数量
@@ -150,9 +159,24 @@ class InvitationRewardService
     public function payPendingRewardsForUser(int $userId): int
     {
         // 查找该用户作为被邀请人的所有未发放奖励
-        $invitation = Invitation::where('invitee_id', $userId)->first();
+        $invitation = Invitation::where('invitee_id', $userId)
+            ->with(['inviter'])
+            ->first();
         
         if (!$invitation) {
+            return 0;
+        }
+
+        // 检查被邀请人的 KYC 状态
+        $inviteeKyc = Kyc::where('user_id', $userId)->first();
+        $isInviteeKycVerified = $inviteeKyc && $inviteeKyc->isVerified();
+
+        // 检查邀请方的 KYC 状态
+        $inviterKyc = Kyc::where('user_id', $invitation->inviter_id)->first();
+        $isInviterKycVerified = $inviterKyc && $inviterKyc->isVerified();
+
+        // 只有双方 KYC 都已认证才能发放
+        if (!$isInviteeKycVerified || !$isInviterKycVerified) {
             return 0;
         }
 
