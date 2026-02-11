@@ -70,7 +70,7 @@ class VipLevel extends Model
                     return $level->toApiArray();
                 })
                 ->keyBy(function ($level) {
-                    return (int) $level->level;
+                    return (int) $level['level'];
                 })
                 ->toArray();
         });
