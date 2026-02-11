@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Events\WithdrawCompleted;
 use App\Models\Withdraw;
 use App\Models\PaymentMethod;
+use App\Services\NotificationService;
 use Illuminate\Support\Str;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
@@ -15,10 +16,12 @@ use Carbon\Carbon;
 class WithdrawService
 {
     protected $balanceService;
+    protected $notificationService;
 
     public function __construct()
     {
         $this->balanceService = new BalanceService();
+        $this->notificationService = new NotificationService();
     }
 
     /**
@@ -282,6 +285,15 @@ class WithdrawService
                 'completed_at' => Carbon::now(),
             ]);
             $this->balanceService->finishWithdraw($withdraw->user_id, $withdraw->currency, $amount, 'Withdraw', $withdraw->id);
+            
+            // 创建提现成功通知
+            $this->notificationService->createWithdrawSuccessNotification(
+                $withdraw->user_id,
+                $amount,
+                $withdraw->currency,
+                $withdraw->order_no
+            );
+            
             event(new WithdrawCompleted($withdraw));
             return true;
         });

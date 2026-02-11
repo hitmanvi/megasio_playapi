@@ -76,4 +76,32 @@ class NotificationService
             ]
         );
     }
+
+    /**
+     * 创建提现成功通知
+     *
+     * @param int $userId 用户ID
+     * @param float $amount 提现金额
+     * @param string $currency 货币类型
+     * @param string $orderNo 订单号
+     * @return Notification
+     */
+    public function createWithdrawSuccessNotification(int $userId, float $amount, string $currency, string $orderNo): Notification
+    {
+        // 格式化金额显示
+        $formattedAmount = number_format($amount, 2, '.', '');
+        $content = "\${$formattedAmount} has been processed successfully.";
+
+        return $this->createUserNotification(
+            $userId,
+            Notification::CATEGORY_WITHDRAW_SUCCESS,
+            'withdrawal',
+            $content,
+            [
+                'amount' => $amount,
+                'currency' => $currency,
+                'order_no' => $orderNo,
+            ]
+        );
+    }
 }
