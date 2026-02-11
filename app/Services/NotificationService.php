@@ -2,7 +2,10 @@
 
 namespace App\Services;
 
+use App\Jobs\SendWebSocketMessage;
 use App\Models\Notification;
+use App\Models\User;
+use Illuminate\Support\Facades\Log;
 
 class NotificationService
 {
@@ -23,7 +26,7 @@ class NotificationService
         string $content,
         ?array $data = null
     ): Notification {
-        return Notification::create([
+        $notification = Notification::create([
             'user_id' => $userId,
             'type' => Notification::TYPE_USER,
             'category' => $category,
@@ -31,6 +34,61 @@ class NotificationService
             'content' => $content,
             'data' => $data,
         ]);
+
+        // 推送 WebSocket 通知
+        $this->sendNotificationWebSocket($notification);
+
+        return $notification;
+    }
+
+    /**
+     * 发送通知的 WebSocket 推送
+     *
+     * @param Notification $notification
+     * @return void
+     */
+    protected function sendNotificationWebSocket(Notification $notification): void
+    {
+        try {
+            // 只推送用户通知（不推送系统通知）
+            if ($notification->type !== Notification::TYPE_USER || !$notification->user_id) {
+                return;
+            }
+
+            // 加载用户关联以获取 uid
+            if (!$notification->relationLoaded('user')) {
+                $notification->load('user');
+            }
+
+            if (!$notification->user || !$notification->user->uid) {
+                return;
+            }
+
+            // 准备 WebSocket 消息数据
+            $data = [
+                'id' => $notification->id,
+                'category' => $notification->category,
+                'title' => $notification->title,
+                'content' => $notification->content,
+                'data' => $notification->data,
+                'read_at' => $notification->read_at ? $notification->read_at->toIso8601String() : null,
+                'created_at' => $notification->created_at->toIso8601String(),
+            ];
+
+            // 分发 WebSocket 推送任务
+            SendWebSocketMessage::dispatch(
+                $notification->user->uid,
+                'notification.created',
+                $data
+            );
+        } catch (\Exception $e) {
+            // 记录错误但不影响主流程
+            Log::warning('Failed to send notification via WebSocket', [
+                'notification_id' => $notification->id,
+                'user_id' => $notification->user_id,
+                'error' => $e->getMessage(),
+            ]);
+        }
     }
 
     /**
