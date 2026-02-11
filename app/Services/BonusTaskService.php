@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\BonusTask;
+use App\Models\Order;
 use App\Jobs\SendWebSocketMessage;
 use App\Services\NotificationService;
 use Carbon\Carbon;
@@ -233,8 +234,15 @@ class BonusTaskService
         } else {
             // 检查 last_bonus 是否用完且任务未完成
             if ($task->last_bonus < 0.1 && ($task->isPending() || $task->isActive())) {
-                // bonus 余额已用完但任务未完成，更新状态为 depleted
-                $task->status = BonusTask::STATUS_DEPLETED;
+                // 检查该 bonus task 绑定的订单是否都已完成
+                $hasUncompletedOrders = Order::where('bonus_task_id', $task->id)
+                    ->where('status', Order::STATUS_PENDING)
+                    ->exists();
+                
+                // 只有当没有未完成的订单时，才设置为 depleted
+                if (!$hasUncompletedOrders) {
+                    $task->status = BonusTask::STATUS_DEPLETED;
+                }
             }
             $task->save();
         }
