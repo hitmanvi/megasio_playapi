@@ -78,7 +78,7 @@ class NotificationService
             // 分发 WebSocket 推送任务
             SendWebSocketMessage::dispatch(
                 $notification->user->uid,
-                'notification.created',
+                'notification',
                 $data
             );
         } catch (\Exception $e) {
