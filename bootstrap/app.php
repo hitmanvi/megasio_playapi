@@ -9,6 +9,7 @@ use App\Exceptions\Exception;
 use Illuminate\Support\Facades\Log;
 use App\Http\Middleware\VerifyProviderIpWhitelist;
 use App\Http\Middleware\LogRequestResponse;
+use App\Http\Middleware\VerifyAdminApi;
 use Illuminate\Auth\AuthenticationException;
 use Illuminate\Validation\ValidationException;
 use App\Exceptions\Exception as AppException;
@@ -24,6 +25,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'provider.ip' => VerifyProviderIpWhitelist::class,
             'log.request' => LogRequestResponse::class,
+            'admin.api' => VerifyAdminApi::class,
         ]);
     })
     ->withSchedule(function (Schedule $schedule): void {

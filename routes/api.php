@@ -223,7 +223,8 @@ Route::prefix('gp')->middleware(['throttle:gp'])->group(function () {
 Route::post('/sopay/callback', [SopayController::class, 'callback']);
 
 // Admin 接口路由（后台管理系统调用）
-Route::prefix('admin')->group(function () {
+// 需要 API Key 验证
+Route::prefix('x7k9m2p4')->middleware(['admin.api'])->group(function () {
     Route::post('/kyc/completed', [AdminController::class, 'notifyKycCompleted']);
 });
 
