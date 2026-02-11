@@ -225,27 +225,12 @@ class BonusTaskService
         // 增加 wager（流水）
         $task->wager = min($task->wager + $amount, $task->need_wager);
         
-        // 检查是否完成
-        if ($task->wager >= $task->need_wager && $task->isActive()) {
-            // 任务完成，发放奖励并更新状态
+        // 检查是否已完成所需流水并处于激活状态，避免不必要的刷新
+        if ($task->isActive() && $task->wager >= $task->need_wager) {
             $this->completeTask($task);
-            // 刷新任务对象以获取最新状态
-            $task->refresh();
-        } else {
-            // 检查 last_bonus 是否用完且任务未完成
-            if ($task->last_bonus < 0.1 && ($task->isPending() || $task->isActive())) {
-                // 检查该 bonus task 绑定的订单是否都已完成
-                $hasUncompletedOrders = Order::where('bonus_task_id', $task->id)
-                    ->where('status', Order::STATUS_PENDING)
-                    ->exists();
-                
-                // 只有当没有未完成的订单时，才设置为 depleted
-                if (!$hasUncompletedOrders) {
-                    $task->status = BonusTask::STATUS_DEPLETED;
-                }
-            }
-            $task->save();
         }
+        
+        $task->save();
         
         // 发送 WebSocket 推送
         $this->sendBonusTaskUpdate($task, 'deduct', $amount);

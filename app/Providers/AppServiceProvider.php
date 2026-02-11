@@ -6,6 +6,7 @@ use App\Events\DepositCompleted;
 use App\Events\OrderCompleted;
 use App\Events\VipLevelUpgraded;
 use App\Listeners\AddVipExpOnOrderCompleted;
+use App\Listeners\CheckBonusTaskDeplete;
 use App\Listeners\CreateDepositBonusTask;
 use App\Listeners\CreateInvitationDepositReward;
 use App\Listeners\CreateInvitationVipReward;
@@ -47,6 +48,7 @@ class AppServiceProvider extends ServiceProvider
         Event::listen(OrderCompleted::class, RecordUserRecentGame::class);
         Event::listen(OrderCompleted::class, UpdateUserWager::class);
         Event::listen(OrderCompleted::class, UpdateRolloverProgress::class);
+        Event::listen(OrderCompleted::class, CheckBonusTaskDeplete::class);
         Event::listen(OrderCompleted::class, AddVipExpOnOrderCompleted::class);
         Event::listen(DepositCompleted::class, CreateInvitationDepositReward::class);
         Event::listen(DepositCompleted::class, CreateDepositBonusTask::class);
