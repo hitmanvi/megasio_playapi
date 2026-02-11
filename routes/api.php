@@ -221,58 +221,23 @@ Route::prefix('gp')->middleware(['throttle:gp'])->group(function () {
 // Sopay 回调路由
 Route::post('/sopay/callback', [SopayController::class, 'callback']);
 
-// =============================================================================
-// 余额模式相关路由 (根据 BALANCE_MODE 配置切换)
-// =============================================================================
-
-// if (config('app.balance_mode') === 'currency') {
-    // ========== Currency 模式：传统存款/提款 ==========
     
-    // 存款相关路由（需要认证）
-    Route::middleware('auth:sanctum')->prefix('deposits')->group(function () {
-        Route::get('/', [DepositController::class, 'index']);
-        Route::post('/', [DepositController::class, 'store']);
-        Route::get('/statuses', [DepositController::class, 'statuses']);
-        Route::get('/form-fields', [DepositController::class, 'formFields']);
-        Route::post('/extra-step-fields', [DepositController::class, 'extraStepFields']);
-        Route::get('/{orderNo}', [DepositController::class, 'show']);
-    });
+// 存款相关路由（需要认证）
+Route::middleware('auth:sanctum')->prefix('deposits')->group(function () {
+    Route::get('/', [DepositController::class, 'index']);
+    Route::post('/', [DepositController::class, 'store']);
+    Route::get('/statuses', [DepositController::class, 'statuses']);
+    Route::get('/form-fields', [DepositController::class, 'formFields']);
+    Route::post('/extra-step-fields', [DepositController::class, 'extraStepFields']);
+    Route::get('/{orderNo}', [DepositController::class, 'show']);
+});
 
-    // 提款相关路由（需要认证）
-    Route::middleware('auth:sanctum')->prefix('withdraws')->group(function () {
-        Route::get('/', [WithdrawController::class, 'index']);
-        Route::post('/', [WithdrawController::class, 'store']);
-        Route::get('/statuses', [WithdrawController::class, 'statuses']);
-        Route::get('/form-fields', [WithdrawController::class, 'formFields']);
-        Route::get('/{orderNo}', [WithdrawController::class, 'show']);
-    });
-// }
+// 提款相关路由（需要认证）
+Route::middleware('auth:sanctum')->prefix('withdraws')->group(function () {
+    Route::get('/', [WithdrawController::class, 'index']);
+    Route::post('/', [WithdrawController::class, 'store']);
+    Route::get('/statuses', [WithdrawController::class, 'statuses']);
+    Route::get('/form-fields', [WithdrawController::class, 'formFields']);
+    Route::get('/{orderNo}', [WithdrawController::class, 'show']);
+});
 
-// if (config('app.balance_mode') === 'bundle') {
-    // ========== Bundle 模式：GC/SC 双币种捆绑包 ==========
-    
-    // Bundle 购买相关路由
-    Route::prefix('bundles')->group(function () {
-        Route::get('/', [BundleController::class, 'index']);
-        Route::get('/{id}', [BundleController::class, 'show']);
-        
-        // 需要认证的路由
-        Route::middleware('auth:sanctum')->group(function () {
-            Route::get('/form-fields', [BundleController::class, 'formFields']);
-            Route::get('/purchases/statuses', [BundleController::class, 'purchaseStatuses']);
-            Route::post('/purchase', [BundleController::class, 'purchase']);
-            Route::get('/purchases/list', [BundleController::class, 'purchases']);
-            Route::get('/purchases/{orderNo}', [BundleController::class, 'purchaseDetail']);
-        });
-    });
-
-    // Redeem 兑换相关路由 (SC -> USD)
-    Route::middleware('auth:sanctum')->prefix('redeems')->group(function () {
-        Route::get('/', [RedeemController::class, 'index']);
-        Route::post('/', [RedeemController::class, 'store']);
-        Route::get('/statuses', [RedeemController::class, 'statuses']);
-        Route::get('/form-fields', [RedeemController::class, 'formFields']);
-        Route::get('/exchange-rate', [RedeemController::class, 'exchangeRate']);
-        Route::get('/{orderNo}', [RedeemController::class, 'show']);
-    });
-// }
