@@ -11,11 +11,19 @@ class PaymentMethodController extends Controller
     /**
      * 获取支付方式列表
      * 
-     * 支持根据 currency, type, is_fiat 进行筛选（均为可选参数）
+     * 支持根据 currency, type, is_fiat, ids 进行筛选（均为可选参数）
      */
     public function index(Request $request): JsonResponse
     {
         $query = PaymentMethod::query();
+
+        // 筛选：IDs（可选，数组格式）
+        if ($request->has('ids') && is_array($request->input('ids'))) {
+            $ids = array_filter(array_map('intval', $request->input('ids')));
+            if (!empty($ids)) {
+                $query->whereIn('id', $ids);
+            }
+        }
 
         // 筛选：货币类型（可选）
         if ($request->has('currency')) {

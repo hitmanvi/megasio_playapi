@@ -3770,8 +3770,23 @@
       "get": {
         "tags": ["PaymentMethod"],
         "summary": "获取支付方式列表",
-        "description": "获取支付方式列表，支持根据 currency、type、is_fiat 进行筛选（均为可选参数）。",
+        "description": "获取支付方式列表，支持根据 ids、currency、type、is_fiat 进行筛选（均为可选参数）。",
         "parameters": [
+          {
+            "name": "ids",
+            "in": "query",
+            "description": "支付方式ID数组，用于筛选指定的支付方式",
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "integer"
+              }
+            },
+            "style": "form",
+            "explode": true,
+            "required": false,
+            "example": [1, 2, 3]
+          },
           {
             "name": "currency",
             "in": "query",
