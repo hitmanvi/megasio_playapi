@@ -4,7 +4,9 @@ namespace App\Services;
 
 use App\Models\User;
 use App\Models\Invitation;
+use App\Models\Notification;
 use App\Services\BalanceService;
+use App\Services\NotificationService;
 use App\Enums\ErrorCode;
 use App\Events\UserLoggedIn;
 use App\Exceptions\Exception;
@@ -16,10 +18,12 @@ use Google\Client as GoogleClient;
 class AuthService
 {
     protected BalanceService $balanceService;
+    protected NotificationService $notificationService;
 
     public function __construct()
     {
         $this->balanceService = new BalanceService();
+        $this->notificationService = new NotificationService();
     }
 
     /**
@@ -108,6 +112,9 @@ class AuthService
 
             // 创建默认币种的 balance
             $this->balanceService->createDefaultBalance($user->id);
+
+            // 创建欢迎通知
+            $this->notificationService->createWelcomeNotification($user->id);
 
             // 生成 token
             $token = $user->createToken('auth_token')->plainTextToken;
@@ -350,6 +357,14 @@ class AuthService
 
                     // 创建默认币种的 balance
                     $this->balanceService->createDefaultBalance($user->id);
+
+                    // 创建欢迎通知
+                    $this->notificationService->createUserNotification(
+                        $user->id,
+                        Notification::CATEGORY_SYSTEM_ANNOUNCEMENT,
+                        'welcome',
+                        'Contact your exclusive customer service.'
+                    );
                 } else {
                     // 更新用户信息（如果 Google 信息有变化）
                     $updateData = [];

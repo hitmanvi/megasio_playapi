@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Events\DepositCompleted;
 use App\Models\Deposit;
 use App\Models\PaymentMethod;
+use App\Services\NotificationService;
 use Illuminate\Support\Str;
 use Carbon\Carbon;
 use Illuminate\Pagination\LengthAwarePaginator;
@@ -15,10 +16,12 @@ use Illuminate\Support\Facades\Log;
 class DepositService
 {
     protected $balanceService;
+    protected $notificationService;
 
     public function __construct()
     {
         $this->balanceService = new BalanceService();
+        $this->notificationService = new NotificationService();
     }
 
     /**
@@ -329,6 +332,15 @@ class DepositService
                         'Deposit',
                         $deposit->id
                     );
+                    
+                    // 创建充值成功通知
+                    $this->notificationService->createDepositSuccessNotification(
+                        $deposit->user_id,
+                        $amount,
+                        $deposit->currency,
+                        $deposit->order_no
+                    );
+                    
                     event(new DepositCompleted($deposit));
                 }
                 break;
