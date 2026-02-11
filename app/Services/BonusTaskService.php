@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\BonusTask;
 use App\Jobs\SendWebSocketMessage;
+use App\Services\NotificationService;
 use Carbon\Carbon;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
@@ -13,11 +14,13 @@ class BonusTaskService
 {
     protected BalanceService $balanceService;
     protected TransactionService $transactionService;
+    protected NotificationService $notificationService;
 
     public function __construct()
     {
         $this->balanceService = new BalanceService();
         $this->transactionService = new TransactionService();
+        $this->notificationService = new NotificationService();
     }
 
     /**
@@ -120,7 +123,18 @@ class BonusTaskService
             }
         }
 
-        return BonusTask::create($data);
+        $task = BonusTask::create($data);
+
+        // 创建 Bonus Task 通知
+        $this->notificationService->createBonusTaskNotification(
+            $task->user_id,
+            (float) $task->cap_bonus,
+            $task->currency,
+            $task->task_no,
+            $task->bonus_name
+        );
+
+        return $task;
     }
 
     /**
