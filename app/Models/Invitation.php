@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Invitation extends Model
 {
@@ -41,6 +42,14 @@ class Invitation extends Model
     public function invitee(): BelongsTo
     {
         return $this->belongsTo(User::class, 'invitee_id');
+    }
+
+    /**
+     * Get the invitation rewards.
+     */
+    public function rewards(): HasMany
+    {
+        return $this->hasMany(InvitationReward::class);
     }
 
     /**
@@ -90,5 +99,4 @@ class Invitation extends Model
     {
         return $this->status === self::STATUS_INACTIVE;
     }
-
 }

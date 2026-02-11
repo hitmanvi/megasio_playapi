@@ -71,7 +71,7 @@ class VipService
     /**
      * 获取指定等级信息
      */
-    public function getLevelInfo(string $level): ?array
+    public function getLevelInfo(int $level): ?array
     {
         $levelConfig = VipLevel::getLevelCached($level);
         

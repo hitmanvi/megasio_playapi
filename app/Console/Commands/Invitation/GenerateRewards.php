@@ -96,31 +96,19 @@ class GenerateRewards extends Command
 
             $currency = config('app.currency', 'USD');
 
-            // 创建邀请奖励记录并更新余额（模型事件会自动更新 total_reward）
-            DB::transaction(function () use ($invitation, $wager, $rewardAmount, $date, $inviteeId, $currency) {
-                // 创建邀请奖励记录
-                $reward = InvitationReward::create([
-                    'user_id' => $invitation->inviter_id, // 奖励给邀请人
-                    'invitation_id' => $invitation->id,
-                    'source_type' => InvitationReward::SOURCE_TYPE_BET,
-                    'reward_type' => $currency,
-                    'reward_amount' => $rewardAmount,
-                    'wager' => $wager, // 记录下注金额
-                    'related_id' => null, // 可以根据需要存储相关ID
-                ]);
+            // 创建邀请奖励记录（会根据 KYC 状态自动决定是否发放）
+            $this->rewardService->createRewardWithKycCheck($invitation, [
+                'user_id' => $invitation->inviter_id, // 奖励给邀请人
+                'invitation_id' => $invitation->id,
+                'source_type' => InvitationReward::SOURCE_TYPE_BET,
+                'reward_type' => $currency,
+                'reward_amount' => $rewardAmount,
+                'wager' => $wager, // 记录下注金额
+                'related_id' => null, // 可以根据需要存储相关ID
+            ]);
 
-                // 使用 BalanceService 增加邀请人的余额并创建交易记录
-                $this->balanceService->invitationReward(
-                    $invitation->inviter_id,
-                    $currency,
-                    $rewardAmount,
-                    $reward->id,
-                    'bet_' . $date // 使用日期作为奖励类型标识
-                );
-
-                // 生成奖励后，删除 Redis 中的 wager 数据
-                $this->wagerService->deleteWager($inviteeId, $date);
-            });
+            // 生成奖励后，删除 Redis 中的 wager 数据
+            $this->wagerService->deleteWager($inviteeId, $date);
 
             $processed++;
         }

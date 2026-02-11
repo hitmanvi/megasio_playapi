@@ -6,7 +6,7 @@ use App\Events\VipLevelUpgraded;
 use App\Models\Invitation;
 use App\Models\InvitationReward;
 use App\Models\VipLevel;
-use App\Services\BalanceService;
+use App\Services\InvitationRewardService;
 use App\Services\SettingService;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Queue\InteractsWithQueue;
@@ -17,12 +17,12 @@ class CreateInvitationVipReward implements ShouldQueue
     use InteractsWithQueue;
 
     protected SettingService $settingService;
-    protected BalanceService $balanceService;
+    protected InvitationRewardService $rewardService;
 
     public function __construct()
     {
         $this->settingService = new SettingService();
-        $this->balanceService = new BalanceService();
+        $this->rewardService = new InvitationRewardService();
     }
 
     /**
@@ -75,14 +75,17 @@ class CreateInvitationVipReward implements ShouldQueue
         // 遍历从 oldLevel+1 到 newLevel 的所有等级
         for ($i = $oldLevelIndex + 1; $i <= $newLevelIndex; $i++) {
             $level = $allLevels[$i];
+            
+            // 配置中的键可能是字符串格式，需要转换为字符串来匹配
+            $levelKey = (string) $level;
 
             // 检查该等级是否有奖励配置
-            if (!isset($vipUpgradeConfig['levels'][$level])) {
+            if (!isset($vipUpgradeConfig['levels'][$levelKey])) {
                 // 该等级没有奖励配置，跳过
                 continue;
             }
 
-            $rewardAmount = (float) $vipUpgradeConfig['levels'][$level];
+            $rewardAmount = (float) $vipUpgradeConfig['levels'][$levelKey];
 
             if ($rewardAmount <= 0) {
                 // 奖励金额为 0，跳过
@@ -101,28 +104,16 @@ class CreateInvitationVipReward implements ShouldQueue
                 continue;
             }
 
-            // 创建邀请奖励记录并更新余额（模型事件会自动更新 total_reward）
-            DB::transaction(function () use ($invitation, $currency, $rewardAmount, $rewardTypeKey) {
-                // 创建邀请奖励记录
-                $reward = InvitationReward::create([
-                    'user_id' => $invitation->inviter_id, // 奖励给邀请人
-                    'invitation_id' => $invitation->id,
-                    'source_type' => InvitationReward::SOURCE_TYPE_VIP,
-                    'reward_type' => $currency,
-                    'reward_amount' => $rewardAmount,
-                    'wager' => 0, // VIP 升级奖励没有 wager
-                    'related_id' => $rewardTypeKey, // 奖励类型标识（vip_upgrade_1, vip_upgrade_2 等）
-                ]);
-
-                // 使用 BalanceService 增加邀请人的余额并创建交易记录
-                $this->balanceService->invitationReward(
-                    $invitation->inviter_id,
-                    $currency,
-                    $rewardAmount,
-                    $reward->id,
-                    $rewardTypeKey
-                );
-            });
+            // 创建邀请奖励记录（会根据 KYC 状态自动决定是否发放）
+            $this->rewardService->createRewardWithKycCheck($invitation, [
+                'user_id' => $invitation->inviter_id, // 奖励给邀请人
+                'invitation_id' => $invitation->id,
+                'source_type' => InvitationReward::SOURCE_TYPE_VIP,
+                'reward_type' => $currency,
+                'reward_amount' => $rewardAmount,
+                'wager' => 0, // VIP 升级奖励没有 wager
+                'related_id' => $rewardTypeKey, // 奖励类型标识（vip_upgrade_1, vip_upgrade_2 等）
+            ]);
         }
     }
 }

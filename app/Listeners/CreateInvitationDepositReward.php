@@ -6,7 +6,7 @@ use App\Events\DepositCompleted;
 use App\Models\Deposit;
 use App\Models\Invitation;
 use App\Models\InvitationReward;
-use App\Services\BalanceService;
+use App\Services\InvitationRewardService;
 use App\Services\SettingService;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Queue\InteractsWithQueue;
@@ -17,12 +17,12 @@ class CreateInvitationDepositReward implements ShouldQueue
     use InteractsWithQueue;
 
     protected SettingService $settingService;
-    protected BalanceService $balanceService;
+    protected InvitationRewardService $rewardService;
 
     public function __construct()
     {
         $this->settingService = new SettingService();
-        $this->balanceService = new BalanceService();
+        $this->rewardService = new InvitationRewardService();
     }
 
     /**
@@ -102,27 +102,15 @@ class CreateInvitationDepositReward implements ShouldQueue
         $currency = $bonusConfig['currency'] ?? config('app.currency', 'USD');
         $rewardAmount = (float) $bonusConfig['bonus_amount'];
 
-        // 创建邀请奖励记录并更新余额（模型事件会自动更新 total_reward）
-        DB::transaction(function () use ($invitation, $bonusConfig, $rewardTypeKey, $currency, $rewardAmount) {
-            // 创建邀请奖励记录
-            $reward = InvitationReward::create([
-                'user_id' => $invitation->inviter_id, // 奖励给邀请人
-                'invitation_id' => $invitation->id,
-                'source_type' => InvitationReward::SOURCE_TYPE_DEPOSIT,
-                'reward_type' => $currency,
-                'reward_amount' => $rewardAmount,
-                'wager' => 0, // 充值奖励没有 wager
-                'related_id' => $rewardTypeKey, // 奖励类型标识（deposit_bonus_starter 或 deposit_bonus_advanced）
-            ]);
-
-            // 使用 BalanceService 增加邀请人的余额并创建交易记录
-            $this->balanceService->invitationReward(
-                $invitation->inviter_id,
-                $currency,
-                $rewardAmount,
-                $reward->id,
-                $rewardTypeKey
-            );
-        });
+        // 创建邀请奖励记录（会根据 KYC 状态自动决定是否发放）
+        $this->rewardService->createRewardWithKycCheck($invitation, [
+            'user_id' => $invitation->inviter_id, // 奖励给邀请人
+            'invitation_id' => $invitation->id,
+            'source_type' => InvitationReward::SOURCE_TYPE_DEPOSIT,
+            'reward_type' => $currency,
+            'reward_amount' => $rewardAmount,
+            'wager' => 0, // 充值奖励没有 wager
+            'related_id' => $rewardTypeKey, // 奖励类型标识（deposit_bonus_starter 或 deposit_bonus_advanced）
+        ]);
     }
 }

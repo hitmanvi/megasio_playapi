@@ -13,6 +13,9 @@ class InvitationReward extends Model
     const SOURCE_TYPE_BET = 'bet';
     const SOURCE_TYPE_VIP = 'vip';
 
+    // 发放状态
+    const STATUS_PENDING = 'pending';  // 未发放
+    const STATUS_PAID = 'paid';       // 已发放
 
     protected $fillable = [
         'user_id',
@@ -22,6 +25,7 @@ class InvitationReward extends Model
         'reward_amount',
         'wager',
         'related_id',
+        'status',
     ];
 
     protected $casts = [
@@ -36,9 +40,19 @@ class InvitationReward extends Model
     {
         parent::boot();
 
-        // 当创建奖励时，自动更新邀请关系的奖励总额
+        // 当奖励状态更新为已发放时，自动更新邀请关系的奖励总额
+        static::updated(function ($reward) {
+            if ($reward->invitation_id && $reward->reward_amount > 0 && $reward->isPaid()) {
+                // 检查是否从 pending 变为 paid（避免重复累加）
+                if ($reward->wasChanged('status') && $reward->getOriginal('status') === self::STATUS_PENDING) {
+                    $reward->invitation->increment('total_reward', $reward->reward_amount);
+                }
+            }
+        });
+
+        // 当创建已发放的奖励时，自动更新邀请关系的奖励总额
         static::created(function ($reward) {
-            if ($reward->invitation_id && $reward->reward_amount > 0) {
+            if ($reward->invitation_id && $reward->reward_amount > 0 && $reward->isPaid()) {
                 $reward->invitation->increment('total_reward', $reward->reward_amount);
             }
         });
@@ -58,5 +72,21 @@ class InvitationReward extends Model
     public function invitation(): BelongsTo
     {
         return $this->belongsTo(Invitation::class);
+    }
+
+    /**
+     * 检查是否已发放
+     */
+    public function isPaid(): bool
+    {
+        return $this->status === self::STATUS_PAID;
+    }
+
+    /**
+     * 检查是否未发放
+     */
+    public function isPending(): bool
+    {
+        return $this->status === self::STATUS_PENDING;
     }
 }

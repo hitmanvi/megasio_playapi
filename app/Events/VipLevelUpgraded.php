@@ -19,17 +19,17 @@ class VipLevelUpgraded
     /**
      * 旧等级
      */
-    public string $oldLevel;
+    public int $oldLevel;
 
     /**
      * 新等级
      */
-    public string $newLevel;
+    public int $newLevel;
 
     /**
      * Create a new event instance.
      */
-    public function __construct(User $user, string $oldLevel, string $newLevel)
+    public function __construct(User $user, int $oldLevel, int $newLevel)
     {
         $this->user = $user;
         $this->oldLevel = $oldLevel;

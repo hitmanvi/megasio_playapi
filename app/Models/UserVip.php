@@ -25,6 +25,7 @@ class UserVip extends Model
      * @var array<string, string>
      */
     protected $casts = [
+        'level' => 'integer',
         'exp' => 'decimal:4',
     ];
 
@@ -39,7 +40,7 @@ class UserVip extends Model
     /**
      * Get required exp for a level.
      */
-    public static function getRequiredExp(string $level): float
+    public static function getRequiredExp(int $level): float
     {
         return (float) VipLevel::getRequiredExp($level);
     }
@@ -109,7 +110,7 @@ class UserVip extends Model
     /**
      * Check if user is at a specific level.
      */
-    public function isLevel(string $level): bool
+    public function isLevel(int $level): bool
     {
         return $this->level === $level;
     }
@@ -127,7 +128,7 @@ class UserVip extends Model
     /**
      * Check if user level is higher than or equal to the given level.
      */
-    public function isLevelAtLeast(string $level): bool
+    public function isLevelAtLeast(int $level): bool
     {
         return $this->getLevelRank() >= self::getLevelRankFor($level);
     }
@@ -135,7 +136,7 @@ class UserVip extends Model
     /**
      * Get level rank for a specific level.
      */
-    private static function getLevelRankFor(string $level): int
+    private static function getLevelRankFor(int $level): int
     {
         $levels = self::getLevels();
         $rank = array_search($level, $levels);

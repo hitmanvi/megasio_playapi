@@ -26,6 +26,7 @@ class VipLevel extends Model
 
     protected $casts = [
         'group_id' => 'integer',
+        'level' => 'integer',
         'required_exp' => 'integer',
         'benefits' => 'array',
         'sort_id' => 'integer',
@@ -68,7 +69,9 @@ class VipLevel extends Model
                 ->map(function ($level) {
                     return $level->toApiArray();
                 })
-                ->keyBy('level')
+                ->keyBy(function ($level) {
+                    return (int) $level->level;
+                })
                 ->toArray();
         });
     }
@@ -76,7 +79,7 @@ class VipLevel extends Model
     /**
      * 获取等级配置（带缓存）
      */
-    public static function getLevelCached(string $level): ?array
+    public static function getLevelCached(int $level): ?array
     {
         $levels = self::getAllCached();
         return $levels[$level] ?? null;
@@ -93,7 +96,7 @@ class VipLevel extends Model
     /**
      * 获取等级所需经验值
      */
-    public static function getRequiredExp(string $level): int
+    public static function getRequiredExp(int $level): int
     {
         $levelConfig = self::getLevelCached($level);
         return $levelConfig['required_exp'] ?? 0;
@@ -102,7 +105,7 @@ class VipLevel extends Model
     /**
      * 根据经验值计算等级
      */
-    public static function calculateLevelFromExp(float $exp): string
+    public static function calculateLevelFromExp(float $exp): int
     {
         $levels = self::getAllCached();
         
@@ -111,22 +114,22 @@ class VipLevel extends Model
         
         foreach ($levels as $levelKey => $level) {
             if ($exp >= $level['required_exp']) {
-                return $levelKey;
+                return (int) $levelKey;
             }
         }
         
         // 默认返回第一个等级
         $firstLevel = array_key_first(self::getAllCached());
-        return $firstLevel ?? '1';
+        return $firstLevel !== null ? (int) $firstLevel : 1;
     }
 
     /**
      * 获取下一等级信息
      */
-    public static function getNextLevel(string $currentLevel): ?array
+    public static function getNextLevel(int $currentLevel): ?array
     {
         $levels = self::getAllCached();
-        $levelKeys = array_keys($levels);
+        $levelKeys = array_map('intval', array_keys($levels));
         $currentIndex = array_search($currentLevel, $levelKeys);
         
         if ($currentIndex === false || $currentIndex >= count($levelKeys) - 1) {
@@ -140,10 +143,11 @@ class VipLevel extends Model
     /**
      * 获取默认等级（第一个等级）
      */
-    public static function getDefaultLevel(): string
+    public static function getDefaultLevel(): int
     {
         $levels = self::getAllCached();
-        return array_key_first($levels) ?? '1';
+        $firstLevel = array_key_first($levels);
+        return $firstLevel !== null ? (int) $firstLevel : 1;
     }
 
     /**

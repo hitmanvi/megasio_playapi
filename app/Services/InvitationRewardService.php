@@ -3,10 +3,20 @@
 namespace App\Services;
 
 use App\Models\Game;
+use App\Models\Invitation;
+use App\Models\InvitationReward;
+use App\Models\Kyc;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
 class InvitationRewardService
 {
+    protected BalanceService $balanceService;
+
+    public function __construct()
+    {
+        $this->balanceService = new BalanceService();
+    }
     /**
      * 计算佣金
      * 如果不是 slot 类型游戏，返回 0
@@ -60,5 +70,103 @@ class InvitationRewardService
         }
 
         return Str::contains(strtolower($categoryName), 'slot');
+    }
+
+    /**
+     * 检查被邀请人的 KYC 状态并创建奖励
+     * 如果 KYC 已认证，则自动发放；否则设置为未发放状态
+     *
+     * @param Invitation $invitation
+     * @param array $rewardData 奖励数据
+     * @return InvitationReward
+     */
+    public function createRewardWithKycCheck(Invitation $invitation, array $rewardData): InvitationReward
+    {
+        // 检查被邀请人的 KYC 状态
+        $invitee = $invitation->invitee;
+        $kyc = Kyc::where('user_id', $invitee->id)->first();
+        $isKycVerified = $kyc && $kyc->isVerified();
+
+        // 设置默认状态
+        $rewardData['status'] = $isKycVerified 
+            ? InvitationReward::STATUS_PAID 
+            : InvitationReward::STATUS_PENDING;
+
+        return DB::transaction(function () use ($invitation, $rewardData, $isKycVerified) {
+            // 创建邀请奖励记录
+            $reward = InvitationReward::create($rewardData);
+
+            // 如果 KYC 已认证，立即发放奖励
+            if ($isKycVerified) {
+                $this->balanceService->invitationReward(
+                    $invitation->inviter_id,
+                    $reward->reward_type,
+                    $reward->reward_amount,
+                    $reward->id,
+                    $reward->related_id ?? 'invitation_reward'
+                );
+            }
+
+            return $reward;
+        });
+    }
+
+    /**
+     * 发放未发放的奖励
+     *
+     * @param InvitationReward $reward
+     * @return bool
+     */
+    public function payReward(InvitationReward $reward): bool
+    {
+        if ($reward->isPaid()) {
+            return false; // 已经发放过了
+        }
+
+        return DB::transaction(function () use ($reward) {
+            // 发放奖励
+            $this->balanceService->invitationReward(
+                $reward->user_id,
+                $reward->reward_type,
+                $reward->reward_amount,
+                $reward->id,
+                $reward->related_id ?? 'invitation_reward'
+            );
+
+            // 更新状态为已发放
+            $reward->status = InvitationReward::STATUS_PAID;
+            $reward->save();
+
+            return true;
+        });
+    }
+
+    /**
+     * 为指定用户发放所有未发放的邀请奖励
+     *
+     * @param int $userId 被邀请人用户ID
+     * @return int 发放的奖励数量
+     */
+    public function payPendingRewardsForUser(int $userId): int
+    {
+        // 查找该用户作为被邀请人的所有未发放奖励
+        $invitation = Invitation::where('invitee_id', $userId)->first();
+        
+        if (!$invitation) {
+            return 0;
+        }
+
+        $pendingRewards = InvitationReward::where('invitation_id', $invitation->id)
+            ->where('status', InvitationReward::STATUS_PENDING)
+            ->get();
+
+        $paidCount = 0;
+        foreach ($pendingRewards as $reward) {
+            if ($this->payReward($reward)) {
+                $paidCount++;
+            }
+        }
+
+        return $paidCount;
     }
 }
