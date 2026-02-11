@@ -5,12 +5,20 @@ namespace App\Listeners;
 use App\Events\OrderCompleted;
 use App\Models\BonusTask;
 use App\Models\Order;
+use App\Services\BonusTaskService;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Queue\InteractsWithQueue;
 
 class CheckBonusTaskDeplete implements ShouldQueue
 {
     use InteractsWithQueue;
+
+    protected BonusTaskService $bonusTaskService;
+
+    public function __construct()
+    {
+        $this->bonusTaskService = new BonusTaskService();
+    }
 
     /**
      * Handle the event.
@@ -48,6 +56,9 @@ class CheckBonusTaskDeplete implements ShouldQueue
             if (!$hasUncompletedOrders) {
                 $bonusTask->status = BonusTask::STATUS_DEPLETED;
                 $bonusTask->save();
+
+                // 激活下一个待激活的任务
+                $this->bonusTaskService->activateNextPendingTask($bonusTask->user_id);
             }
         }
     }
