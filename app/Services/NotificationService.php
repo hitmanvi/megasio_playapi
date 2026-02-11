@@ -43,7 +43,7 @@ class NotificationService
     {
         return $this->createUserNotification(
             $userId,
-            Notification::CATEGORY_SYSTEM_ANNOUNCEMENT,
+            Notification::CATEGORY_REGISTER,
             'welcome',
             'Contact your exclusive customer service.'
         );
@@ -136,7 +136,7 @@ class NotificationService
 
         return $this->createUserNotification(
             $userId,
-            Notification::CATEGORY_BONUS_TASK_COMPLETED,
+            Notification::CATEGORY_BONUS_TASK,
             'bonus',
             $content,
             [

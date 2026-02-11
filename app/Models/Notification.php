@@ -12,9 +12,11 @@ class Notification extends Model
     const TYPE_USER = 'user';      // 用户消息
 
     // 消息分类常量
+    const CATEGORY_REGISTER = 'register';                    // 注册欢迎
     const CATEGORY_DEPOSIT_SUCCESS = 'deposit_success';      // 充值成功
     const CATEGORY_WITHDRAW_SUCCESS = 'withdraw_success';    // 提现成功
     const CATEGORY_VIP_LEVEL_UP = 'vip_level_up';            // VIP等级提升
+    const CATEGORY_BONUS_TASK = 'bonus_task';                // 得到奖励任务
     const CATEGORY_BONUS_TASK_COMPLETED = 'bonus_task_completed'; // 奖励任务完成
     const CATEGORY_INVITATION_REWARD = 'invitation_reward';  // 邀请奖励
     const CATEGORY_SYSTEM_ANNOUNCEMENT = 'system_announcement'; // 系统公告

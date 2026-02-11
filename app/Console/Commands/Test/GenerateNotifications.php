@@ -33,6 +33,11 @@ class GenerateNotifications extends Command
      * 消息分类配置
      */
     protected array $categoryConfigs = [
+        Notification::CATEGORY_REGISTER => [
+            'title' => 'welcome',
+            'content_template' => 'Contact your exclusive customer service.',
+            'data_template' => [],
+        ],
         Notification::CATEGORY_DEPOSIT_SUCCESS => [
             'title' => '充值成功',
             'content_template' => '您的充值已成功到账，金额：{amount} {currency}',
@@ -47,6 +52,11 @@ class GenerateNotifications extends Command
             'title' => 'VIP等级提升',
             'content_template' => '恭喜您！您的VIP等级已提升至 {level}',
             'data_template' => ['level' => 'Gold', 'level_name' => 'Gold'],
+        ],
+        Notification::CATEGORY_BONUS_TASK => [
+            'title' => 'bonus',
+            'content_template' => '${amount} credited to your bonus balance. Via First Deposit.',
+            'data_template' => ['amount' => 20.00, 'currency' => 'USD', 'task_no' => 'FIRST_DEPOSIT_BONUS'],
         ],
         Notification::CATEGORY_BONUS_TASK_COMPLETED => [
             'title' => '奖励任务完成',
