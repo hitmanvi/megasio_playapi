@@ -69,13 +69,13 @@ class GenerateNotifications extends Command
             'data_template' => ['amount' => 20.00, 'currency' => 'USD', 'task_no' => 'FIRST_DEPOSIT_BONUS', 'via' => 'First Deposit'],
         ],
         Notification::CATEGORY_BONUS_TASK_COMPLETED => [
-            'title' => '奖励任务完成',
-            'content_template' => '恭喜您完成奖励任务：{task_name}，奖励金额：{amount} {currency}',
-            'data_template' => ['task_name' => '首充任务', 'amount' => 20.00, 'currency' => 'USD'],
+            'title' => 'bonus task completed',
+            'content_template' => 'Congratulations! You have completed the bonus task: {task_name}. Reward amount: ${amount} {currency}',
+            'data_template' => ['task_name' => 'First Deposit', 'amount' => 20.00, 'currency' => 'USD'],
         ],
         Notification::CATEGORY_INVITATION_REWARD => [
-            'title' => '邀请奖励',
-            'content_template' => '您获得了邀请奖励，金额：{amount} {currency}',
+            'title' => 'invitation reward',
+            'content_template' => 'You have received an invitation reward. Amount: ${amount} {currency}',
             'data_template' => ['amount' => 10.00, 'currency' => 'USD', 'source_type' => 'bet'],
         ],
         Notification::CATEGORY_SYSTEM_ANNOUNCEMENT => [

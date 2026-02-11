@@ -195,7 +195,7 @@ class NotificationService
             $viaValue = 'Daily Deposit';
         }
         
-        $content = "\${$formattedAmount} credited to your bonus balance. Via {$viaText}.";
+        $content = "\${$formattedAmount} credited to your bonus balance. {$viaText}.";
 
         return $this->createUserNotification(
             $userId,
