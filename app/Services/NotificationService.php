@@ -67,6 +67,7 @@ class NotificationService
             // 准备 WebSocket 消息数据
             $data = [
                 'id' => $notification->id,
+                'type' => $notification->type,
                 'category' => $notification->category,
                 'title' => $notification->title,
                 'content' => $notification->content,
