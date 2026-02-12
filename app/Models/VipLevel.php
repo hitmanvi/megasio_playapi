@@ -141,13 +141,11 @@ class VipLevel extends Model
     }
 
     /**
-     * 获取默认等级（第一个等级）
+     * 获取默认等级（固定为等级 1）
      */
     public static function getDefaultLevel(): int
     {
-        $levels = self::getAllCached();
-        $firstLevel = array_key_first($levels);
-        return $firstLevel !== null ? (int) $firstLevel : 1;
+        return 1;
     }
 
     /**

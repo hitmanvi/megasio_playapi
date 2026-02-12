@@ -5,6 +5,8 @@ namespace App\Services;
 use App\Models\User;
 use App\Models\Invitation;
 use App\Models\Notification;
+use App\Models\UserVip;
+use App\Models\VipLevel;
 use App\Services\BalanceService;
 use App\Services\NotificationService;
 use App\Enums\ErrorCode;
@@ -112,6 +114,13 @@ class AuthService
 
             // 创建默认币种的 balance
             $this->balanceService->createDefaultBalance($user->id);
+
+            // 创建默认 VIP 等级（等级 1）
+            UserVip::create([
+                'user_id' => $user->id,
+                'level' => VipLevel::getDefaultLevel(),
+                'exp' => 0,
+            ]);
 
             // 创建欢迎通知
             $this->notificationService->createWelcomeNotification($user->id);
@@ -357,6 +366,13 @@ class AuthService
 
                     // 创建默认币种的 balance
                     $this->balanceService->createDefaultBalance($user->id);
+
+                    // 创建默认 VIP 等级（等级 1）
+                    UserVip::create([
+                        'user_id' => $user->id,
+                        'level' => VipLevel::getDefaultLevel(),
+                        'exp' => 0,
+                    ]);
 
                     // 创建欢迎通知
                     $this->notificationService->createUserNotification(
