@@ -54,30 +54,23 @@ class UserWagerService
      */
     public function getAllWagersByDate(string $date): array
     {
+        // 直接用 KEYS 获取所有匹配的 wager key
         $pattern = self::REDIS_PREFIX . '*:' . $date;
         $result = [];
-        $cursor = 0;
+        $keys = Redis::keys($pattern);
 
-        // 使用 SCAN 代替 KEYS，避免阻塞 Redis
-        do {
-            [$cursor, $keys] = Redis::scan($cursor, [
-                'match' => $pattern,
-                'count' => 100, // 每次扫描 100 个 key
-            ]);
-
-            foreach ($keys as $key) {
-                // 从 key 中提取 user_id
-                // key 格式：user:wager:{userId}:{date}
-                $parts = explode(':', $key);
-                if (count($parts) >= 3) {
-                    $userId = (int) $parts[2];
-                    $wager = Redis::get($key);
-                    if ($wager && $wager > 0) {
-                        $result[$userId] = (float) $wager;
-                    }
+        foreach ($keys as $key) {
+            // 从 key 中提取 user_id
+            // key 格式：user:wager:{userId}:{date}
+            $parts = explode(':', $key);
+            if (count($parts) >= 3) {
+                $userId = (int) $parts[2];
+                $wager = Redis::get($key);
+                if ($wager && $wager > 0) {
+                    $result[$userId] = (float) $wager;
                 }
             }
-        } while ($cursor !== 0);
+        }
 
         return $result;
     }
