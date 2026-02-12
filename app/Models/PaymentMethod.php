@@ -24,6 +24,7 @@ class PaymentMethod extends Model
         'max_amount',
         'min_amount',
         'default_amount',
+        'support_custom_amount',
         'enabled',
         'sort_id',
         'synced_at',
@@ -46,6 +47,7 @@ class PaymentMethod extends Model
         'extra_step_fields' => 'array',
         'enabled' => 'boolean',
         'is_fiat' => 'boolean',
+        'support_custom_amount' => 'boolean',
         'sort_id' => 'integer',
         'max_amount' => 'decimal:8',
         'min_amount' => 'decimal:8',
@@ -176,6 +178,11 @@ class PaymentMethod extends Model
         // Check max amount
         if ($this->max_amount && $amount > $this->max_amount) {
             return false;
+        }
+
+        // If support_custom_amount is true, allow any amount within min/max range
+        if ($this->support_custom_amount) {
+            return true;
         }
 
         // Check if amount is in the fixed amounts array

@@ -58,6 +58,7 @@ class PaymentMethodController extends Controller
                 'max_amount' => $method->max_amount ? (float)$method->max_amount : null,
                 'min_amount' => $method->min_amount ? (float)$method->min_amount : null,
                 'default_amount' => $method->default_amount ? (float)$method->default_amount : null,
+                'support_custom_amount' => $method->support_custom_amount ?? false,
                 'sort_id' => $method->sort_id,
                 'crypto_info' => $method->crypto_info,
                 'fields' => $method->fields,
