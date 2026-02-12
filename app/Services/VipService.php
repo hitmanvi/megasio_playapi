@@ -142,9 +142,8 @@ class VipService
             }
         }
         
-        // 如果没有满足条件的等级，返回最低等级
-        $minLevel = min(array_keys($levels));
-        return $minLevel !== null ? (int) $minLevel : self::DEFAULT_LEVEL;
+        // 如果没有满足条件的等级，返回默认等级
+        return self::DEFAULT_LEVEL;
     }
 
     /**
