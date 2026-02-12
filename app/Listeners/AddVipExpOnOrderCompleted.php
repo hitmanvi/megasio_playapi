@@ -26,25 +26,6 @@ class AddVipExpOnOrderCompleted implements ShouldQueue
             return;
         }
 
-        // 检查订单是否有游戏信息
-        if (!$order->game_id) {
-            return;
-        }
-
-        // 确保加载游戏关系
-        if (!$order->relationLoaded('game')) {
-            $order->load('game');
-        }
-
-        if (!$order->game) {
-            return;
-        }
-
-        // 检查游戏类型是否符合配置要求
-        if (!$this->isSupportedGameCategory($order->game)) {
-            return;
-        }
-
         // 获取或创建用户VIP记录
         $userVip = UserVip::firstOrCreate(
             ['user_id' => $order->user_id],
