@@ -29,6 +29,9 @@ class TransactionController extends Controller
             Transaction::TYPE_REFUND,
             Transaction::TYPE_BET,
             Transaction::TYPE_PAYOUT,
+            Transaction::TYPE_CHECK_IN_REWARD,
+            Transaction::TYPE_BONUS_TASK_REWARD,
+            Transaction::TYPE_INVITATION_REWARD,
         ];
 
         return $this->responseItem($types);
