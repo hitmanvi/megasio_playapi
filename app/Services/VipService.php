@@ -136,9 +136,9 @@ class VipService
         // 按经验值倒序排列，找到第一个满足条件的等级
         uasort($levels, fn($a, $b) => $b['required_exp'] <=> $a['required_exp']);
         
-        foreach ($levels as $levelKey => $level) {
+        foreach ($levels as $level) {
             if ($exp >= $level['required_exp']) {
-                return (int) $levelKey;
+                return $level['level'];
             }
         }
         
