@@ -5,8 +5,8 @@ namespace App\Listeners;
 use App\Events\OrderCompleted;
 use App\Models\Order;
 use App\Models\UserVip;
-use App\Models\VipLevel;
 use App\Services\SettingService;
+use App\Services\VipService;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Queue\InteractsWithQueue;
 
@@ -49,7 +49,7 @@ class AddVipExpOnOrderCompleted implements ShouldQueue
         $userVip = UserVip::firstOrCreate(
             ['user_id' => $order->user_id],
             [
-                'level' => VipLevel::getDefaultLevel(),
+                'level' => VipService::DEFAULT_LEVEL,
                 'exp' => 0,
             ]
         );

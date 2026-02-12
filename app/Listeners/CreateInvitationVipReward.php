@@ -5,9 +5,9 @@ namespace App\Listeners;
 use App\Events\VipLevelUpgraded;
 use App\Models\Invitation;
 use App\Models\InvitationReward;
-use App\Models\VipLevel;
 use App\Services\InvitationRewardService;
 use App\Services\SettingService;
+use App\Services\VipService;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Support\Facades\DB;
@@ -18,11 +18,13 @@ class CreateInvitationVipReward implements ShouldQueue
 
     protected SettingService $settingService;
     protected InvitationRewardService $rewardService;
+    protected VipService $vipService;
 
     public function __construct()
     {
         $this->settingService = new SettingService();
         $this->rewardService = new InvitationRewardService();
+        $this->vipService = new VipService();
     }
 
     /**
@@ -58,23 +60,25 @@ class CreateInvitationVipReward implements ShouldQueue
             return;
         }
 
-        // 获取所有等级列表（按顺序）
-        $allLevels = VipLevel::getLevelKeys();
+        // 获取所有等级列表（按 level 排序，自然增长模式）
+        $allLevels = $this->vipService->getLevelKeys();
 
-        // 找到 oldLevel 和 newLevel 在列表中的位置
-        $oldLevelIndex = array_search($oldLevel, $allLevels);
-        $newLevelIndex = array_search($newLevel, $allLevels);
+        // 等级是数字自然增长模式，直接比较大小
+        if ($newLevel <= $oldLevel) {
+            // 新等级不高于旧等级，跳过
+            return;
+        }
 
-        if ($oldLevelIndex === false || $newLevelIndex === false || $oldLevelIndex >= $newLevelIndex) {
-            // 等级不在列表中或新等级不高于旧等级，跳过
+        // 验证等级是否存在
+        if (!in_array($oldLevel, $allLevels) || !in_array($newLevel, $allLevels)) {
+            // 等级不在列表中，跳过
             return;
         }
 
         $currency = $vipUpgradeConfig['currency'] ?? config('app.currency', 'USD');
 
-        // 遍历从 oldLevel+1 到 newLevel 的所有等级
-        for ($i = $oldLevelIndex + 1; $i <= $newLevelIndex; $i++) {
-            $level = $allLevels[$i];
+        // 遍历从 oldLevel+1 到 newLevel 的所有等级（自然增长模式）
+        for ($level = $oldLevel + 1; $level <= $newLevel; $level++) {
             
             // 配置中的键可能是字符串格式，需要转换为字符串来匹配
             $levelKey = (string) $level;

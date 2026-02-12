@@ -118,7 +118,7 @@ class AuthService
             // 创建默认 VIP 等级（等级 1）
             UserVip::create([
                 'user_id' => $user->id,
-                'level' => VipLevel::getDefaultLevel(),
+                'level' => VipService::DEFAULT_LEVEL,
                 'exp' => 0,
             ]);
 
@@ -370,7 +370,7 @@ class AuthService
                     // 创建默认 VIP 等级（等级 1）
                     UserVip::create([
                         'user_id' => $user->id,
-                        'level' => VipLevel::getDefaultLevel(),
+                        'level' => VipService::DEFAULT_LEVEL,
                         'exp' => 0,
                     ]);
 
