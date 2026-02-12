@@ -18,7 +18,7 @@ class VerifyAdminApi
     public function handle(Request $request, Closure $next): Response
     {
         // 验证 API Key
-        $apiKey = $request->header('X-Admin-API-Key') ?? $request->input('api_key');
+        $apiKey = $request->header('X-API-Key') ?? $request->input('api_key');
         $expectedApiKey = config('admin.api_key');
 
         if (empty($expectedApiKey)) {
