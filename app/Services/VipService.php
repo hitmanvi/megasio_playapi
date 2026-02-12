@@ -71,6 +71,7 @@ class VipService
             ->get()
             ->map(fn($level) => $level->toApiArray())
             ->keyBy('level')
+            ->values()
             ->toArray();
     }
 
