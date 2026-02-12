@@ -173,17 +173,28 @@ class InvitationRewardService
      */
     public function payPendingRewardsForUser(int $userId): int
     {
-        // 查找该用户作为被邀请人的所有未发放奖励
+        // 查找该用户作为被邀请人的邀请关系
         $invitation = Invitation::where('invitee_id', $userId)
-            ->with(['inviter'])
+            ->with(['inviter', 'invitee'])
             ->first();
         
         if (!$invitation) {
             return 0;
         }
 
+        return $this->payPendingRewardsForInvitation($invitation);
+    }
+
+    /**
+     * 检查邀请关系的双方 KYC 状态并发放未发放的奖励
+     *
+     * @param Invitation $invitation
+     * @return int 发放的奖励数量
+     */
+    protected function payPendingRewardsForInvitation(Invitation $invitation): int
+    {
         // 检查被邀请人的 KYC 状态
-        $inviteeKyc = Kyc::where('user_id', $userId)->first();
+        $inviteeKyc = Kyc::where('user_id', $invitation->invitee_id)->first();
         $isInviteeKycVerified = $inviteeKyc && $inviteeKyc->isVerified();
 
         // 检查邀请方的 KYC 状态
@@ -207,5 +218,39 @@ class InvitationRewardService
         }
 
         return $paidCount;
+    }
+
+    /**
+     * 当用户 KYC 完成时，查找该用户相关的激活邀请关系并发放奖励
+     * 查找该用户作为邀请人和被邀请人的激活邀请关系，检查并发放相关奖励
+     *
+     * @param int $userId 完成 KYC 的用户ID
+     * @return int 发放的奖励总数
+     */
+    public function payPendingRewardsForKycCompletedUser(int $userId): int
+    {
+        $totalPaidCount = 0;
+
+        // 1. 查找该用户作为邀请人的激活邀请关系
+        $invitationsAsInviter = Invitation::where('inviter_id', $userId)
+            ->where('status', Invitation::STATUS_ACTIVE)
+            ->with(['invitee', 'inviter'])
+            ->get();
+
+        foreach ($invitationsAsInviter as $invitation) {
+            $totalPaidCount += $this->payPendingRewardsForInvitation($invitation);
+        }
+
+        // 2. 查找该用户作为被邀请人的激活邀请关系
+        $invitationsAsInvitee = Invitation::where('invitee_id', $userId)
+            ->where('status', Invitation::STATUS_ACTIVE)
+            ->with(['invitee', 'inviter'])
+            ->get();
+
+        foreach ($invitationsAsInvitee as $invitation) {
+            $totalPaidCount += $this->payPendingRewardsForInvitation($invitation);
+        }
+
+        return $totalPaidCount;
     }
 }

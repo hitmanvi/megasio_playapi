@@ -69,9 +69,10 @@ class AdminController extends Controller
                 Kyc::STATUS_ENHANCED_REJECTED,
             ]);
 
-            // 如果 KYC 已认证，尝试发放未发放的邀请奖励
+            // 如果 KYC 已认证，查找该用户相关的激活邀请关系并发放奖励
             if ($isVerified) {
-                $paidCount = $this->rewardService->payPendingRewardsForUser($userId);
+                // 查找该用户作为邀请人和被邀请人的激活邀请关系，检查并发放相关奖励
+                $paidCount = $this->rewardService->payPendingRewardsForKycCompletedUser($userId);
                 
                 Log::info('KYC completed notification processed', [
                     'user_id' => $userId,
