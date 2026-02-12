@@ -98,6 +98,7 @@ class InvitationService
 
         // 按来源类型聚合奖励总额和 wager
         $rewardStats = InvitationReward::where('invitation_id', $invitationId)
+            ->where('status', InvitationReward::STATUS_PAID)
             ->selectRaw('source_type, COUNT(*) as count, SUM(reward_amount) as total_amount, SUM(wager) as total_wager')
             ->groupBy('source_type')
             ->get()
