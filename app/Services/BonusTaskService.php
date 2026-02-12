@@ -259,6 +259,15 @@ class BonusTaskService
                     $task->id,
                     $task->bonus_name
                 );
+
+                // 创建 bonus 完成通知
+                $this->notificationService->createBonusTaskCompletedNotification(
+                    $task->user_id,
+                    $rewardAmount,
+                    $task->currency,
+                    $task->task_no,
+                    $task->bonus_name
+                );
             }
             
             // 清空 last_bonus

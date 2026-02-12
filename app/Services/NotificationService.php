@@ -237,4 +237,47 @@ class NotificationService
             ]
         );
     }
+
+    /**
+     * 创建 Bonus Task 完成通知
+     *
+     * @param int $userId 用户ID
+     * @param float $amount 奖励金额
+     * @param string $currency 货币类型
+     * @param string $taskNo 任务编号
+     * @param string|null $bonusName 奖励名称（可选，用于判断类型）
+     * @return Notification
+     */
+    public function createBonusTaskCompletedNotification(int $userId, float $amount, string $currency, string $taskNo, ?string $bonusName = null): Notification
+    {
+        // 格式化金额显示
+        $formattedAmount = number_format($amount, 2, '.', '');
+        
+        // 根据 task_no 或 bonus_name 判断类型，生成 "via the ... Bonus you claimed!" 文本
+        $viaText = 'the Deposit Bonus';
+        if ($taskNo === 'FIRST_DEPOSIT_BONUS' || ($bonusName && stripos($bonusName, 'First Deposit') !== false)) {
+            $viaText = 'the First Deposit Bonus';
+        } elseif ($taskNo === 'SECOND_DEPOSIT_BONUS' || ($bonusName && stripos($bonusName, 'Second Deposit') !== false)) {
+            $viaText = 'the Second Deposit Bonus';
+        } elseif ($taskNo === 'THIRD_DEPOSIT_BONUS' || ($bonusName && stripos($bonusName, 'Third Deposit') !== false)) {
+            $viaText = 'the Third Deposit Bonus';
+        } elseif (strpos($taskNo, 'DAILY_DEPOSIT_BONUS') === 0 || ($bonusName && stripos($bonusName, 'Daily Deposit') !== false)) {
+            $viaText = 'the Daily Deposit Bonus';
+        }
+        
+        $content = "Congratulations! \${$formattedAmount} has been credited to your game balance via {$viaText} you claimed!";
+
+        return $this->createUserNotification(
+            $userId,
+            Notification::CATEGORY_BONUS_TASK_COMPLETED,
+            'bonus',
+            $content,
+            [
+                'amount' => $amount,
+                'currency' => $currency,
+                'task_no' => $taskNo,
+                'via' => $viaText,
+            ]
+        );
+    }
 }
