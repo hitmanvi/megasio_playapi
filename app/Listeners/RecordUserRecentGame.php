@@ -4,9 +4,13 @@ namespace App\Listeners;
 
 use App\Events\OrderCompleted;
 use App\Jobs\RecordUserRecentGameJob;
+use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Queue\InteractsWithQueue;
 
-class RecordUserRecentGame
+class RecordUserRecentGame implements ShouldQueue
 {
+    use InteractsWithQueue;
+
     /**
      * Handle the event.
      */
