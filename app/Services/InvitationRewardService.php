@@ -101,11 +101,22 @@ class InvitationRewardService
             : InvitationReward::STATUS_PENDING;
 
         return DB::transaction(function () use ($invitation, $rewardData, $isKycVerified) {
-            // 创建邀请奖励记录
-            $reward = InvitationReward::create($rewardData);
+            // 使用 firstOrCreate 防止并发创建重复记录
+            // 基于 invitation_id, source_type, related_id 的唯一性
+            $reward = InvitationReward::firstOrCreate(
+                [
+                    'invitation_id' => $rewardData['invitation_id'],
+                    'source_type' => $rewardData['source_type'],
+                    'related_id' => $rewardData['related_id'] ?? null,
+                ],
+                $rewardData
+            );
 
-            // 如果双方 KYC 都已认证，立即发放奖励
-            if ($isKycVerified) {
+            // 只有新创建的记录才需要处理奖励发放
+            // 如果记录已存在，说明之前已经处理过了，直接返回
+            // wasRecentlyCreated 属性在创建后立即可用
+            if ($reward->wasRecentlyCreated && $isKycVerified) {
+                // 如果双方 KYC 都已认证，立即发放奖励
                 $this->balanceService->invitationReward(
                     $invitation->inviter_id,
                     $reward->reward_type,
@@ -113,6 +124,10 @@ class InvitationRewardService
                     $reward->id,
                     $reward->related_id ?? 'invitation_reward'
                 );
+                
+                // 发放奖励后，更新状态为已发放
+                $reward->status = InvitationReward::STATUS_PAID;
+                $reward->save();
             }
 
             return $reward;
