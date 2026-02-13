@@ -217,24 +217,35 @@ class NotificationService
      *
      * @param int $userId 用户ID
      * @param int $newLevel 新等级（如 4）
+     * @param float $rewardAmount 奖励金额（可选，默认为 0）
+     * @param string $currency 货币类型（可选，默认为配置的默认币种）
      * @return Notification
      */
-    public function createVipLevelUpNotification(int $userId, int $newLevel): Notification
+    public function createVipLevelUpNotification(int $userId, int $newLevel, float $rewardAmount = 0, string $currency = null): Notification
     {
         $levelNumber = (string) $newLevel;
+        $currency = $currency ?? config('app.currency', 'USD');
         
         $title = "vip level up to {$levelNumber}";
         $content = "Congratulations! You've been upgraded to VIP Level {$levelNumber}!";
+
+        $data = [
+            'level' => $newLevel,
+            'level_number' => $levelNumber,
+        ];
+
+        // 如果有奖励金额，添加到 data 中
+        if ($rewardAmount > 0) {
+            $data['amount'] = $rewardAmount;
+            $data['currency'] = $currency;
+        }
 
         return $this->createUserNotification(
             $userId,
             Notification::CATEGORY_VIP_LEVEL_UP,
             $title,
             $content,
-            [
-                'level' => $newLevel,
-                'level_number' => $levelNumber,
-            ]
+            $data
         );
     }
 
