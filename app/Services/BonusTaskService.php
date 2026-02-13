@@ -149,6 +149,7 @@ class BonusTaskService
         if ($task->isPending()) {
             $task->status = BonusTask::STATUS_ACTIVE;
             $task->save();
+            $this->sendBonusTaskUpdate($task, 'activated', 0);
         }
     }
 
