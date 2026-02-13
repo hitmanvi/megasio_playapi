@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Events\VipLevelUpgraded;
+use App\Services\BalanceService;
 use App\Services\VipService;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -111,10 +112,70 @@ class UserVip extends Model
                 $this->load('user');
             }
             
+            // 检查新等级的 benefits 中是否有 level_up_bonus，如果有则发放奖励
+            $this->processLevelUpBonus($newLevel);
+            
             // 触发 VIP 升级事件
             if ($this->user) {
                 event(new VipLevelUpgraded($this->user, $oldLevel, $newLevel));
             }
+        }
+    }
+
+    /**
+     * 处理等级提升奖励
+     * 检查新等级的 benefits 中是否有 level_cash_bonus，如果有则发放奖励
+     *
+     * @param int $level 新等级
+     * @return void
+     */
+    private function processLevelUpBonus(int $level): void
+    {
+        if (!$this->user) {
+            return;
+        }
+
+        $vipService = $this->getVipService();
+        $levelInfo = $vipService->getLevelInfo($level);
+        
+        if (!$levelInfo || !isset($levelInfo['benefits']) || !is_array($levelInfo['benefits'])) {
+            return;
+        }
+
+        $benefits = $levelInfo['benefits'];
+        
+        // 检查是否有 level_cash_bonus
+        if (!isset($benefits['level_cash_bonus']) || empty($benefits['level_cash_bonus'])) {
+            return;
+        }
+
+        $levelCashBonus = $benefits['level_cash_bonus'];
+        
+        // level_cash_bonus 可以是数字（金额）或数组（包含 amount 和 currency）
+        $amount = 0;
+        $currency = config('app.currency', 'USD');
+        
+        if (is_numeric($levelCashBonus)) {
+            // 如果是数字，直接作为金额
+            $amount = (float) $levelCashBonus;
+        } elseif (is_array($levelCashBonus)) {
+            // 如果是数组，提取 amount 和 currency
+            $amount = isset($levelCashBonus['amount']) ? (float) $levelCashBonus['amount'] : 0;
+            $currency = isset($levelCashBonus['currency']) ? $levelCashBonus['currency'] : config('app.currency', 'USD');
+        } else {
+            // 其他格式不支持
+            return;
+        }
+
+        // 如果金额大于 0，发放奖励
+        if ($amount > 0) {
+            $balanceService = new BalanceService();
+            $balanceService->vipLevelUpReward(
+                $this->user_id,
+                $currency,
+                $amount,
+                $level
+            );
         }
     }
 

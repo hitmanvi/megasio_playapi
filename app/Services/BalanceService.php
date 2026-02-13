@@ -403,4 +403,27 @@ class BalanceService
             ];
         });
     }
+
+    /**
+     * VIP 等级提升奖励
+     */
+    public function vipLevelUpReward(int $userId, string $currency, float $amount, int $level): array
+    {
+        return DB::transaction(function () use ($userId, $currency, $amount, $level) {
+            $balance = $this->updateBalance($userId, $currency, $amount, 'add', 'available');
+            $transaction = $this->transactionService->createTransaction(
+                $userId,
+                $currency,
+                $amount,
+                (float)$balance->available,
+                Transaction::TYPE_VIP_LEVEL_UP_REWARD,
+                (string) $level,
+                "VIP level up reward: Level {$level}"
+            );
+            return [
+                'balance' => $balance,
+                'transaction' => $transaction,
+            ];
+        });
+    }
 }
