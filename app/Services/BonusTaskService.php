@@ -277,6 +277,9 @@ class BonusTaskService
             $task->status = BonusTask::STATUS_CLAIMED;
             $task->save();
 
+            // 发送 WebSocket 推送（任务完成）
+            $this->sendBonusTaskUpdate($task, 'completed', $rewardAmount);
+
             // 任务完成后，激活下一个待激活的任务
             $this->activateNextPendingTask($task->user_id);
         });
