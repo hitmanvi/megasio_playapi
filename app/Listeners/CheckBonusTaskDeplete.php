@@ -8,6 +8,7 @@ use App\Models\Order;
 use App\Services\BonusTaskService;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Queue\InteractsWithQueue;
+use App\Jobs\SendWebSocketMessage;
 
 class CheckBonusTaskDeplete implements ShouldQueue
 {
@@ -56,7 +57,7 @@ class CheckBonusTaskDeplete implements ShouldQueue
             if (!$hasUncompletedOrders) {
                 $bonusTask->status = BonusTask::STATUS_DEPLETED;
                 $bonusTask->save();
-
+                $this->bonusTaskService->sendBonusTaskUpdate($bonusTask, 'depleted', 0);
                 // 激活下一个待激活的任务
                 $this->bonusTaskService->activateNextPendingTask($bonusTask->user_id);
             }

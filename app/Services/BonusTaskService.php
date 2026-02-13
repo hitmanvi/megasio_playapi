@@ -392,7 +392,7 @@ class BonusTaskService
      * @param float $amount 变动金额
      * @return void
      */
-    protected function sendBonusTaskUpdate(BonusTask $task, string $operation, float $amount): void
+    public function sendBonusTaskUpdate(BonusTask $task, string $operation, float $amount): void
     {
         try {
             // 加载用户关联以获取 uid
