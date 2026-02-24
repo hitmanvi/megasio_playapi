@@ -62,6 +62,9 @@ class BonusTaskController extends Controller
             }
         }
 
+        // 获取列表前先检查并更新该用户已过期的 task 状态
+        $this->bonusTaskService->expireOverdueTasksForUser($user->id);
+
         $perPage = max(1, (int) $request->input('per_page', 20));
         $tasksPaginator = $this->bonusTaskService->getTasksPaginated($user->id, $status, $perPage);
 

@@ -307,6 +307,22 @@ class BonusTaskService
     }
 
     /**
+     * 将指定用户下已过期的 bonus task 更新为 expired 状态
+     *
+     * @param int $userId
+     * @return int 更新条数
+     */
+    public function expireOverdueTasksForUser(int $userId): int
+    {
+        return BonusTask::query()
+            ->where('user_id', $userId)
+            ->whereIn('status', [BonusTask::STATUS_PENDING, BonusTask::STATUS_ACTIVE])
+            ->whereNotNull('expired_at')
+            ->where('expired_at', '<', now())
+            ->update(['status' => BonusTask::STATUS_EXPIRED]);
+    }
+
+    /**
      * 获取用户的 BonusTask 列表
      *
      * @param int $userId
