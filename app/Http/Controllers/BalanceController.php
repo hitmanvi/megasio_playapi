@@ -95,7 +95,6 @@ class BalanceController extends Controller
         
         // 构建查询
         $query = Rollover::where('user_id', $user->id)
-            ->with(['deposit'])
             ->orderBy('created_at', 'desc');
 
         // 按货币过滤
@@ -143,7 +142,7 @@ class BalanceController extends Controller
      */
     protected function formatRolloverForResponse(Rollover $rollover): array
     {
-        $data = [
+        return [
             'id' => $rollover->id,
             'source_type' => $rollover->source_type,
             'related_id' => $rollover->related_id,
@@ -157,20 +156,6 @@ class BalanceController extends Controller
             'created_at' => $rollover->created_at->format('Y-m-d H:i:s'),
             'updated_at' => $rollover->updated_at->format('Y-m-d H:i:s'),
         ];
-
-        // 如果是 deposit 类型，加载并返回 deposit 信息
-        if ($rollover->source_type === Rollover::SOURCE_TYPE_DEPOSIT && $rollover->deposit) {
-            $data['deposit'] = [
-                'id' => $rollover->deposit->id,
-                'order_no' => $rollover->deposit->order_no,
-                'amount' => (float) $rollover->deposit->amount,
-                'actual_amount' => $rollover->deposit->actual_amount ? (float) $rollover->deposit->actual_amount : null,
-            ];
-        } else {
-            $data['deposit'] = null;
-        }
-
-        return $data;
     }
 
 }
