@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Console\Commands\Rollover;
+namespace App\Console\Commands\Test;
 
 use App\Models\Rollover;
 use App\Models\User;
@@ -13,12 +13,12 @@ class CreateRollover extends Command
      *
      * @var string
      */
-    protected $signature = 'rollover:create 
+    protected $signature = 'test:create-rollover 
                             {user_id : 用户ID}
                             {--currency=USD : 货币类型}
                             {--amount=100 : 金额}
                             {--source_type=deposit : 来源类型 (deposit, bonus, reward)}
-                            {--related_id=0 : 关联的订单ID}
+                            {--related_id=0 : 关联的订单ID（不可为空，无关联时传 0）}
                             {--required_wager= : 需要的流水（默认与金额相同）}
                             {--status=pending : 初始状态 (pending, active, completed)}';
 
@@ -27,7 +27,7 @@ class CreateRollover extends Command
      *
      * @var string
      */
-    protected $description = '为指定用户创建 rollover 记录';
+    protected $description = '为指定用户创建 rollover 记录（测试用）';
 
     /**
      * Execute the console command.
@@ -39,8 +39,8 @@ class CreateRollover extends Command
         $amount = (float) $this->option('amount');
         $sourceType = $this->option('source_type');
         $relatedId = (int) $this->option('related_id');
-        $requiredWager = $this->option('required_wager') !== null 
-            ? (float) $this->option('required_wager') 
+        $requiredWager = $this->option('required_wager') !== null
+            ? (float) $this->option('required_wager')
             : $amount;
         $status = $this->option('status');
 
@@ -98,12 +98,15 @@ class CreateRollover extends Command
             }
         }
 
+        // related_id 数据库不允许 NULL，无关联时使用 0
+        $relatedId = $relatedId > 0 ? $relatedId : 0;
+
         // 创建 rollover
         try {
             $rollover = Rollover::create([
                 'user_id' => $userId,
                 'source_type' => $sourceType,
-                'related_id' => $relatedId > 0 ? $relatedId : null,
+                'related_id' => $relatedId,
                 'currency' => $currency,
                 'amount' => $amount,
                 'required_wager' => $requiredWager,
@@ -118,7 +121,7 @@ class CreateRollover extends Command
                     ['ID', $rollover->id],
                     ['用户ID', $rollover->user_id],
                     ['来源类型', $rollover->source_type],
-                    ['关联ID', $rollover->related_id ?? 'N/A'],
+                    ['关联ID', $rollover->related_id ?: '0'],
                     ['货币', $rollover->currency],
                     ['金额', $rollover->amount],
                     ['需要流水', $rollover->required_wager],
