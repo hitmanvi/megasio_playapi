@@ -13,6 +13,9 @@ Artisan::command('inspire', function () {
 // 每天清理过期的游戏提供商 Token
 Schedule::command('tokens:clean-expired')->daily();
 
+// 每天检查并更新过期的 bonus task 状态为 expired
+Schedule::command('bonus-task:expire')->daily();
+
 // 每天归档一个月前的订单
 Schedule::command('orders:archive')->daily();
 
