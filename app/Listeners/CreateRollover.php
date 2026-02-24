@@ -25,8 +25,8 @@ class CreateRollover implements ShouldQueue
             'source_type' => Rollover::SOURCE_TYPE_DEPOSIT,
             'related_id' => $deposit->id,
             'currency' => $deposit->currency,
-            'amount' => $deposit->actual_amount,
-            'required_wager' => $deposit->actual_amount, // 1倍
+            'amount' => $deposit->amount,
+            'required_wager' => $deposit->amount, // 1倍
             'current_wager' => 0,
             'status' => Rollover::STATUS_PENDING,
         ]);
