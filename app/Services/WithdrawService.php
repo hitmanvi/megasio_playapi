@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Events\WithdrawCompleted;
+use App\Models\Rollover;
 use App\Models\Withdraw;
 use App\Models\PaymentMethod;
 use App\Services\NotificationService;
@@ -148,6 +149,48 @@ class WithdrawService
         // Check amount validity
         if (!$paymentMethod->isAmountValid($amount)) {
             $errors['amount'] = ['Amount is not within the allowed range for this payment method'];
+        }
+
+        return [
+            'valid' => empty($errors),
+            'errors' => $errors,
+        ];
+    }
+
+    /**
+     * 检查 rollover 要求
+     * 用户只能提现已完成 rollover 要求的金额
+     *
+     * @param int $userId
+     * @param string $currency
+     * @param float $amount
+     * @return array ['valid' => bool, 'errors' => array]
+     */
+    public function checkRolloverRequirement(int $userId, string $currency, float $amount): array
+    {
+        $errors = [];
+
+        // 获取用户可提现金额（已考虑 rollover 要求）
+        $withdrawableAmount = $this->balanceService->getWithdrawableAmount($userId, $currency);
+
+        // 获取用户未完成的 rollover 总额（用于错误提示）
+        $uncompletedRolloverTotal = Rollover::getUncompletedTotal($userId, $currency);
+
+        // 检查提现金额是否超过可提现金额
+        if ($amount > $withdrawableAmount) {
+            if ($uncompletedRolloverTotal > 0) {
+                $errors['amount'] = [
+                    sprintf(
+                        'Insufficient withdrawable amount. You have %.2f %s available for withdrawal (%.2f %s locked by rollover requirement)',
+                        $withdrawableAmount,
+                        $currency,
+                        $uncompletedRolloverTotal,
+                        $currency
+                    )
+                ];
+            } else {
+                $errors['amount'] = ['Insufficient balance for withdrawal'];
+            }
         }
 
         return [
