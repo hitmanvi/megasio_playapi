@@ -49,13 +49,49 @@ class UpdateRolloverProgress implements ShouldQueue
         $activeRollover->current_wager += $wagerAmount;
         $activeRollover->save();
 
-        // 检查是否已完成
-        $wasCompleted = $activeRollover->checkCompletion();
+        // 若已完成，将多余 wager 分到下一个 active（并递归处理连续完成）
+        $this->applyCompletionAndOverflow($userId, $currency, $activeRollover);
+    }
 
-        // 如果当前 rollover 已完成，激活下一个 pending 的 rollover
-        if ($wasCompleted) {
-            $this->activateNextRollover($userId, $currency);
+    /**
+     * 处理当前 rollover 完成：封顶并标记完成，多余 wager 分到下一个 active（如有）
+     */
+    protected function applyCompletionAndOverflow(int $userId, string $currency, Rollover $rollover): void
+    {
+        if ($rollover->current_wager < $rollover->required_wager) {
+            $rollover->checkCompletion();
+            return;
         }
+
+        $excess = (float) $rollover->current_wager - (float) $rollover->required_wager;
+        $rollover->current_wager = $rollover->required_wager;
+        $rollover->status = Rollover::STATUS_COMPLETED;
+        $rollover->completed_at = now();
+        $rollover->save();
+
+        if ($excess <= 0) {
+            $this->activateNextRollover($userId, $currency);
+            return;
+        }
+
+        // 获取下一个 active（先尝试激活 pending）
+        $next = Rollover::where('user_id', $userId)
+            ->where('currency', $currency)
+            ->where('status', Rollover::STATUS_ACTIVE)
+            ->orderBy('created_at', 'asc')
+            ->first();
+
+        if (!$next) {
+            $next = $this->activateNextRollover($userId, $currency);
+        }
+
+        if (!$next) {
+            return;
+        }
+
+        $next->current_wager += $excess;
+        $next->save();
+        $this->applyCompletionAndOverflow($userId, $currency, $next);
     }
 
     /**
