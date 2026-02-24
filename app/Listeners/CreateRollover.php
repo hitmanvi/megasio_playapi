@@ -22,9 +22,10 @@ class CreateRollover implements ShouldQueue
         // 初始状态为 pending，等待按顺序激活
         $rollover = Rollover::create([
             'user_id' => $deposit->user_id,
-            'deposit_id' => $deposit->id,
+            'source_type' => Rollover::SOURCE_TYPE_DEPOSIT,
+            'related_id' => $deposit->id,
             'currency' => $deposit->currency,
-            'deposit_amount' => $deposit->actual_amount,
+            'amount' => $deposit->actual_amount,
             'required_wager' => $deposit->actual_amount, // 1倍
             'current_wager' => 0,
             'status' => Rollover::STATUS_PENDING,

@@ -12,11 +12,17 @@ class Rollover extends Model
     const STATUS_ACTIVE = 'active';         // 进行中
     const STATUS_COMPLETED = 'completed';   // 已完成
 
+    // 来源类型常量
+    const SOURCE_TYPE_DEPOSIT = 'deposit';   // 充值
+    const SOURCE_TYPE_BONUS = 'bonus';       // 奖励
+    const SOURCE_TYPE_REWARD = 'reward';     // 奖励
+
     protected $fillable = [
         'user_id',
-        'deposit_id',
+        'source_type',
+        'related_id',
         'currency',
-        'deposit_amount',
+        'amount',
         'required_wager',
         'current_wager',
         'status',
@@ -24,7 +30,7 @@ class Rollover extends Model
     ];
 
     protected $casts = [
-        'deposit_amount' => 'decimal:8',
+        'amount' => 'decimal:8',
         'required_wager' => 'decimal:8',
         'current_wager' => 'decimal:8',
         'completed_at' => 'datetime',
@@ -39,11 +45,11 @@ class Rollover extends Model
     }
 
     /**
-     * 关联充值订单
+     * 关联充值订单（仅当 source_type 为 deposit 时）
      */
     public function deposit(): BelongsTo
     {
-        return $this->belongsTo(Deposit::class);
+        return $this->belongsTo(Deposit::class, 'related_id');
     }
 
     /**
@@ -114,6 +120,6 @@ class Rollover extends Model
         return (float) self::where('user_id', $userId)
             ->where('currency', $currency)
             ->whereIn('status', [self::STATUS_PENDING, self::STATUS_ACTIVE])
-            ->sum('deposit_amount');
+            ->sum('amount');
     }
 }

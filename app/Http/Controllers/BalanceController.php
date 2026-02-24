@@ -113,6 +113,16 @@ class BalanceController extends Controller
             }
         }
 
+        // 按来源类型过滤
+        if ($request->has('source_type')) {
+            $sourceType = $request->input('source_type');
+            if (is_array($sourceType)) {
+                $query->whereIn('source_type', $sourceType);
+            } else {
+                $query->where('source_type', $sourceType);
+            }
+        }
+
         // 分页
         $perPage = max(1, (int) $request->input('per_page', 20));
         $rollovers = $query->paginate($perPage);
@@ -133,11 +143,12 @@ class BalanceController extends Controller
      */
     protected function formatRolloverForResponse(Rollover $rollover): array
     {
-        return [
+        $data = [
             'id' => $rollover->id,
-            'deposit_id' => $rollover->deposit_id,
+            'source_type' => $rollover->source_type,
+            'related_id' => $rollover->related_id,
             'currency' => $rollover->currency,
-            'deposit_amount' => (float) $rollover->deposit_amount,
+            'amount' => (float) $rollover->amount,
             'required_wager' => (float) $rollover->required_wager,
             'current_wager' => (float) $rollover->current_wager,
             'status' => $rollover->status,
@@ -145,13 +156,21 @@ class BalanceController extends Controller
             'completed_at' => $rollover->completed_at ? $rollover->completed_at->format('Y-m-d H:i:s') : null,
             'created_at' => $rollover->created_at->format('Y-m-d H:i:s'),
             'updated_at' => $rollover->updated_at->format('Y-m-d H:i:s'),
-            'deposit' => $rollover->deposit ? [
+        ];
+
+        // 如果是 deposit 类型，加载并返回 deposit 信息
+        if ($rollover->source_type === Rollover::SOURCE_TYPE_DEPOSIT && $rollover->deposit) {
+            $data['deposit'] = [
                 'id' => $rollover->deposit->id,
                 'order_no' => $rollover->deposit->order_no,
                 'amount' => (float) $rollover->deposit->amount,
                 'actual_amount' => $rollover->deposit->actual_amount ? (float) $rollover->deposit->actual_amount : null,
-            ] : null,
-        ];
+            ];
+        } else {
+            $data['deposit'] = null;
+        }
+
+        return $data;
     }
 
 }
