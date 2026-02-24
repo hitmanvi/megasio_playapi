@@ -29,6 +29,10 @@
       "description": "余额相关接口"
     },
     {
+      "name": "Rollover",
+      "description": "Rollover 相关接口"
+    },
+    {
       "name": "Brand",
       "description": "品牌相关接口"
     },
@@ -2518,11 +2522,46 @@
         }
       }
     },
-    "/balances/rollovers": {
+    "/rollovers/types": {
       "get": {
-        "tags": ["Balance"],
+        "tags": ["Rollover"],
+        "summary": "获取 Rollover 类型列表",
+        "description": "获取可用的 Rollover 来源类型列表",
+        "security": [{"bearerAuth": []}],
+        "responses": {
+          "200": {
+            "description": "获取类型列表成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RolloverTypesResponse"
+                },
+                "example": {
+                  "code": 0,
+                  "errmsg": "Success",
+                  "data": ["deposit"]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "未授权",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/rollovers": {
+      "get": {
+        "tags": ["Rollover"],
         "summary": "获取 Rollover 列表",
-        "description": "获取当前用户的 Rollover 列表，支持按货币和状态过滤",
+        "description": "获取当前用户的 Rollover 列表，支持按货币、状态和来源类型过滤",
         "security": [{"bearerAuth": []}],
         "parameters": [
           {
@@ -2619,13 +2658,7 @@
                         "progress_percent": 50.00,
                         "completed_at": null,
                         "created_at": "2026-02-12 10:00:00",
-                        "updated_at": "2026-02-12 10:00:00",
-                        "deposit": {
-                          "id": 123,
-                          "order_no": "DEP123456",
-                          "amount": 100.00,
-                          "actual_amount": 100.00
-                        }
+                        "updated_at": "2026-02-12 10:00:00"
                       }
                     ],
                     "meta": {
@@ -2641,6 +2674,75 @@
           },
           "401": {
             "description": "未授权",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/rollovers/{id}": {
+      "get": {
+        "tags": ["Rollover"],
+        "summary": "获取 Rollover 详情",
+        "description": "获取指定 ID 的 Rollover 详情",
+        "security": [{"bearerAuth": []}],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "Rollover ID",
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "获取 Rollover 详情成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RolloverResponse"
+                },
+                "example": {
+                  "code": 0,
+                  "errmsg": "Success",
+                  "data": {
+                    "id": 1,
+                    "source_type": "deposit",
+                    "related_id": 123,
+                    "currency": "USD",
+                    "amount": 100.00,
+                    "required_wager": 100.00,
+                    "current_wager": 50.00,
+                    "status": "active",
+                    "progress_percent": 50.00,
+                    "completed_at": null,
+                    "created_at": "2026-02-12 10:00:00",
+                    "updated_at": "2026-02-12 10:00:00"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "未授权",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Rollover 不存在",
             "content": {
               "application/json": {
                 "schema": {
@@ -10231,29 +10333,43 @@
             "type": "string",
             "format": "date-time",
             "description": "更新时间"
+          }
+        }
+      },
+      "RolloverResponse": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "integer",
+            "description": "响应码，0表示成功"
           },
-          "deposit": {
-            "type": "object",
-            "nullable": true,
-            "description": "关联的充值订单信息（仅当 source_type 为 deposit 时存在）",
-            "properties": {
-              "id": {
-                "type": "integer",
-                "description": "充值订单ID"
-              },
-              "order_no": {
-                "type": "string",
-                "description": "充值订单号"
-              },
-              "amount": {
-                "type": "number",
-                "description": "充值金额"
-              },
-              "actual_amount": {
-                "type": "number",
-                "nullable": true,
-                "description": "实际到账金额"
-              }
+          "errmsg": {
+            "type": "string",
+            "description": "响应消息"
+          },
+          "data": {
+            "$ref": "#/components/schemas/RolloverItem"
+          }
+        }
+      },
+      "RolloverTypesResponse": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "integer",
+            "description": "响应码，0表示成功"
+          },
+          "errmsg": {
+            "type": "string",
+            "description": "响应消息"
+          },
+          "data": {
+            "type": "array",
+            "description": "可用的 Rollover 来源类型列表",
+            "items": {
+              "type": "string",
+              "enum": ["deposit", "bonus", "reward"],
+              "description": "来源类型：deposit（充值）、bonus（奖励）、reward（奖励）"
             }
           }
         }

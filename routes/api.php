@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\BalanceController;
+use App\Http\Controllers\RolloverController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\BannerController;
 use App\Http\Controllers\BrandController;
@@ -66,8 +67,14 @@ Route::get('/banners', [BannerController::class, 'index']);
 Route::middleware('auth:sanctum')->prefix('balances')->group(function () {
     Route::get('/', [BalanceController::class, 'index']);
     Route::get('/transactions/list', [BalanceController::class, 'transactions']);
-    Route::get('/rollovers', [BalanceController::class, 'rollovers']);
     Route::get('/{currency}', [BalanceController::class, 'show']);
+});
+
+// Rollover 相关路由（需要认证）
+Route::middleware('auth:sanctum')->prefix('rollovers')->group(function () {
+    Route::get('/types', [RolloverController::class, 'types']);
+    Route::get('/', [RolloverController::class, 'index']);
+    Route::get('/{id}', [RolloverController::class, 'show']);
 });
 
 // 交易记录相关路由（需要认证）- 两种模式通用
