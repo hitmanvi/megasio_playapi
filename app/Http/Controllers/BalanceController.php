@@ -3,19 +3,16 @@
 namespace App\Http\Controllers;
 
 use App\Services\BalanceService;
-use App\Services\TransactionService;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 
 class BalanceController extends Controller
 {
     protected BalanceService $balanceService;
-    protected TransactionService $transactionService;
 
-    public function __construct(BalanceService $balanceService, TransactionService $transactionService)
+    public function __construct(BalanceService $balanceService)
     {
         $this->balanceService = $balanceService;
-        $this->transactionService = $transactionService;
     }
 
     /**
@@ -60,29 +57,4 @@ class BalanceController extends Controller
             'withdrawable' => $this->balanceService->getWithdrawableAmount($user->id, $currency),
         ]);
     }
-
-    /**
-     * 获取用户的交易记录
-     */
-    public function transactions(Request $request): JsonResponse
-    {
-        $user = $request->user();
-        $currency = $request->input('currency');
-        $type = $request->input('type');
-        $limit = $request->input('limit', 50);
-        $offset = $request->input('offset', 0);
-
-        $transactions = $this->transactionService->getUserTransactions(
-            $user->id,
-            $currency,
-            $type,
-            null,
-            null,
-            $limit,
-            $offset
-        );
-
-        return $this->responseList($transactions->toArray(), ['total' => $transactions->count()]);
-    }
-
 }

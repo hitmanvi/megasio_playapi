@@ -66,7 +66,6 @@ Route::get('/banners', [BannerController::class, 'index']);
 // 余额相关路由（需要认证）- 两种模式通用
 Route::middleware('auth:sanctum')->prefix('balances')->group(function () {
     Route::get('/', [BalanceController::class, 'index']);
-    Route::get('/transactions/list', [BalanceController::class, 'transactions']);
     Route::get('/{currency}', [BalanceController::class, 'show']);
 });
 
