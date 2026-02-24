@@ -4,7 +4,6 @@ namespace App\Listeners;
 
 use App\Events\OrderCompleted;
 use App\Models\Rollover;
-use App\Services\InvitationRewardService;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Queue\InteractsWithQueue;
 
@@ -19,40 +18,7 @@ class UpdateRolloverProgress implements ShouldQueue
     {
         $order = $event->order;
 
-        // 检查订单是否有游戏信息
-        if (!$order->game_id) {
-            return;
-        }
-
-        // 确保加载游戏和分类关系
-        if (!$order->relationLoaded('game')) {
-            $order->load('game.category');
-        }
-
-        if (!$order->game) {
-            return;
-        }
-
-        // 检查订单货币是否为应用默认货币
-        $appCurrency = config('app.currency', 'USD');
-        if ($order->currency !== $appCurrency) {
-            // 订单货币不是应用默认货币，跳过
-            return;
-        }
-
-        // 计算佣金（会判断游戏类型，如果不是 slot 类型返回 0）
-        $rewardService = new InvitationRewardService();
-        $reward = $rewardService->calculateReward(
-            (float) $order->amount,
-            $order->game
-        );
-
-        // 如果佣金为 0（即不是 slot 类型），则不更新 rollover
-        if ($reward <= 0) {
-            return;
-        }
-
-        // 更新 rollover 进度
+        // 更新 rollover 进度（对所有订单都更新，不限制游戏类型或货币类型）
         $this->updateRolloverProgress($order->user_id, (float) $order->amount, $order->currency);
     }
 
