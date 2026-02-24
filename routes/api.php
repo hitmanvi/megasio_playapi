@@ -66,6 +66,7 @@ Route::get('/banners', [BannerController::class, 'index']);
 Route::middleware('auth:sanctum')->prefix('balances')->group(function () {
     Route::get('/', [BalanceController::class, 'index']);
     Route::get('/transactions/list', [BalanceController::class, 'transactions']);
+    Route::get('/rollovers', [BalanceController::class, 'rollovers']);
     Route::get('/{currency}', [BalanceController::class, 'show']);
 });
 
