@@ -33,6 +33,10 @@
       "description": "Rollover 相关接口"
     },
     {
+      "name": "WeeklyCashback",
+      "description": "周返现相关接口"
+    },
+    {
       "name": "Brand",
       "description": "品牌相关接口"
     },
@@ -2660,6 +2664,204 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/weekly-cashbacks/claimable": {
+      "get": {
+        "tags": ["WeeklyCashback"],
+        "summary": "获取可领取的 Cashback",
+        "description": "获取用户上周可领取的 cashback（单个）。无记录返回 data: null。同时会将非上周的 claimable 记录标记为过期",
+        "security": [{"bearerAuth": []}],
+        "responses": {
+          "200": {
+            "description": "获取成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WeeklyCashbackClaimableResponse"
+                },
+                "example": {
+                  "code": 0,
+                  "errmsg": "Success",
+                  "data": {
+                    "no": "01ARZ3NDEKTSV4RRFFQ69G5FAV",
+                    "period": 202605,
+                    "currency": "USD",
+                    "wager": 1000.00,
+                    "payout": 900.00,
+                    "status": "claimable",
+                    "rate": 0.05,
+                    "amount": 50.00,
+                    "claimed_at": null,
+                    "created_at": "2026-02-01 10:00:00",
+                    "updated_at": "2026-02-05 10:00:00"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "未授权",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/weekly-cashbacks/{no}": {
+      "get": {
+        "tags": ["WeeklyCashback"],
+        "summary": "获取 Cashback 详情",
+        "description": "通过 no（ULID）获取指定 cashback 详情",
+        "security": [{"bearerAuth": []}],
+        "parameters": [
+          {
+            "name": "no",
+            "in": "path",
+            "required": true,
+            "description": "Cashback 标识（26 位 ULID）",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "获取成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WeeklyCashbackResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "未授权",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Cashback 不存在",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "code": 4010,
+                  "errmsg": "Weekly cashback not found",
+                  "data": null
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/weekly-cashbacks/{no}/claim": {
+      "post": {
+        "tags": ["WeeklyCashback"],
+        "summary": "领取 Cashback",
+        "description": "领取指定 cashback，金额将入账到用户余额",
+        "security": [{"bearerAuth": []}],
+        "parameters": [
+          {
+            "name": "no",
+            "in": "path",
+            "required": true,
+            "description": "Cashback 标识（26 位 ULID）",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "领取成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WeeklyCashbackClaimResponse"
+                },
+                "example": {
+                  "code": 0,
+                  "errmsg": "Success",
+                  "data": {
+                    "no": "01ARZ3NDEKTSV4RRFFQ69G5FAV",
+                    "period": 202605,
+                    "currency": "USD",
+                    "wager": 1000.00,
+                    "payout": 900.00,
+                    "status": "claimed",
+                    "rate": 0.05,
+                    "amount": 50.00,
+                    "claimed_at": "2026-02-05 12:00:00",
+                    "created_at": "2026-02-01 10:00:00",
+                    "updated_at": "2026-02-05 12:00:00",
+                    "claim_amount": 50.00
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "未授权",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "业务错误",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "examples": {
+                  "not_found": {
+                    "summary": "Cashback 不存在",
+                    "value": {
+                      "code": 4010,
+                      "errmsg": "Weekly cashback not found",
+                      "data": null
+                    }
+                  },
+                  "not_claimable": {
+                    "summary": "不可领取",
+                    "value": {
+                      "code": 4011,
+                      "errmsg": "Weekly cashback is not claimable",
+                      "data": null
+                    }
+                  },
+                  "no_amount": {
+                    "summary": "无可领取金额",
+                    "value": {
+                      "code": 4012,
+                      "errmsg": "No amount to claim",
+                      "data": null
+                    }
+                  }
                 }
               }
             }
@@ -10283,6 +10485,134 @@
               "type": "string",
               "enum": ["deposit", "bonus", "reward"],
               "description": "来源类型：deposit（充值）、bonus（奖励）、reward（奖励）"
+            }
+          }
+        }
+      },
+      "WeeklyCashbackItem": {
+        "type": "object",
+        "properties": {
+          "no": {
+            "type": "string",
+            "description": "Cashback 标识（26 位 ULID）"
+          },
+          "period": {
+            "type": "integer",
+            "description": "周期：ISO 年*100+周数，如 202605 表示 2026 年第 5 周"
+          },
+          "currency": {
+            "type": "string",
+            "description": "货币"
+          },
+          "wager": {
+            "type": "number",
+            "description": "周期内投注额"
+          },
+          "payout": {
+            "type": "number",
+            "description": "周期内派彩"
+          },
+          "status": {
+            "type": "string",
+            "enum": ["active", "claimable", "claimed", "expired"],
+            "description": "状态：active 进行中, claimable 待领取, claimed 已领取, expired 已过期"
+          },
+          "rate": {
+            "type": "number",
+            "description": "返现比例"
+          },
+          "amount": {
+            "type": "number",
+            "description": "返现金额"
+          },
+          "claimed_at": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true,
+            "description": "领取时间"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "创建时间"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "更新时间"
+          }
+        }
+      },
+      "WeeklyCashbackClaimableResponse": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "integer",
+            "description": "响应码，0表示成功"
+          },
+          "errmsg": {
+            "type": "string",
+            "description": "响应消息"
+          },
+          "data": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/WeeklyCashbackItem"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "可领取的 cashback，无记录时为 null"
+          }
+        }
+      },
+      "WeeklyCashbackResponse": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "integer",
+            "description": "响应码，0表示成功"
+          },
+          "errmsg": {
+            "type": "string",
+            "description": "响应消息"
+          },
+          "data": {
+            "$ref": "#/components/schemas/WeeklyCashbackItem"
+          }
+        }
+      },
+      "WeeklyCashbackClaimResponse": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "integer",
+            "description": "响应码，0表示成功"
+          },
+          "errmsg": {
+            "type": "string",
+            "description": "响应消息"
+          },
+          "data": {
+            "type": "object",
+            "description": "领取后的 cashback 信息，包含 claim_amount",
+            "properties": {
+              "no": { "type": "string" },
+              "period": { "type": "integer" },
+              "currency": { "type": "string" },
+              "wager": { "type": "number" },
+              "payout": { "type": "number" },
+              "status": { "type": "string" },
+              "rate": { "type": "number" },
+              "amount": { "type": "number" },
+              "claimed_at": { "type": "string", "format": "date-time", "nullable": true },
+              "created_at": { "type": "string", "format": "date-time" },
+              "updated_at": { "type": "string", "format": "date-time" },
+              "claim_amount": {
+                "type": "number",
+                "description": "本次领取的金额"
+              }
             }
           }
         }
