@@ -27,3 +27,6 @@ Schedule::command('import:funky_games')->daily();
 
 // 每分钟将 weekly cashback 缓冲刷入数据库
 Schedule::command('weekly-cashback:flush-buffer')->everyMinute();
+
+// 每周一 02:00 计算 weekly cashback（将上周 active 记录计算 rate/amount 并标记为 claimable）
+Schedule::command('weekly-cashback:calculate')->weeklyOn(1, '02:00');

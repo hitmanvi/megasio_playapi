@@ -126,6 +126,35 @@ class WeeklyCashbackService
     }
 
     /**
+     * 计算指定周期的 weekly cashback（将 active 记录计算 rate/amount 并标记为 claimable）
+     * 每周一 02:00 执行，计算上周数据
+     *
+     * @param int $period ISO 年*100+周数
+     * @return int 处理的记录数
+     */
+    public function calculateAndFinalizeForPeriod(int $period): int
+    {
+        $records = WeeklyCashback::where('period', $period)
+            ->where('status', WeeklyCashback::STATUS_ACTIVE)
+            ->get();
+
+        $count = 0;
+        foreach ($records as $cashback) {
+            // TODO: 实现计算逻辑（根据 wager、payout 等计算 rate 和 amount）
+            $rate = 0;
+            $amount = 0;
+
+            $cashback->rate = $rate;
+            $cashback->amount = $amount;
+            $cashback->status = WeeklyCashback::STATUS_CLAIMABLE;
+            $cashback->save();
+            $count++;
+        }
+
+        return $count;
+    }
+
+    /**
      * 获取用户上周可领取的 cashback（单个）；同时将非上周的 claimable 标记为过期
      */
     public function getClaimableForUser(int $userId): ?WeeklyCashback
