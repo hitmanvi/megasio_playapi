@@ -46,7 +46,7 @@ class WeeklyCashbackService
         if (!is_array($supportedCategories)) {
             $supportedCategories = [];
         }
-        if (in_array($order->game_category ?? null, $supportedCategories)) {
+        if (in_array($order->game->category_id, $supportedCategories)) {
             return true;
         }
         return false;
