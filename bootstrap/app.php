@@ -29,7 +29,7 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
     })
     ->withSchedule(function (Schedule $schedule): void {
-        // 定时任务配置已移至 routes/console.php
+        require base_path('routes/console.php');
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         
