@@ -17,6 +17,15 @@ class WeeklyCashbackService
     private const BUFFER_KEY_PREFIX = 'weekly_cashback_buffer:';
 
     /**
+     * 检查 VIP 配置中 weekly_cashback 是否开启
+     */
+    private function isWeeklyCashbackEnabled(): bool
+    {
+        $vipSetting = (new SettingService())->getValue('vip', []);
+        return ($vipSetting['weekly_cashback']['enabled'] ?? false) === true;
+    }
+
+    /**
      * 将日期转换为 period（ISO 年*100+周数）
      */
     public function dateToPeriod(Carbon|string $date): int
@@ -47,6 +56,9 @@ class WeeklyCashbackService
      */
     public function addToBuffer(Order $order): void
     {
+        if (!$this->isWeeklyCashbackEnabled()) {
+            return;
+        }
         $date = $order->finished_at ?? $order->created_at ?? now();
         $period = $this->dateToPeriod($date);
         $key = self::BUFFER_KEY_PREFIX . $order->user_id . ':' . $period . ':' . $order->currency;
@@ -107,6 +119,9 @@ class WeeklyCashbackService
 
     private function applyBufferToDb(int $userId, int $period, string $currency, float $wager, float $payout): void
     {
+        if (!$this->isWeeklyCashbackEnabled()) {
+            return;
+        }
         if ($wager <= 0 && $payout <= 0) {
             return;
         }
@@ -176,6 +191,9 @@ class WeeklyCashbackService
      */
     public function calculateAndFinalizeForPeriod(int $period): int
     {
+        if (!$this->isWeeklyCashbackEnabled()) {
+            return 0;
+        }
         $records = WeeklyCashback::where('period', $period)
             ->where('status', WeeklyCashback::STATUS_ACTIVE)
             ->get();
@@ -264,6 +282,9 @@ class WeeklyCashbackService
      */
     public function updateCashbackFromOrder(Order $order): void
     {
+        if (!$this->isWeeklyCashbackEnabled()) {
+            return;
+        }
         $date = $order->finished_at ?? $order->created_at ?? now();
         $period = $this->dateToPeriod($date);
 
