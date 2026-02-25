@@ -41,7 +41,8 @@ class WeeklyCashbackService
     {
         // TODO: 实现判断逻辑
         $settingService = new SettingService();
-        $supportedCategories = $settingService->getValue('supported_game_categories', []);
+        $vipSetting = $settingService->getValue('vip', []);
+        $supportedCategories = $vipSetting['supported_game_categories'] ?? [];
         if (!is_array($supportedCategories)) {
             $supportedCategories = [];
         }
