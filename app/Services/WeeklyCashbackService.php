@@ -5,8 +5,10 @@ namespace App\Services;
 use App\Enums\ErrorCode;
 use App\Exceptions\Exception as AppException;
 use App\Models\Order;
+use App\Models\User;
 use App\Models\WeeklyCashback;
 use App\Services\BalanceService;
+use App\Services\VipService;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Redis;
 
@@ -29,6 +31,14 @@ class WeeklyCashbackService
     public function orderSupportsCashback(Order $order): bool
     {
         // TODO: 实现判断逻辑
+        $settingService = new SettingService();
+        $supportedCategories = $settingService->getValue('supported_game_categories', []);
+        if (!is_array($supportedCategories)) {
+            $supportedCategories = [];
+        }
+        if (in_array($order->game_category ?? null, $supportedCategories)) {
+            return true;
+        }
         return false;
     }
 
@@ -126,8 +136,40 @@ class WeeklyCashbackService
     }
 
     /**
+     * 从用户 VIP 等级的 benefits 中获取 weekly_cashback 返现比例
+     * 优先读取 benefits.weekly_cashback（可为数字或 { rate: x }），否则回退到 benefits.cashback_rate
+     * rate 为百分数的分子，如 5 表示 5%
+     *
+     * @param int $userId 用户 ID
+     * @return float 返现比例（百分数的分子），如 5 表示 5%
+     */
+    public function getWeeklyCashbackRateForUser(int $userId): float
+    {
+        $user = User::with('vip')->find($userId);
+        if (!$user || !$user->vip) {
+            return 0;
+        }
+
+        $levelInfo = (new VipService())->getLevelInfo($user->vip->level);
+        $benefits = $levelInfo['benefits'] ?? [];
+        if (empty($benefits)) {
+            return 0;
+        }
+
+        $weeklyCashback = $benefits['weekly_cashback'] ?? null;
+        if ($weeklyCashback !== null) {
+            if (is_numeric($weeklyCashback)) {
+                return (float) $weeklyCashback;
+            }
+        }
+
+        return 0;
+    }
+
+    /**
      * 计算指定周期的 weekly cashback（将 active 记录计算 rate/amount 并标记为 claimable）
      * 每周一 02:00 执行，计算上周数据
+     * rate 从用户 VIP 等级的 benefits.weekly_cashback 获取
      *
      * @param int $period ISO 年*100+周数
      * @return int 处理的记录数
@@ -140,13 +182,17 @@ class WeeklyCashbackService
 
         $count = 0;
         foreach ($records as $cashback) {
-            // TODO: 实现计算逻辑（根据 wager、payout 等计算 rate 和 amount）
-            $rate = 0;
-            $amount = 0;
+            $rate = $this->getWeeklyCashbackRateForUser($cashback->user_id);
+            // rate 为百分数的分子（如 5 表示 5%）
+            $netWager = (float) $cashback->wager - (float) $cashback->payout;
+            $amount = max(0, $netWager * $rate / 100);
 
-            $cashback->rate = $rate;
+            $cashback->rate = $rate; // 统一存储为百分数分子
             $cashback->amount = $amount;
-            $cashback->status = WeeklyCashback::STATUS_CLAIMABLE;
+            $cashback->status = $amount > 0 ? WeeklyCashback::STATUS_CLAIMABLE : WeeklyCashback::STATUS_CLAIMED;
+            if ($amount <= 0) {
+                $cashback->claimed_at = now();
+            }
             $cashback->save();
             $count++;
         }

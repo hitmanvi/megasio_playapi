@@ -14,7 +14,7 @@ class CreateWeeklyCashback extends Command
                             {user_id : 用户ID}
                             {--currency=USD : 货币类型}
                             {--wager=1000 : 投注额}
-                            {--rate=0.05 : 返现比例}';
+                            {--rate=5 : 返现比例（百分数的分子，如 5 表示 5%）}';
 
     protected $description = '为指定用户创建当前周期、上一周期、上上一周期的 weekly cashback 记录（测试用）';
 
@@ -36,8 +36,8 @@ class CreateWeeklyCashback extends Command
             return Command::FAILURE;
         }
 
-        if ($rate < 0 || $rate > 1) {
-            $this->error("返现比例应在 0~1 之间");
+        if ($rate < 0 || $rate > 100) {
+            $this->error("返现比例（百分数分子）应在 0~100 之间");
             return Command::FAILURE;
         }
 
@@ -54,7 +54,7 @@ class CreateWeeklyCashback extends Command
         foreach ($periods as $p) {
             $period = $service->dateToPeriod($p['date']);
             $payout = $wager * 0.9; // 示例派彩
-            $amount = $wager * $rate;
+            $amount = max(0, ($wager - $payout) * $rate / 100);
 
             $cashback = WeeklyCashback::updateOrCreate(
                 [

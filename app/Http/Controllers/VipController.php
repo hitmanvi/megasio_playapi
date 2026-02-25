@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Services\SettingService;
 use App\Services\VipService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -10,10 +11,21 @@ use Illuminate\Pagination\LengthAwarePaginator;
 class VipController extends Controller
 {
     protected VipService $vipService;
+    protected SettingService $settingService;
 
-    public function __construct(VipService $vipService)
+    public function __construct(VipService $vipService, SettingService $settingService)
     {
         $this->vipService = $vipService;
+        $this->settingService = $settingService;
+    }
+
+    /**
+     * 获取 VIP 分组配置（group=vip 的 setting）
+     */
+    public function setting(): JsonResponse
+    {
+        $setting = $this->settingService->getGroup('vip');
+        return $this->responseItem($setting);
     }
 
     /**

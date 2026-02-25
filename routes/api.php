@@ -114,6 +114,7 @@ Route::middleware('auth:sanctum')->prefix('kyc')->group(function () {
 // VIP等级列表（只读）
 Route::get('/vip/levels', [VipController::class, 'levels']);
 Route::get('/vip/groups', [VipController::class, 'groups']);
+Route::get('/vip/setting', [VipController::class, 'setting']);
 
 // 签到相关路由（需要认证）
 Route::middleware('auth:sanctum')->prefix('check-ins')->group(function () {
