@@ -2675,7 +2675,7 @@
       "get": {
         "tags": ["WeeklyCashback"],
         "summary": "获取可领取的 Cashback",
-        "description": "获取用户上周可领取的 cashback（单个）。无记录返回 data: null。同时会将非上周的 claimable 记录标记为过期",
+        "description": "获取用户上周可领取的 cashback（单个）。无记录返回 data: null。同时会将非上周的 claimable 记录标记为过期。需 VIP 配置 weekly_cashback.enabled=true 才会产生 cashback",
         "security": [{"bearerAuth": []}],
         "responses": {
           "200": {
@@ -5829,6 +5829,68 @@
                       "current_page": 1,
                       "last_page": 1,
                       "total": 3
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/vip/setting": {
+      "get": {
+        "tags": ["VIP"],
+        "summary": "获取 VIP 分组配置",
+        "description": "获取 group=vip 的 setting 配置，包含 supported_game_categories、weekly_cashback、monthly_cashback 等",
+        "responses": {
+          "200": {
+            "description": "获取成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {"type": "integer", "example": 0},
+                    "errmsg": {"type": "string", "example": "Success"},
+                    "data": {
+                      "type": "object",
+                      "description": "VIP 分组配置",
+                      "properties": {
+                        "vip": {
+                          "type": "object",
+                          "properties": {
+                            "supported_game_categories": {
+                              "type": "array",
+                              "items": {"type": "integer"},
+                              "description": "支持 cashback 的游戏分类 ID 数组"
+                            },
+                            "weekly_cashback": {
+                              "type": "object",
+                              "properties": {
+                                "enabled": {"type": "boolean", "description": "周返现是否开启"}
+                              }
+                            },
+                            "monthly_cashback": {
+                              "type": "object",
+                              "properties": {
+                                "enabled": {"type": "boolean", "description": "月返现是否开启"}
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                },
+                "example": {
+                  "code": 0,
+                  "errmsg": "Success",
+                  "data": {
+                    "vip": {
+                      "supported_game_categories": [1],
+                      "weekly_cashback": {"enabled": true},
+                      "monthly_cashback": {"enabled": true}
                     }
                   }
                 }
@@ -10519,11 +10581,11 @@
           },
           "rate": {
             "type": "number",
-            "description": "返现比例"
+            "description": "返现比例（百分数的分子，如 5 表示 5%）"
           },
           "amount": {
             "type": "number",
-            "description": "返现金额"
+            "description": "返现金额，计算公式：max(0, (wager-payout)*rate/100)"
           },
           "claimed_at": {
             "type": "string",
