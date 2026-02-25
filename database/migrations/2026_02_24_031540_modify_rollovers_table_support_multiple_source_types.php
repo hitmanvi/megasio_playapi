@@ -3,6 +3,7 @@
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\DB;
 
 return new class extends Migration
 {
@@ -17,8 +18,8 @@ return new class extends Migration
         });
 
         // 使用 DB 语句重命名列（因为 Laravel Schema Builder 可能不支持 renameColumn）
-        \Illuminate\Support\Facades\DB::statement('ALTER TABLE rollovers CHANGE deposit_id related_id BIGINT UNSIGNED NOT NULL COMMENT \'关联的订单ID（根据 source_type 关联不同类型的记录）\'');
-        \Illuminate\Support\Facades\DB::statement('ALTER TABLE rollovers CHANGE deposit_amount amount DECIMAL(20, 8) NOT NULL COMMENT \'金额（根据 source_type 可能是充值金额、奖励金额等）\'');
+        DB::statement('ALTER TABLE rollovers CHANGE deposit_id related_id BIGINT UNSIGNED NOT NULL COMMENT \'关联的订单ID（根据 source_type 关联不同类型的记录）\'');
+        DB::statement('ALTER TABLE rollovers CHANGE deposit_amount amount DECIMAL(20, 8) NOT NULL COMMENT \'金额（根据 source_type 可能是充值金额、奖励金额等）\'');
 
         Schema::table('rollovers', function (Blueprint $table) {
             // 添加 source_type 字段（来源类型：deposit, bonus, reward 等）
@@ -45,8 +46,8 @@ return new class extends Migration
         });
 
         // 使用 DB 语句恢复列名
-        \Illuminate\Support\Facades\DB::statement('ALTER TABLE rollovers CHANGE related_id deposit_id BIGINT UNSIGNED NOT NULL COMMENT \'关联的充值订单ID\'');
-        \Illuminate\Support\Facades\DB::statement('ALTER TABLE rollovers CHANGE amount deposit_amount DECIMAL(20, 8) NOT NULL COMMENT \'充值金额\'');
+        DB::statement('ALTER TABLE rollovers CHANGE related_id deposit_id BIGINT UNSIGNED NOT NULL COMMENT \'关联的充值订单ID\'');
+        DB::statement('ALTER TABLE rollovers CHANGE amount deposit_amount DECIMAL(20, 8) NOT NULL COMMENT \'充值金额\'');
 
         Schema::table('rollovers', function (Blueprint $table) {
             // 恢复外键约束
