@@ -8,6 +8,7 @@ use App\Models\Order;
 use App\Models\User;
 use App\Models\WeeklyCashback;
 use App\Services\BalanceService;
+use App\Services\NotificationService;
 use App\Services\VipService;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Redis;
@@ -19,7 +20,7 @@ class WeeklyCashbackService
     /**
      * 检查 VIP 配置中 weekly_cashback 是否开启
      */
-    private function isWeeklyCashbackEnabled(): bool
+    public function isWeeklyCashbackEnabled(): bool
     {
         $vipSetting = (new SettingService())->getValue('vip', []);
         return ($vipSetting['weekly_cashback']['enabled'] ?? false) === true;
@@ -213,6 +214,16 @@ class WeeklyCashbackService
                 $cashback->claimed_at = now();
             }
             $cashback->save();
+
+            if ($amount > 0) {
+                (new NotificationService())->createWeeklyCashbackNotification(
+                    $cashback->user_id,
+                    $amount,
+                    $cashback->currency,
+                    $cashback->no,
+                    $cashback->period
+                );
+            }
             $count++;
         }
 

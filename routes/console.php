@@ -30,3 +30,6 @@ Schedule::command('weekly-cashback:flush-buffer')->everyMinute();
 
 // 每周一 02:00 计算 weekly cashback（将上周 active 记录计算 rate/amount 并标记为 claimable）
 Schedule::command('weekly-cashback:calculate')->weeklyOn(1, '02:00');
+
+// 每周四 00:00 检查 claimable 未领取的，发送提醒通知
+Schedule::command('weekly-cashback:remind-unclaimed')->weeklyOn(4, '00:00');

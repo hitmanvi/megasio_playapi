@@ -20,6 +20,8 @@ class Notification extends Model
     const CATEGORY_BONUS_TASK_COMPLETED = 'bonus_task_completed'; // 奖励任务完成
     const CATEGORY_INVITATION_REWARD = 'invitation_reward';  // 邀请奖励
     const CATEGORY_SYSTEM_ANNOUNCEMENT = 'system_announcement'; // 系统公告
+    const CATEGORY_WEEKLY_CASHBACK = 'weekly_cashback';      // 周返现
+    const CATEGORY_WEEKLY_CASHBACK_REMINDER = 'weekly_cashback_reminder';  // 周返现过期提醒
 
     /**
      * The attributes that are mass assignable.

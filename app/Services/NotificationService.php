@@ -250,6 +250,64 @@ class NotificationService
     }
 
     /**
+     * 创建周返现可领取通知
+     *
+     * @param int $userId 用户ID
+     * @param float $amount 返现金额
+     * @param string $currency 货币类型
+     * @param string $no Cashback 标识
+     * @param int $period 周期
+     * @return Notification
+     */
+    public function createWeeklyCashbackNotification(int $userId, float $amount, string $currency, string $no, int $period): Notification
+    {
+        $formattedAmount = number_format($amount, 2, '.', '');
+        $content = "\${$formattedAmount} weekly cashback is ready to claim.";
+
+        return $this->createUserNotification(
+            $userId,
+            Notification::CATEGORY_WEEKLY_CASHBACK,
+            'weekly_cashback',
+            $content,
+            [
+                'amount' => $amount,
+                'currency' => $currency,
+                'no' => $no,
+                'period' => $period,
+            ]
+        );
+    }
+
+    /**
+     * 创建周返现未领取提醒通知
+     *
+     * @param int $userId 用户ID
+     * @param float $amount 返现金额
+     * @param string $currency 货币类型
+     * @param string $no Cashback 标识
+     * @param int $period 周期
+     * @return Notification
+     */
+    public function createWeeklyCashbackReminderNotification(int $userId, float $amount, string $currency, string $no, int $period): Notification
+    {
+        $formattedAmount = number_format($amount, 2, '.', '');
+        $content = "You have unclaimed \${$formattedAmount} weekly cashback. Please claim before it expires.";
+
+        return $this->createUserNotification(
+            $userId,
+            Notification::CATEGORY_WEEKLY_CASHBACK_REMINDER,
+            'weekly_cashback_reminder',
+            $content,
+            [
+                'amount' => $amount,
+                'currency' => $currency,
+                'no' => $no,
+                'period' => $period,
+            ]
+        );
+    }
+
+    /**
      * 创建 Bonus Task 完成通知
      *
      * @param int $userId 用户ID
