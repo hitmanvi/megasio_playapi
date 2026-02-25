@@ -426,4 +426,27 @@ class BalanceService
             ];
         });
     }
+
+    /**
+     * Weekly Cashback 奖励
+     */
+    public function weeklyCashbackReward(int $userId, string $currency, float $amount, int $cashbackId, int $period): array
+    {
+        return DB::transaction(function () use ($userId, $currency, $amount, $cashbackId, $period) {
+            $balance = $this->updateBalance($userId, $currency, $amount, 'add', 'available');
+            $transaction = $this->transactionService->createTransaction(
+                $userId,
+                $currency,
+                $amount,
+                (float) $balance->available,
+                Transaction::TYPE_WEEKLY_CASHBACK,
+                (string) $cashbackId,
+                "Weekly cashback: period {$period}"
+            );
+            return [
+                'balance' => $balance,
+                'transaction' => $transaction,
+            ];
+        });
+    }
 }

@@ -9,10 +9,10 @@ class Exception extends \Exception
 {
     protected ErrorCode $errorCode;
 
-    public function __construct(ErrorCode $code)
+    public function __construct(ErrorCode $code, ?string $message = null)
     {
         $this->errorCode = $code;
-        parent::__construct($code->getMessage());
+        parent::__construct($message ?? $code->getMessage());
     }
 
     public function getErrorCode(): ErrorCode

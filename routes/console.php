@@ -24,3 +24,6 @@ Schedule::command(GenerateRewards::class)->dailyAt('02:00');
 
 // 每天运行一次 Funky 游戏同步
 Schedule::command('import:funky_games')->daily();
+
+// 每分钟将 weekly cashback 缓冲刷入数据库
+Schedule::command('weekly-cashback:flush-buffer')->everyMinute();

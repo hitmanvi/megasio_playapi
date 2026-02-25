@@ -4,9 +4,18 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Str;
 
 class WeeklyCashback extends Model
 {
+    protected static function booted(): void
+    {
+        static::creating(function (WeeklyCashback $model) {
+            if (empty($model->no)) {
+                $model->no = Str::ulid()->toString();
+            }
+        });
+    }
     /** 进行中 */
     const STATUS_ACTIVE = 'active';
 
@@ -22,6 +31,7 @@ class WeeklyCashback extends Model
     protected $table = 'weekly_cashbacks';
 
     protected $fillable = [
+        'no',
         'user_id',
         'period',
         'currency',

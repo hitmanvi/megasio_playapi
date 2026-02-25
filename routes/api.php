@@ -33,6 +33,7 @@ use App\Http\Controllers\ArticleController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\GameFavoriteController;
 use App\Http\Controllers\AdminController;
+use App\Http\Controllers\WeeklyCashbackController;
 use Illuminate\Http\Request;
 
 // 认证相关路由
@@ -67,6 +68,13 @@ Route::get('/banners', [BannerController::class, 'index']);
 Route::middleware('auth:sanctum')->prefix('balances')->group(function () {
     Route::get('/', [BalanceController::class, 'index']);
     Route::get('/{currency}', [BalanceController::class, 'show']);
+});
+
+// Weekly Cashback 相关路由（需要认证）
+Route::middleware('auth:sanctum')->prefix('weekly-cashbacks')->group(function () {
+    Route::get('/claimable', [WeeklyCashbackController::class, 'claimable']);
+    Route::get('/{no}', [WeeklyCashbackController::class, 'show']);
+    Route::post('/{no}/claim', [WeeklyCashbackController::class, 'claim']);
 });
 
 // Rollover 相关路由（需要认证）

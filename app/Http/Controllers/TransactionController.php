@@ -33,6 +33,7 @@ class TransactionController extends Controller
             Transaction::TYPE_BONUS_TASK_REWARD,
             Transaction::TYPE_INVITATION_REWARD,
             Transaction::TYPE_VIP_LEVEL_UP_REWARD,
+            Transaction::TYPE_WEEKLY_CASHBACK,
         ];
 
         return $this->responseItem($types);

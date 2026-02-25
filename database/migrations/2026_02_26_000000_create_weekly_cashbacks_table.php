@@ -13,6 +13,7 @@ return new class extends Migration
     {
         Schema::create('weekly_cashbacks', function (Blueprint $table) {
             $table->id();
+            $table->string('no', 26)->unique()->comment('对外标识(ULID)，不暴露自增id');
             $table->unsignedBigInteger('user_id')->comment('用户ID');
             $table->unsignedInteger('period')->comment('周期：ISO 年*100+周数，如 202605 表示 2026 年第 5 周');
             $table->string('currency', 10)->comment('货币');

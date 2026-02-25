@@ -42,6 +42,11 @@ enum ErrorCode: int
     case OPERATION_NOT_ALLOWED = 4003;
     case INSUFFICIENT_BALANCE = 4004;
     case BALANCE_UPDATE_FAILED = 4005;
+
+    // Weekly cashback (4010-4019)
+    case WEEKLY_CASHBACK_NOT_FOUND = 4010;
+    case WEEKLY_CASHBACK_NOT_CLAIMABLE = 4011;
+    case WEEKLY_CASHBACK_NO_AMOUNT = 4012;
     // 支付错误 (5000-5999)
     case PAY_DEPOSIT_FAILED = 5001;
     case PAY_WITHDRAW_FAILED = 5002;
@@ -97,6 +102,9 @@ enum ErrorCode: int
             self::OPERATION_NOT_ALLOWED => 'Operation not allowed',
             self::INSUFFICIENT_BALANCE => 'Insufficient balance',
             self::BALANCE_UPDATE_FAILED => 'Balance update failed',
+            self::WEEKLY_CASHBACK_NOT_FOUND => 'Weekly cashback not found',
+            self::WEEKLY_CASHBACK_NOT_CLAIMABLE => 'Weekly cashback is not claimable',
+            self::WEEKLY_CASHBACK_NO_AMOUNT => 'No amount to claim',
 
             // 支付错误
             self::PAY_DEPOSIT_FAILED => 'Deposit failed',

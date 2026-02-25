@@ -48,6 +48,8 @@ class Transaction extends Model
     const TYPE_BONUS_TASK_REWARD = 'BONUS_TASK_REWARD';
     const TYPE_INVITATION_REWARD = 'INVITATION_REWARD';
     const TYPE_VIP_LEVEL_UP_REWARD = 'VIP_LEVEL_UP_REWARD';
+    const TYPE_WEEKLY_CASHBACK = 'WEEKLY_CASHBACK';
+
     /**
      * Transaction status constants.
      */
