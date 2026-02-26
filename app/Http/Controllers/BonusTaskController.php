@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\BonusTask;
 use App\Services\BonusTaskService;
+use App\Services\WeeklyCashbackService;
 use App\Services\PromotionService;
 use App\Enums\ErrorCode;
 use Illuminate\Http\Request;
@@ -212,7 +213,12 @@ class BonusTaskController extends Controller
 
         $stats = $this->bonusTaskService->getStats($user->id);
 
-        return $this->responseItem($stats);
+        $weeklyCashbackTotal = (new WeeklyCashbackService())->getClaimedTotalForUser($user->id);
+        $data = $stats;
+        $data['total'] = (float) $data['total'] + $weeklyCashbackTotal;
+        $data['currency'] = config('app.currency', 'USD');
+
+        return $this->responseItem($data);
     }
 
     /**

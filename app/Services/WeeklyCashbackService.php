@@ -237,6 +237,16 @@ class WeeklyCashbackService
     }
 
     /**
+     * 获取用户已领取的 weekly cashback 总金额
+     */
+    public function getClaimedTotalForUser(int $userId): float
+    {
+        return (float) WeeklyCashback::where('user_id', $userId)
+            ->where('status', WeeklyCashback::STATUS_CLAIMED)
+            ->sum('amount');
+    }
+
+    /**
      * 获取用户上周可领取的 cashback（单个）；同时将非上周的 claimable 标记为过期
      */
     public function getClaimableForUser(int $userId): ?WeeklyCashback
