@@ -104,7 +104,7 @@ class NotificationService
             $userId,
             Notification::CATEGORY_REGISTER,
             'welcome',
-            'Contact your exclusive customer service.'
+            "Welcome! We're excited to have you with us. If you have any questions, feel free to contact us."
         );
     }
 

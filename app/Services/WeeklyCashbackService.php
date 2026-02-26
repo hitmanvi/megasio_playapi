@@ -17,6 +17,13 @@ class WeeklyCashbackService
 {
     private const BUFFER_KEY_PREFIX = 'weekly_cashback_buffer:';
 
+    protected NotificationService $notificationService;
+
+    public function __construct()
+    {
+        $this->notificationService = new NotificationService();
+    }
+
     /**
      * 检查 VIP 配置中 weekly_cashback 是否开启
      */
@@ -228,7 +235,7 @@ class WeeklyCashbackService
             $cashback->save();
 
             if ($amount > 0) {
-                (new NotificationService())->createWeeklyCashbackNotification(
+                $this->notificationService->createWeeklyCashbackNotification(
                     $cashback->user_id,
                     $amount,
                     $cashback->currency,

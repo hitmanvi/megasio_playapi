@@ -4,7 +4,6 @@ namespace App\Services;
 
 use App\Models\User;
 use App\Models\Invitation;
-use App\Models\Notification;
 use App\Models\UserVip;
 use App\Models\VipLevel;
 use App\Services\BalanceService;
@@ -61,10 +60,7 @@ class AuthService
     {
         // 至少需要提供手机号或邮箱其中一个
         if (empty($data['phone']) && empty($data['email'])) {
-            throw new Exception(ErrorCode::PHONE_EMAIL_REQUIRED, [
-                'phone' => ['Phone number and email cannot both be empty'],
-                'email' => ['Phone number and email cannot both be empty'],
-            ]);
+            throw new Exception(ErrorCode::PHONE_EMAIL_REQUIRED);
         }
 
         $name = $data['name'] ?? ($data['phone'] ?? $data['email']);
@@ -373,12 +369,7 @@ class AuthService
                     ]);
 
                     // 创建欢迎通知
-                    $this->notificationService->createUserNotification(
-                        $user->id,
-                        Notification::CATEGORY_REGISTER,
-                        'welcome',
-                        'Contact your exclusive customer service.'
-                    );
+                    $this->notificationService->createWelcomeNotification($user->id);
                 } else {
                     // 更新用户信息（如果 Google 信息有变化）
                     $updateData = [];

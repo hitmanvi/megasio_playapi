@@ -12,13 +12,13 @@ class NotifyVipLevelUpgraded implements ShouldQueue
 {
     use InteractsWithQueue;
 
-    protected NotificationService $notificationService;
     protected VipService $vipService;
+    protected NotificationService $notificationService;
 
     public function __construct()
     {
-        $this->notificationService = new NotificationService();
         $this->vipService = new VipService();
+        $this->notificationService = new NotificationService();
     }
 
     /**
@@ -51,12 +51,6 @@ class NotifyVipLevelUpgraded implements ShouldQueue
             }
         }
 
-        // 创建 VIP 等级提升通知（包含奖励金额）
-        $this->notificationService->createVipLevelUpNotification(
-            $user->id,
-            $newLevel,
-            $rewardAmount,
-            $currency
-        );
+        $this->notificationService->createVipLevelUpNotification($user->id, $newLevel, $rewardAmount, $currency);
     }
 }
