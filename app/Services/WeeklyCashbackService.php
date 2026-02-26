@@ -58,6 +58,9 @@ class WeeklyCashbackService
      */
     public function addToBuffer(Order $order): void
     {
+        if (strtoupper($order->currency ?? '') === 'BONUS') {
+            return;
+        }
         if (!$this->isWeeklyCashbackEnabled()) {
             return;
         }
@@ -121,6 +124,9 @@ class WeeklyCashbackService
 
     private function applyBufferToDb(int $userId, int $period, string $currency, float $wager, float $payout): void
     {
+        if (strtoupper($currency) === 'BONUS') {
+            return;
+        }
         if (!$this->isWeeklyCashbackEnabled()) {
             return;
         }
@@ -302,6 +308,9 @@ class WeeklyCashbackService
      */
     public function updateCashbackFromOrder(Order $order): void
     {
+        if (strtoupper($order->currency ?? '') === 'BONUS') {
+            return;
+        }
         if (!$this->isWeeklyCashbackEnabled()) {
             return;
         }
