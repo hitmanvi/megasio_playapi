@@ -377,8 +377,8 @@ class AuthService
                     // 创建欢迎通知
                     $this->notificationService->createUserNotification(
                         $user->id,
-                        Notification::CATEGORY_SYSTEM_ANNOUNCEMENT,
-                        'welcome',
+                        Notification::TYPE_USER,
+                        Notification::CATEGORY_REGISTER,
                         'Contact your exclusive customer service.'
                     );
                 } else {
