@@ -16,5 +16,5 @@ Schedule::command('orders:archive')->daily();
 Schedule::command(GenerateRewards::class)->dailyAt('02:00');
 Schedule::command('import:funky_games')->daily();
 Schedule::command('weekly-cashback:flush-buffer')->everyMinute();
-Schedule::command('weekly-cashback:calculate')->weeklyOn(1, '02:00');
+Schedule::command('weekly-cashback:calculate')->weeklyOn(4, '02:20');
 Schedule::command('weekly-cashback:remind-unclaimed')->weeklyOn(4, '00:00');
