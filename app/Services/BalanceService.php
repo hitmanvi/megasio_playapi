@@ -406,18 +406,20 @@ class BalanceService
 
     /**
      * VIP 等级提升奖励
+     * related_entity_id 使用 userId_level 格式，保证每个用户每次升级唯一（避免 unique 约束冲突）
      */
     public function vipLevelUpReward(int $userId, string $currency, float $amount, int $level): array
     {
         return DB::transaction(function () use ($userId, $currency, $amount, $level) {
             $balance = $this->updateBalance($userId, $currency, $amount, 'add', 'available');
+            $relatedEntityId = "{$userId}_{$level}";
             $transaction = $this->transactionService->createTransaction(
                 $userId,
                 $currency,
                 $amount,
                 (float)$balance->available,
                 Transaction::TYPE_VIP_LEVEL_UP_REWARD,
-                (string) $level,
+                $relatedEntityId,
                 "VIP level up reward: Level {$level}"
             );
             return [
