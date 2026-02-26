@@ -319,9 +319,6 @@ class AuthService
             $inviter = null;
             if (!empty($inviteCode)) {
                 $inviter = User::findByInviteCode($inviteCode);
-                if (!$inviter) {
-                    throw new Exception(ErrorCode::INVALID_INVITE_CODE, 'Invalid invite code');
-                }
             }
 
             // 查找或创建用户
