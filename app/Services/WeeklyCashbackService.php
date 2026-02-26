@@ -196,6 +196,12 @@ class WeeklyCashbackService
         if (!$this->isWeeklyCashbackEnabled()) {
             return 0;
         }
+
+        // 先把该周期前的 claimable 全部标记为 expired
+        WeeklyCashback::where('period', '<', $period)
+            ->where('status', WeeklyCashback::STATUS_CLAIMABLE)
+            ->update(['status' => WeeklyCashback::STATUS_EXPIRED]);
+
         $records = WeeklyCashback::where('period', $period)
             ->where('status', WeeklyCashback::STATUS_ACTIVE)
             ->get();
@@ -235,16 +241,7 @@ class WeeklyCashbackService
      */
     public function getClaimableForUser(int $userId): ?WeeklyCashback
     {
-        $lastWeekPeriod = $this->dateToPeriod(Carbon::now()->subWeek());
-
-        // 将非上周的 claimable 标记为过期
-        WeeklyCashback::where('user_id', $userId)
-            ->where('status', WeeklyCashback::STATUS_CLAIMABLE)
-            ->where('period', '!=', $lastWeekPeriod)
-            ->update(['status' => WeeklyCashback::STATUS_EXPIRED]);
-
         return WeeklyCashback::where('user_id', $userId)
-            ->where('period', $lastWeekPeriod)
             ->where('status', WeeklyCashback::STATUS_CLAIMABLE)
             ->first();
     }
