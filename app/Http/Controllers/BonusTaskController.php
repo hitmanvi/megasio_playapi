@@ -213,10 +213,11 @@ class BonusTaskController extends Controller
 
         $stats = $this->bonusTaskService->getStats($user->id);
 
-        $weeklyCashbackTotal = (new WeeklyCashbackService())->getClaimedTotalForUser($user->id);
+        $currency = config('app.currency', 'USD');
+        $weeklyCashbackTotal = (new WeeklyCashbackService())->getClaimedTotalForUser($user->id, $currency);
         $data = $stats;
         $data['total'] = (float) $data['total'] + $weeklyCashbackTotal;
-        $data['currency'] = config('app.currency', 'USD');
+        $data['currency'] = $currency;
 
         return $this->responseItem($data);
     }

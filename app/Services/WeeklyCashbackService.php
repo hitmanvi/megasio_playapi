@@ -237,11 +237,12 @@ class WeeklyCashbackService
     }
 
     /**
-     * 获取用户已领取的 weekly cashback 总金额
+     * 获取用户已领取的 weekly cashback 总金额（按币种）
      */
-    public function getClaimedTotalForUser(int $userId): float
+    public function getClaimedTotalForUser(int $userId, string $currency): float
     {
         return (float) WeeklyCashback::where('user_id', $userId)
+            ->where('currency', $currency)
             ->where('status', WeeklyCashback::STATUS_CLAIMED)
             ->sum('amount');
     }
