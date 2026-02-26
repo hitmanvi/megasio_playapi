@@ -216,16 +216,17 @@ class AuthService
 
     /**
      * 修改密码
+     * 谷歌注册用户首次设置密码（无 password）时不需要验证 current_password，之后修改需提供
      *
      * @param User $user
-     * @param string $currentPassword 当前密码
+     * @param string|null $currentPassword 当前密码，首次设置可传 null
      * @param string $newPassword 新密码
      * @return void
      * @throws Exception
      */
-    public function changePassword(User $user, string $currentPassword, string $newPassword): void
+    public function changePassword(User $user, ?string $currentPassword, string $newPassword): void
     {
-        if (!Hash::check($currentPassword, $user->password)) {
+        if (!$user->isFirstTimeSetPassword() && ($currentPassword === null || !Hash::check($currentPassword, $user->password))) {
             throw new Exception(ErrorCode::CURRENT_PASSWORD_INCORRECT);
         }
 

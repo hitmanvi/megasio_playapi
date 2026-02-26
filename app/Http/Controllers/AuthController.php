@@ -9,6 +9,7 @@ use App\Services\VerificationCodeService;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Validation\Rule;
 
 class AuthController extends Controller
 {
@@ -110,17 +111,19 @@ class AuthController extends Controller
 
     /**
      * 修改密码
+     * 谷歌注册用户首次设置密码时不需要 current_password，之后修改需提供
      */
     public function changePassword(Request $request): JsonResponse
     {
+        $user = $request->user();
         $request->validate([
-            'current_password' => 'required',
+            'current_password' => [Rule::requiredIf(!$user->isFirstTimeSetPassword())],
             'password' => 'required|string|min:6',
         ]);
 
         try {
             $this->authService->changePassword(
-                $request->user(),
+                $user,
                 $request->current_password,
                 $request->password
             );

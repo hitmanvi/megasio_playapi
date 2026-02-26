@@ -67,6 +67,15 @@ class User extends Authenticatable
     }
 
     /**
+     * 是否为首次设置密码（如谷歌注册用户尚未设置密码）
+     * 此类用户修改密码时不需要提供 current_password
+     */
+    public function isFirstTimeSetPassword(): bool
+    {
+        return $this->google_id && empty($this->password);
+    }
+
+    /**
      * 生成唯一的UID - 使用ULID
      */
     public static function generateUid(): string

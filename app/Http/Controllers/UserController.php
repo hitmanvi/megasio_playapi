@@ -35,6 +35,7 @@ class UserController extends Controller
             'base_currency' => $user->getBaseCurrency(),
             'current_currency' => $user->getCurrentCurrency(),
             'vip' => $this->vipService->getUserVipInfo($user),
+            'is_first_time_set_password' => $user->isFirstTimeSetPassword(),
         ]);
     }
 
