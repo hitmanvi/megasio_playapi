@@ -185,7 +185,7 @@ class AuthController extends Controller
     {
         $request->validate([
             'id_token' => 'required|string',
-            'invite_code' => 'nullable|string|size:8',
+            'invite_code' => 'nullable|string',
         ]);
 
         try {
