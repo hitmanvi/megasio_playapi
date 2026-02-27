@@ -5330,7 +5330,7 @@
         }
       }
     },
-    "/game-groups/support-bonus": {
+    "/game-groups/bonus": {
       "get": {
         "tags": ["GameGroup"],
         "summary": "获取 support_bonus 群组详情",
