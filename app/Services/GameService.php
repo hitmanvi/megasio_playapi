@@ -121,6 +121,7 @@ class GameService
                 }),
                 'created_at' => $game->created_at,
                 'has_demo' => $game->has_demo,
+                'support_bonus' => $game->support_bonus,
             ];
         })->toArray();
     }
@@ -162,6 +163,7 @@ class GameService
             'created_at' => $game->created_at,
             'updated_at' => $game->updated_at,
             'has_demo' => $game->has_demo,
+            'support_bonus' => $game->support_bonus,
         ];
     }
 
@@ -330,6 +332,7 @@ class GameService
                 }),
                 'created_at' => $game->created_at,
                 'has_demo' => $game->has_demo,
+                'support_bonus' => $game->support_bonus,
                 'play_count' => $item['play_count'],
                 'max_multiplier' => $item['max_multiplier'],
                 'last_played_at' => $item['last_played_at'],

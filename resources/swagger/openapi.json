@@ -4452,6 +4452,7 @@
                         "thumbnail": "https://example.com/thumbnails/matrix.jpg",
                         "sort_id": 1,
                         "has_demo": true,
+                        "support_bonus": false,
                         "brand": {
                           "id": 1,
                           "name": "Netflix",
@@ -4527,6 +4528,7 @@
                     "out_id": "netflix_001",
                     "sort_id": 1,
                     "has_demo": true,
+                    "support_bonus": false,
                     "memo": "Classic sci-fi action movie",
                     "languages": ["en", "zh-CN", "ja", "ko"],
                     "brand": {
@@ -4946,6 +4948,7 @@
                         ],
                         "created_at": "2024-01-01T00:00:00.000000Z",
                         "has_demo": true,
+                        "support_bonus": false,
                         "play_count": 25,
                         "max_multiplier": 15.5,
                         "last_played_at": "2026-01-07T06:00:00.000000Z"
@@ -5031,6 +5034,7 @@
                         "thumbnail": "https://example.com/thumbnail.jpg",
                         "sort_id": 1,
                         "has_demo": true,
+                        "support_bonus": false,
                         "brand": {
                           "id": 1,
                           "name": "Brand Name"
@@ -5523,7 +5527,8 @@
                         "name": "The Matrix",
                         "thumbnail": "https://example.com/thumbnails/matrix.jpg",
                         "sort_id": 1,
-                        "has_demo": true
+                        "has_demo": true,
+                        "support_bonus": false
                       }
                     ],
                     "meta": {
@@ -8819,6 +8824,10 @@
           "has_demo": {
             "type": "boolean",
             "description": "是否支持试玩"
+          },
+          "support_bonus": {
+            "type": "boolean",
+            "description": "是否支持BONUS下单"
           }
         }
       },
@@ -9113,6 +9122,10 @@
           "has_demo": {
             "type": "boolean",
             "description": "是否有演示模式"
+          },
+          "support_bonus": {
+            "type": "boolean",
+            "description": "是否支持BONUS下单"
           },
           "play_count": {
             "type": "integer",

@@ -44,6 +44,7 @@ class Game extends Model
         'memo',
         'languages',
         'has_demo',
+        'support_bonus',
     ];
 
     /**
@@ -55,6 +56,7 @@ class Game extends Model
         'enabled' => 'boolean',
         'languages' => 'array',
         'has_demo' => 'boolean',
+        'support_bonus' => 'boolean',
     ];
 
     /**
