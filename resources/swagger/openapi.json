@@ -5531,6 +5531,28 @@
             }
           },
           {
+            "name": "brand_id",
+            "in": "query",
+            "description": "按品牌ID过滤，支持单个或数组",
+            "schema": {
+              "oneOf": [
+                { "type": "integer" },
+                { "type": "array", "items": { "type": "integer" } }
+              ]
+            }
+          },
+          {
+            "name": "theme_id",
+            "in": "query",
+            "description": "按主题ID过滤，支持单个或数组",
+            "schema": {
+              "oneOf": [
+                { "type": "integer" },
+                { "type": "array", "items": { "type": "integer" } }
+              ]
+            }
+          },
+          {
             "name": "Locale",
             "in": "header",
             "description": "语言代码",

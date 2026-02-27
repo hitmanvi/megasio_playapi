@@ -159,10 +159,29 @@ class GameGroupController extends Controller
             return $this->responseItem([]);
         }
 
-        // 不限制平台，直接分页返回所有游戏
+        // 处理 brand_id、theme_id 过滤（支持单个值或数组）
+        $brandIds = $request->input('brand_id');
+        $themeIds = $request->input('theme_id');
+        if ($brandIds && !is_array($brandIds)) {
+            $brandIds = [$brandIds];
+        }
+        if ($themeIds && !is_array($themeIds)) {
+            $themeIds = [$themeIds];
+        }
+
         $perPage = (int) $request->input('per_page', 20);
 
-        $gamesPaginator = $group->games()->paginate($perPage);
+        $gamesQuery = $group->games();
+        if (!empty($brandIds)) {
+            $gamesQuery->whereIn('brand_id', $brandIds);
+        }
+        if (!empty($themeIds)) {
+            $gamesQuery->whereHas('themes', function ($q) use ($themeIds) {
+                $q->whereIn('themes.id', $themeIds);
+            });
+        }
+
+        $gamesPaginator = $gamesQuery->paginate($perPage);
 
         $result = $gamesPaginator->getCollection()->map(function ($game) use ($locale) {
             return [
