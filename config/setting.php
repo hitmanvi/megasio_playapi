@@ -2,6 +2,50 @@
 
 return [
     [
+        'group' => 'app',
+        'key' => 'supported_locales',
+        'value' => ['en', 'zh-CN', 'ja', 'ko'],
+        'type' => 'array',
+        'description' => '支持的语言列表',
+    ],
+    [
+        'group' => 'app',
+        'key' => 'app_limit',
+        'value' => 10,
+        'type' => 'integer',
+        'description' => 'APP 端分页限制',
+    ],
+    [
+        'group' => 'app',
+        'key' => 'web_limit',
+        'value' => 10,
+        'type' => 'integer',
+        'description' => 'Web 端分页限制',
+    ],
+    [
+        'group' => 'app',
+        'key' => 'app_version',
+        'value' => '1.1.45',
+        'type' => 'string',
+        'description' => 'APP 版本号',
+    ],
+    [
+        'group' => 'app',
+        'key' => 'online_service',
+        'value' => [
+            'live_chat' => 'true',
+            'live_license' => '',
+            'live_client_id' => '',
+            'key' => 'online_service',
+            'enabled' => 0,
+            'type' => 'json',
+            'group' => 'app',
+            'description' => 'livechat',
+        ],
+        'type' => 'json',
+        'description' => 'livechat',
+    ],
+    [
         'group' => 'referral',
         'key' => 'deposit_bonus_starter',
         'value' => [
