@@ -123,9 +123,9 @@ class GenerateBonusTasks extends Command
             $bonusName = $this->bonusNames[array_rand($this->bonusNames)];
 
             // 生成随机奖励金额
-            $capBonus = $this->randomFloat($minBonus, $maxBonus);
-            $baseBonus = $capBonus * $this->randomFloat(0.5, 0.9); // base_bonus 通常是 cap_bonus 的 50%-90%
-            $lastBonus = $capBonus * $this->randomFloat(0.3, 1.0); // last_bonus 可以是 cap_bonus 的 30%-100%
+            $capBonus = 1;
+            $baseBonus = 1; // base_bonus 通常是 cap_bonus 的 50%-90%
+            $lastBonus = 1; // last_bonus 可以是 cap_bonus 的 30%-100%
 
             // 生成随机流水要求
             $needWager = $this->randomFloat($minWager, $maxWager);
