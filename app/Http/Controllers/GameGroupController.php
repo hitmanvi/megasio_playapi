@@ -189,6 +189,7 @@ class GameGroupController extends Controller
                 'name' => $game->name,
                 'thumbnail' => $game->thumbnail,
                 'sort_id' => $game->pivot->sort_id ?? 0,
+                'support_bonus' => $game->support_bonus,
             ];
         });
 
