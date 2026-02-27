@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Relations\MorphMany;
 
 class GameGroup extends Model
 {
+    public const NAME_SUPPORT_BONUS = 'Support Bonus';
     /**
      * The attributes that are mass assignable.
      *
@@ -39,7 +40,6 @@ class GameGroup extends Model
      */
     const CATEGORY_EVENT = 'Event';
     const CATEGORY_SYSTEM = 'System';
-
     /**
      * Get the games in this group.
      */
@@ -57,6 +57,14 @@ class GameGroup extends Model
     public function scopeByCategory($query, $category)
     {
         return $query->where('category', $category);
+    }
+
+    /**
+     * Scope to filter support_bonus group (by name = NAME_SUPPORT_BONUS).
+     */
+    public function scopeSupportBonus($query)
+    {
+        return $query->where('name', self::NAME_SUPPORT_BONUS);
     }
 
     /**

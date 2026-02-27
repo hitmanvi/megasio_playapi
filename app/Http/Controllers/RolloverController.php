@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\ErrorCode;
 use App\Models\Rollover;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
@@ -76,7 +77,7 @@ class RolloverController extends Controller
             ->first();
 
         if (!$rollover) {
-            return $this->error(\App\Enums\ErrorCode::NOT_FOUND, 'Rollover not found');
+            return $this->error(ErrorCode::NOT_FOUND, 'Rollover not found');
         }
 
         return $this->responseItem($this->formatRolloverForResponse($rollover));

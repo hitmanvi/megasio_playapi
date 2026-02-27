@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\ErrorCode;
 use App\Models\GameGroup;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
@@ -91,6 +92,34 @@ class GameGroupController extends Controller
     }
 
     /**
+     * 获取 support_bonus 群组详情
+     */
+    public function getSupportBonusDetail(Request $request): JsonResponse
+    {
+        $locale = $this->getLocale($request);
+
+        $group = GameGroup::supportBonus()
+            ->enabled()
+            ->ordered()
+            ->first();
+
+        if (!$group) {
+            return $this->error(ErrorCode::NOT_FOUND, 'Support bonus group not found');
+        }
+
+        $result = [
+            'id' => $group->id,
+            'category' => $group->category,
+            'name' => $group->name ?: $group->getNameTranslation($locale),
+            'sort_id' => $group->sort_id,
+            'app_limit' => $group->app_limit,
+            'web_limit' => $group->web_limit,
+        ];
+
+        return $this->responseItem($result);
+    }
+
+    /**
      * 获取游戏群组详情
      */
     public function show(Request $request, int $id): JsonResponse
@@ -100,7 +129,7 @@ class GameGroupController extends Controller
         $group = GameGroup::findOrFail($id);
 
         if (!$group->enabled) {
-            return $this->error(\App\Enums\ErrorCode::NOT_FOUND, 'Game group not found or disabled');
+            return $this->error(ErrorCode::NOT_FOUND, 'Game group not found or disabled');
         }
 
         $result = [

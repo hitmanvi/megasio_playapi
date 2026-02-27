@@ -198,6 +198,7 @@ Route::prefix('games')->group(function () {
 // 游戏群组相关路由（只读）
 Route::prefix('game-groups')->group(function () {
     Route::get('/', [GameGroupController::class, 'index']);
+    Route::get('/support-bonus', [GameGroupController::class, 'getSupportBonusDetail']);
     Route::get('/category/{category}', [GameGroupController::class, 'getByCategory']);
     Route::get('/{id}', [GameGroupController::class, 'show']);
     Route::get('/{groupId}/games', [GameGroupController::class, 'getGames']);

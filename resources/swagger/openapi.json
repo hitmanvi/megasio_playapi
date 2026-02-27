@@ -5330,6 +5330,58 @@
         }
       }
     },
+    "/game-groups/support-bonus": {
+      "get": {
+        "tags": ["GameGroup"],
+        "summary": "获取 support_bonus 群组详情",
+        "description": "获取 name=Support Bonus 的游戏群组详情",
+        "parameters": [
+          {
+            "name": "Locale",
+            "in": "header",
+            "description": "语言代码",
+            "schema": {
+              "type": "string",
+              "default": "en"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "获取成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SupportBonusGroupDetailResponse"
+                },
+                "example": {
+                  "code": 0,
+                  "errmsg": "Success",
+                  "data": {
+                    "id": 1,
+                    "category": "System",
+                    "name": "Support Bonus",
+                    "sort_id": 1,
+                    "app_limit": 10,
+                    "web_limit": 20
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "support_bonus 群组不存在或已禁用",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/game-groups/{id}": {
       "get": {
         "tags": ["GameGroup"],
@@ -8763,6 +8815,54 @@
           },
           "data": {
             "$ref": "#/components/schemas/GameGroupDetail"
+          }
+        }
+      },
+      "SupportBonusGroupDetailResponse": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "integer",
+            "description": "响应码，0表示成功"
+          },
+          "errmsg": {
+            "type": "string",
+            "description": "响应消息"
+          },
+          "data": {
+            "$ref": "#/components/schemas/SupportBonusGroupDetail"
+          }
+        }
+      },
+      "SupportBonusGroupDetail": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "description": "游戏群组ID"
+          },
+          "category": {
+            "type": "string",
+            "description": "分类：Event 或 System"
+          },
+          "name": {
+            "type": "string",
+            "nullable": true,
+            "description": "群组名称（多语言）"
+          },
+          "sort_id": {
+            "type": "integer",
+            "description": "排序ID"
+          },
+          "app_limit": {
+            "type": "integer",
+            "nullable": true,
+            "description": "App端显示游戏数量限制"
+          },
+          "web_limit": {
+            "type": "integer",
+            "nullable": true,
+            "description": "Web端显示游戏数量限制"
           }
         }
       },
