@@ -13,13 +13,24 @@ class TestGoogleLogin extends Command
 
     protected $description = '测试 Google 登录，验证 id_token 并执行登录/注册';
 
+    protected function getResolvedClientId(?string $client): ?string
+    {
+        $client = $client ? strtolower($client) : 'web';
+        $clientIds = config('services.google.client_ids', []);
+        $clientId = $clientIds[$client] ?? null;
+
+        return $clientId ?: config('services.google.client_id');
+    }
+
     public function handle(): int
     {
         $idToken = $this->argument('id_token');
         $client = $this->option('client');
+        $resolvedClientId = $this->getResolvedClientId($client);
 
         $this->info('测试 Google 登录');
         $this->line("client: " . ($client ?: 'web (默认)'));
+        $this->line("client_id: " . ($resolvedClientId ?: '(未配置)'));
         $this->line("id_token: " . substr($idToken, 0, 50) . '...');
         $this->newLine();
 
@@ -46,9 +57,11 @@ class TestGoogleLogin extends Command
         } catch (\App\Exceptions\Exception $e) {
             $this->error('登录失败: ' . $e->getMessage());
             $this->line('ErrorCode: ' . $e->getErrorCode());
+            $this->line('使用的 client_id: ' . ($resolvedClientId ?: '(未配置)'));
             return 1;
         } catch (\Exception $e) {
             $this->error('异常: ' . $e->getMessage());
+            $this->line('使用的 client_id: ' . ($resolvedClientId ?: '(未配置)'));
             $this->line($e->getTraceAsString());
             return 1;
         }
