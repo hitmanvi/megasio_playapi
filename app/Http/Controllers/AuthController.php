@@ -185,13 +185,17 @@ class AuthController extends Controller
 
     /**
      * Google 登录/注册
+     * 不同客户端（ios/android/web）使用不同的 client_id 验证 ID Token
      */
     public function loginWithGoogle(Request $request): JsonResponse
     {
         $request->validate([
             'id_token' => 'required|string',
             'invite_code' => 'nullable|string',
+            'client' => 'nullable|string|in:ios,android,web',
         ]);
+
+        $client = $request->input('client') ?: $request->header('X-Platform');
 
         try {
             $deviceInfo = $this->getDeviceInfo($request);
@@ -200,7 +204,8 @@ class AuthController extends Controller
                 $request->invite_code,
                 $request->ip(),
                 $request->userAgent(),
-                $deviceInfo
+                $deviceInfo,
+                $client
             );
 
             return $this->responseItem($result);

@@ -298,14 +298,15 @@ class AuthService
      * @param string|null $ipAddress IP 地址
      * @param string|null $userAgent User Agent
      * @param array $deviceInfo Kochava device info for new user registration
+     * @param string|null $client 客户端标识：ios|android|web，用于选择对应的 client_id
      * @return array 包含用户和 token 的数组
      * @throws Exception
      */
-    public function loginWithGoogle(string $idToken, ?string $inviteCode = null, ?string $ipAddress = null, ?string $userAgent = null, array $deviceInfo = []): array
+    public function loginWithGoogle(string $idToken, ?string $inviteCode = null, ?string $ipAddress = null, ?string $userAgent = null, array $deviceInfo = [], ?string $client = null): array
     {
         try {
-            // 验证 Google ID Token
-            $googleUser = $this->verifyGoogleIdToken($idToken);
+            // 验证 Google ID Token（根据客户端选择对应 client_id）
+            $googleUser = $this->verifyGoogleIdToken($idToken, $client);
             
             if (!$googleUser) {
                 throw new Exception(ErrorCode::INVALID_CREDENTIALS, 'Invalid Google ID token');
@@ -422,26 +423,42 @@ class AuthService
     }
 
     /**
+     * 根据客户端标识获取对应的 Google client_id
+     *
+     * @param string|null $client 客户端：ios|android|web
+     * @return string|null
+     */
+    protected function getGoogleClientId(?string $client): ?string
+    {
+        $client = $client ? strtolower($client) : 'web';
+        $clientIds = config('services.google.client_ids', []);
+        $clientId = $clientIds[$client] ?? null;
+
+        return $clientId ?: config('services.google.client_id');
+    }
+
+    /**
      * 验证 Google ID Token（使用 Google Client Library）
      *
      * @param string $idToken Google ID Token
+     * @param string|null $client 客户端标识：ios|android|web，用于选择对应的 client_id
      * @return array|null 用户信息数组，验证失败返回 null
      */
-    protected function verifyGoogleIdToken(string $idToken): ?array
+    protected function verifyGoogleIdToken(string $idToken, ?string $client = null): ?array
     {
         try {
-            $clientId = config('services.google.client_id');
-            
+            $clientId = $this->getGoogleClientId($client);
+
             if (!$clientId) {
                 return null;
             }
 
             // 创建 Google Client 实例
-            $client = new GoogleClient(['client_id' => $clientId]);
-            
+            $googleClient = new GoogleClient(['client_id' => $clientId]);
+
             // 验证 ID Token
             // verifyIdToken 方法会验证签名、过期时间、audience、issuer 等
-            $payload = $client->verifyIdToken($idToken);
+            $payload = $googleClient->verifyIdToken($idToken);
 
             if (!$payload) {
                 return null;

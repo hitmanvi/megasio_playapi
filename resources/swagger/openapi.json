@@ -304,7 +304,7 @@
       "post": {
         "tags": ["Authentication"],
         "summary": "Google 登录/注册",
-        "description": "使用 Google ID Token 进行登录或注册。如果用户已存在（通过 google_id 或 email 匹配），则直接登录；如果不存在，则创建新用户。支持邀请码绑定。",
+        "description": "使用 Google ID Token 进行登录或注册。不同客户端（ios/android/web）使用不同的 client_id 验证。若传 client 参数或 X-Platform header，则使用对应 client_id；否则默认使用 web。如果用户已存在（通过 google_id 或 email 匹配），则直接登录；如果不存在，则创建新用户。支持邀请码绑定。",
         "requestBody": {
           "required": true,
           "content": {
@@ -8078,6 +8078,12 @@
             "minLength": 8,
             "nullable": true,
             "description": "邀请码（8位字符），可选"
+          },
+          "client": {
+            "type": "string",
+            "enum": ["ios", "android", "web"],
+            "nullable": true,
+            "description": "客户端标识，用于选择对应的 Google client_id 验证。不传时默认使用 web，也可通过 X-Platform header 传递"
           }
         }
       },

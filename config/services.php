@@ -51,6 +51,11 @@ return [
 
     'google' => [
         'client_id' => env('GOOGLE_CLIENT_ID'),
+        'client_ids' => [
+            'ios' => env('GOOGLE_CLIENT_ID_IOS'),
+            'android' => env('GOOGLE_CLIENT_ID_ANDROID'),
+            'web' => env('GOOGLE_CLIENT_ID_WEB'),
+        ],
         'client_secret' => env('GOOGLE_CLIENT_SECRET'),
         'redirect' => env('GOOGLE_REDIRECT_URI'),
     ],
