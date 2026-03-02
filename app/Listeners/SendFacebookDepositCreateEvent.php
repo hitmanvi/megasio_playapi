@@ -20,13 +20,13 @@ class SendFacebookDepositCreateEvent implements ShouldQueue
 
         $service = new FacebookConversionsService();
         $service->sendEvent(
-            'InitiateCheckout',
+            'begin_checkout',
             $userData,
             [
                 'currency' => strtolower($deposit->currency),
                 'value' => (float) $deposit->amount,
             ],
-            'dep_create_' . $deposit->order_no
+            'begin_checkout_' . $deposit->order_no
         );
     }
 }

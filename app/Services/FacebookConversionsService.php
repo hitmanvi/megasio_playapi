@@ -43,7 +43,7 @@ class FacebookConversionsService
     /**
      * Send event to Facebook Conversions API.
      *
-     * @param string $eventName CompleteRegistration, InitiateCheckout, Purchase
+     * @param string $eventName register, begin_checkout, purchase
      * @param array $userData client_ip_address, client_user_agent, em, ph, fbc, fbp
      * @param array $customData currency, value, etc.
      * @param string|null $eventId Optional event ID for deduplication

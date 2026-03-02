@@ -21,13 +21,13 @@ class SendFacebookDepositCompleteEvent implements ShouldQueue
 
         $service = new FacebookConversionsService();
         $service->sendEvent(
-            'Purchase',
+            'purchase',
             $userData,
             [
                 'currency' => strtolower($deposit->currency),
                 'value' => (float) $deposit->amount,
             ],
-            'dep_complete_' . $deposit->order_no
+            'purchase_' . $deposit->order_no
         );
     }
 }

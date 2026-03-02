@@ -19,11 +19,12 @@ class SendKochavaDepositCreateEvent implements ShouldQueue
             return;
         }
         $service = new KochavaService();
-        $service->sendEvent('DepositCreate', [
+        $service->sendEvent('begin_checkout', [
             'user_id' => $deposit->user_id,
             'order_no' => $deposit->order_no,
             'currency' => $deposit->currency,
             'amount' => (float) $deposit->amount,
+            'event_id' => 'begin_checkout_' . $deposit->order_no,
         ], $deviceInfo);
     }
 }

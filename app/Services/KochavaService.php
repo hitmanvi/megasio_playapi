@@ -28,7 +28,7 @@ class KochavaService
     /**
      * Send a post-install event to Kochava.
      *
-     * @param string $eventName Event name (e.g. Registration, DepositCreate, DepositComplete)
+     * @param string $eventName Event name (e.g. register, begin_checkout, purchase)
      * @param array $eventData Additional event data (e.g. currency, amount, user_id)
      * @param array $deviceInfo Required: kochava_device_id, device_ids, device_ua, origination_ip
      *                           Optional: app_version, device_ver, usertime, gdpr_privacy_consent, app_tracking_transparency

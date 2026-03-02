@@ -20,10 +20,10 @@ class SendFacebookRegistrationEvent implements ShouldQueue
 
         $service = new FacebookConversionsService();
         $service->sendEvent(
-            'CompleteRegistration',
+            'register',
             $userData,
             ['status' => 'registered'],
-            'reg_' . $user->id . '_' . $user->created_at->timestamp
+            'register_' . $user->id
         );
     }
 }
