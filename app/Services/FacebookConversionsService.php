@@ -4,24 +4,30 @@ namespace App\Services;
 
 use App\Models\Deposit;
 use App\Models\User;
-use Illuminate\Support\Facades\Http;
+use FacebookAds\Api;
+use FacebookAds\Object\ServerSide\ActionSource;
+use FacebookAds\Object\ServerSide\CustomData;
+use FacebookAds\Object\ServerSide\Event;
+use FacebookAds\Object\ServerSide\EventRequest;
+use FacebookAds\Object\ServerSide\UserData;
 use Illuminate\Support\Facades\Log;
 use Throwable;
 
 /**
- * Facebook Conversions API Service
+ * Facebook Conversions API Service (using facebook-php-business-sdk)
  *
  * @see https://developers.facebook.com/docs/marketing-api/conversions-api/using-the-api
+ * @see https://github.com/facebook/facebook-php-business-sdk
  */
 class FacebookConversionsService
 {
-    protected string $baseUrl = 'https://graph.facebook.com';
-
     protected ?string $pixelId = null;
 
     protected ?string $accessToken = null;
 
-    protected string $apiVersion = 'v21.0';
+    protected ?string $appId = null;
+
+    protected ?string $appSecret = null;
 
     protected bool $enabled = false;
 
@@ -29,6 +35,8 @@ class FacebookConversionsService
     {
         $this->pixelId = config('services.facebook_conversions.pixel_id');
         $this->accessToken = config('services.facebook_conversions.access_token');
+        $this->appId = config('services.facebook_conversions.app_id');
+        $this->appSecret = config('services.facebook_conversions.app_secret');
         $this->enabled = !empty($this->pixelId) && !empty($this->accessToken);
     }
 
@@ -52,47 +60,40 @@ class FacebookConversionsService
             return false;
         }
 
-        $event = [
-            'event_name' => $eventName,
-            'event_time' => $userData['event_time'] ?? time(),
-            'action_source' => $userData['action_source'] ?? 'app',
-            'user_data' => $this->buildUserData($userData),
-        ];
-
-        if (!empty($customData)) {
-            $event['custom_data'] = $customData;
-        }
-
-        if ($eventId) {
-            $event['event_id'] = $eventId;
-        }
-
-        $url = "{$this->baseUrl}/{$this->apiVersion}/{$this->pixelId}/events?access_token=" . urlencode($this->accessToken);
-
         try {
-            $response = Http::timeout(10)
-                ->withHeaders(['Content-Type' => 'application/json'])
-                ->post($url, ['data' => [$event]]);
+            Api::init($this->appId, $this->appSecret, $this->accessToken);
 
-            if (!$response->successful()) {
-                Log::warning('Facebook Conversions: event failed', [
-                    'event' => $eventName,
-                    'status' => $response->status(),
-                    'body' => $response->body(),
-                ]);
-                return false;
+            $serverUserData = $this->buildUserData($userData);
+            $serverEvent = (new Event())
+                ->setEventName($eventName)
+                ->setEventTime($userData['event_time'] ?? time())
+                ->setActionSource(ActionSource::APP)
+                ->setUserData($serverUserData);
+
+            if (!empty($customData)) {
+                $serverCustomData = (new CustomData());
+                if (isset($customData['currency'])) {
+                    $serverCustomData->setCurrency(strtolower($customData['currency']));
+                }
+                if (isset($customData['value'])) {
+                    $serverCustomData->setValue((float) $customData['value']);
+                }
+                $serverEvent->setCustomData($serverCustomData);
             }
 
-            $body = $response->json();
-            if (!empty($body['error'])) {
-                Log::warning('Facebook Conversions: API error', [
-                    'event' => $eventName,
-                    'error' => $body['error'],
-                ]);
-                return false;
+            if ($eventId) {
+                $serverEvent->setEventId($eventId);
             }
 
-            Log::debug('Facebook Conversions: event sent', ['event' => $eventName]);
+            $request = (new EventRequest($this->pixelId))
+                ->setEvents([$serverEvent]);
+
+            $response = $request->execute();
+
+            Log::debug('Facebook Conversions: event sent', [
+                'event' => $eventName,
+                'events_received' => $response->getEventsReceived(),
+            ]);
             return true;
         } catch (Throwable $e) {
             Log::error('Facebook Conversions: exception', [
@@ -104,34 +105,28 @@ class FacebookConversionsService
     }
 
     /**
-     * Build user_data object. Hashes em, ph with SHA256 per Facebook requirements.
+     * Build UserData object. SDK handles hashing automatically.
      */
-    protected function buildUserData(array $data): array
+    protected function buildUserData(array $data): UserData
     {
-        $userData = [
-            'client_ip_address' => $data['client_ip_address'] ?? $data['origination_ip'] ?? '',
-            'client_user_agent' => $data['client_user_agent'] ?? $data['device_ua'] ?? '',
-        ];
+        $userData = (new UserData())
+            ->setClientIpAddress($data['client_ip_address'] ?? $data['origination_ip'] ?? '')
+            ->setClientUserAgent($data['client_user_agent'] ?? $data['device_ua'] ?? '');
 
         if (!empty($data['em'])) {
-            $userData['em'] = [hash('sha256', $this->normalizeEmail($data['em']))];
+            $userData->setEmails([$data['em']]);
         }
         if (!empty($data['ph'])) {
-            $userData['ph'] = [hash('sha256', $this->normalizePhone($data['ph']))];
+            $userData->setPhones([$this->normalizePhone($data['ph'])]);
         }
         if (!empty($data['fbc'])) {
-            $userData['fbc'] = $data['fbc'];
+            $userData->setFbc($data['fbc']);
         }
         if (!empty($data['fbp'])) {
-            $userData['fbp'] = $data['fbp'];
+            $userData->setFbp($data['fbp']);
         }
 
-        return array_filter($userData);
-    }
-
-    protected function normalizeEmail(string $email): string
-    {
-        return strtolower(trim($email));
+        return $userData;
     }
 
     protected function normalizePhone(string $phone): string
@@ -154,7 +149,7 @@ class FacebookConversionsService
             $data['em'] = $user->email;
         }
         if ($user->phone) {
-            $data['ph'] = ($user->area_code ? $user->area_code : '') . $user->phone;
+            $data['ph'] = ($user->area_code ?: '') . $user->phone;
         }
         return $data;
     }
@@ -175,7 +170,7 @@ class FacebookConversionsService
             $data['em'] = $user->email;
         }
         if ($user && $user->phone) {
-            $data['ph'] = ($user->area_code ? $user->area_code : '') . $user->phone;
+            $data['ph'] = ($user->area_code ?: '') . $user->phone;
         }
         return $data;
     }

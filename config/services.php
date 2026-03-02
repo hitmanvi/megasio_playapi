@@ -62,6 +62,8 @@ return [
     'facebook_conversions' => [
         'pixel_id' => env('FACEBOOK_PIXEL_ID'),
         'access_token' => env('FACEBOOK_CONVERSIONS_ACCESS_TOKEN'),
+        'app_id' => env('FACEBOOK_APP_ID'),
+        'app_secret' => env('FACEBOOK_APP_SECRET'),
     ],
 
 ];
