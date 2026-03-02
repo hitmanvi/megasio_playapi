@@ -59,4 +59,9 @@ return [
         'app_id' => env('KOCHAVA_APP_ID'),
     ],
 
+    'facebook_conversions' => [
+        'pixel_id' => env('FACEBOOK_PIXEL_ID'),
+        'access_token' => env('FACEBOOK_CONVERSIONS_ACCESS_TOKEN'),
+    ],
+
 ];

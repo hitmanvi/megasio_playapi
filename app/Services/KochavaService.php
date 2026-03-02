@@ -134,6 +134,8 @@ class KochavaService
             'app_version' => $extra['app_version'] ?? '',
             'device_ver' => $extra['device_ver'] ?? '',
             'usertime' => $extra['usertime'] ?? time(),
+            'fbc' => $extra['fbc'] ?? '',
+            'fbp' => $extra['fbp'] ?? '',
         ];
     }
 }

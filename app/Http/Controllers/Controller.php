@@ -46,6 +46,8 @@ class Controller
             'app_version' => $request->header('X-App-Version', ''),
             'device_ver' => $request->header('X-Device-Ver', ''),
             'usertime' => (int) ($request->header('X-Usertime') ?? time()),
+            'fbc' => $request->header('X-Fbc', ''),
+            'fbp' => $request->header('X-Fbp', ''),
         ];
     }
 }
