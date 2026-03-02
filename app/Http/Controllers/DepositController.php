@@ -92,6 +92,8 @@ class DepositController extends Controller
             return $this->error(ErrorCode::VALIDATION_ERROR, $validation['errors']);
         }
 
+        $deviceInfo = $this->getDeviceInfo($request);
+
         // 创建存款订单
         $jumpData = $this->depositService->createDeposit(
             $user->id,
@@ -103,6 +105,7 @@ class DepositController extends Controller
             $request->ip(),
             30, // expireMinutes
             $request->input('native_app', ''),
+            $deviceInfo,
         );
 
         // 返回创建的存款订单信息

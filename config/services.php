@@ -55,4 +55,8 @@ return [
         'redirect' => env('GOOGLE_REDIRECT_URI'),
     ],
 
+    'kochava' => [
+        'app_id' => env('KOCHAVA_APP_ID'),
+    ],
+
 ];

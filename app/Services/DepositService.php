@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Events\DepositCompleted;
+use App\Events\DepositCreated;
 use App\Models\Deposit;
 use App\Models\PaymentMethod;
 use App\Services\NotificationService;
@@ -168,6 +169,7 @@ class DepositService
      * @param string $userIp
      * @param int|null $expireMinutes
      * @param string $nativeApp
+     * @param array $deviceInfo Kochava 设备信息（从 header 获取）
      * @return array Sopay response with url, extra_info, datetime, html, order_no
      */
     public function createDeposit(
@@ -179,7 +181,8 @@ class DepositService
         array $extraInfo = [],
         string $userIp = '',
         ?int $expireMinutes = 30,
-        string $nativeApp = ''
+        string $nativeApp = '',
+        array $deviceInfo = []
     ): array {
         // Generate unique order number
         $orderNo = 'DEP' . strtoupper(Str::ulid()->toString());
@@ -196,6 +199,7 @@ class DepositService
             'payment_method_id' => $paymentMethod->id,
             'deposit_info' => $depositInfo,
             'extra_info' => $extraInfo,
+            'device_info' => $deviceInfo,
             'status' => Deposit::STATUS_PROCESSING,
             'pay_status' => SopayService::SOPAY_STATUS_PREPARING,
             'user_ip' => $userIp,
@@ -206,6 +210,8 @@ class DepositService
         if (!$res) {
             throw new Exception(ErrorCode::PAY_DEPOSIT_FAILED);
         }
+
+        event(new DepositCreated($deposit, $deviceInfo));
 
         // Return sopay response with order_no
         $res['order_no'] = $deposit->order_no;

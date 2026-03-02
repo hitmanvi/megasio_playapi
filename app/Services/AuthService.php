@@ -10,6 +10,7 @@ use App\Services\BalanceService;
 use App\Services\NotificationService;
 use App\Enums\ErrorCode;
 use App\Events\UserLoggedIn;
+use App\Events\UserRegistered;
 use App\Exceptions\Exception;
 use Firebase\JWT\JWT;
 use Illuminate\Support\Facades\DB;
@@ -80,11 +81,13 @@ class AuthService
             }
         }
 
+        $deviceInfo = $data['device_info'] ?? [];
+
         // 创建用户和邀请关系
-        return DB::transaction(function () use ($data, $name, $areaCode, $inviter) {
+        return DB::transaction(function () use ($data, $name, $areaCode, $inviter, $deviceInfo) {
             // 获取默认币种
             $defaultCurrency = config('app.currency', 'USD');
-            
+
             // 创建用户
             $user = User::create([
                 'uid' => User::generateUid(),
@@ -97,7 +100,6 @@ class AuthService
                 'display_currencies' => [$defaultCurrency],
                 'base_currency' => $defaultCurrency,
                 'current_currency' => $defaultCurrency,
-                // invite_code 会在 boot 方法中自动生成
             ]);
 
             // 如果有邀请人，创建邀请关系（默认状态为 inactive）
@@ -123,6 +125,8 @@ class AuthService
 
             // 生成 token
             $token = $user->createToken('auth_token')->plainTextToken;
+
+            event(new UserRegistered($user, $deviceInfo));
 
             return [
                 'user' => $user,
@@ -293,10 +297,11 @@ class AuthService
      * @param string|null $inviteCode 邀请码
      * @param string|null $ipAddress IP 地址
      * @param string|null $userAgent User Agent
+     * @param array $deviceInfo Kochava device info for new user registration
      * @return array 包含用户和 token 的数组
      * @throws Exception
      */
-    public function loginWithGoogle(string $idToken, ?string $inviteCode = null, ?string $ipAddress = null, ?string $userAgent = null): array
+    public function loginWithGoogle(string $idToken, ?string $inviteCode = null, ?string $ipAddress = null, ?string $userAgent = null, array $deviceInfo = []): array
     {
         try {
             // 验证 Google ID Token
@@ -317,8 +322,15 @@ class AuthService
                 $inviter = User::findByInviteCode($inviteCode);
             }
 
+            if (empty($deviceInfo['origination_ip']) && $ipAddress) {
+                $deviceInfo['origination_ip'] = $ipAddress;
+            }
+            if (empty($deviceInfo['device_ua']) && $userAgent) {
+                $deviceInfo['device_ua'] = $userAgent;
+            }
+
             // 查找或创建用户
-            return DB::transaction(function () use ($googleId, $email, $name, $inviter, $ipAddress, $userAgent) {
+            return DB::transaction(function () use ($googleId, $email, $name, $inviter, $deviceInfo, $ipAddress, $userAgent) {
                 // 先通过 google_id 查找
                 $user = User::where('google_id', $googleId)->first();
                 
@@ -336,18 +348,17 @@ class AuthService
                 if (!$user) {
                     // 获取默认币种
                     $defaultCurrency = config('app.currency', 'USD');
-                    
+
                     $user = User::create([
                         'uid' => User::generateUid(),
                         'name' => $name,
                         'email' => $email,
                         'google_id' => $googleId,
-                        'password' => null, // Google 登录不需要密码
+                        'password' => null,
                         'status' => 'active',
                         'display_currencies' => [$defaultCurrency],
                         'base_currency' => $defaultCurrency,
                         'current_currency' => $defaultCurrency,
-                        // invite_code 会在 boot 方法中自动生成
                     ]);
 
                     // 如果有邀请人，创建邀请关系（默认状态为 inactive）
@@ -370,6 +381,8 @@ class AuthService
 
                     // 创建欢迎通知
                     $this->notificationService->createWelcomeNotification($user->id);
+
+                    event(new UserRegistered($user, $deviceInfo));
                 } else {
                     // 更新用户信息（如果 Google 信息有变化）
                     $updateData = [];

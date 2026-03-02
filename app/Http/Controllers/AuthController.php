@@ -46,6 +46,7 @@ class AuthController extends Controller
                     throw new AppException(ErrorCode::PHONE_ALREADY_EXISTS, 'Phone number already exists');
                 }
             }
+            $deviceInfo = $this->getDeviceInfo($request);
             $result = $this->authService->register([
                 'name' => $request->name,
                 'phone' => $request->phone,
@@ -53,6 +54,7 @@ class AuthController extends Controller
                 'email' => $request->email,
                 'password' => $request->password,
                 'invite_code' => $request->invite_code,
+                'device_info' => $deviceInfo,
             ]);
 
             return $this->responseItem($result);
@@ -192,11 +194,13 @@ class AuthController extends Controller
         ]);
 
         try {
+            $deviceInfo = $this->getDeviceInfo($request);
             $result = $this->authService->loginWithGoogle(
                 $request->id_token,
                 $request->invite_code,
                 $request->ip(),
-                $request->userAgent()
+                $request->userAgent(),
+                $deviceInfo
             );
 
             return $this->responseItem($result);
