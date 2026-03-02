@@ -37,7 +37,9 @@ class FacebookConversionsService
         $this->accessToken = config('services.facebook_conversions.access_token');
         $this->appId = config('services.facebook_conversions.app_id');
         $this->appSecret = config('services.facebook_conversions.app_secret');
-        $this->enabled = !empty($this->pixelId) && !empty($this->accessToken);
+        $this->enabled = config('services.facebook_conversions.enabled', false)
+            && !empty($this->pixelId)
+            && !empty($this->accessToken);
     }
 
     /**

@@ -22,7 +22,7 @@ class KochavaService
     public function __construct()
     {
         $this->appId = config('services.kochava.app_id');
-        $this->enabled = !empty($this->appId);
+        $this->enabled = config('services.kochava.enabled', false) && !empty($this->appId);
     }
 
     /**
