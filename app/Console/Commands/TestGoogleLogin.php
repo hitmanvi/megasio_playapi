@@ -56,12 +56,10 @@ class TestGoogleLogin extends Command
             return 0;
         } catch (\App\Exceptions\Exception $e) {
             $this->error('登录失败: ' . $e->getMessage());
-            $this->line('ErrorCode: ' . $e->getErrorCode());
             $this->line('使用的 client_id: ' . ($resolvedClientId ?: '(未配置)'));
             return 1;
         } catch (\Exception $e) {
             $this->error('异常: ' . $e->getMessage());
-            $this->line('使用的 client_id: ' . ($resolvedClientId ?: '(未配置)'));
             $this->line($e->getTraceAsString());
             return 1;
         }
