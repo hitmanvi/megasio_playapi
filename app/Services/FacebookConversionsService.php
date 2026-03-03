@@ -26,10 +26,6 @@ class FacebookConversionsService
 
     protected ?string $accessToken = null;
 
-    protected ?string $appId = null;
-
-    protected ?string $appSecret = null;
-
     protected bool $enabled = false;
 
     public function __construct(?Agent $agent = null)
@@ -41,8 +37,6 @@ class FacebookConversionsService
             $this->pixelId = config('services.facebook_conversions.pixel_id');
             $this->accessToken = config('services.facebook_conversions.access_token');
         }
-        $this->appId = config('services.facebook_conversions.app_id');
-        $this->appSecret = config('services.facebook_conversions.app_secret');
         $this->enabled = config('services.facebook_conversions.enabled', false)
             && !empty($this->pixelId)
             && !empty($this->accessToken);
@@ -74,7 +68,7 @@ class FacebookConversionsService
         }
 
         try {
-            Api::init($this->appId, $this->appSecret, $this->accessToken);
+            Api::init(null, null, $this->accessToken);
 
             $serverUserData = $this->buildUserData($userData);
             $serverEvent = (new Event())
