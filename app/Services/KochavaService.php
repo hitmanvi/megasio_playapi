@@ -25,6 +25,11 @@ class KochavaService
         $this->enabled = config('services.kochava.enabled', false) && !empty($this->appId);
     }
 
+    public function isEnabled(): bool
+    {
+        return $this->enabled;
+    }
+
     /**
      * Send a post-install event to Kochava.
      *

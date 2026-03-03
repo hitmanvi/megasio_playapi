@@ -42,6 +42,11 @@ class FacebookConversionsService
             && !empty($this->accessToken);
     }
 
+    public function isEnabled(): bool
+    {
+        return $this->enabled;
+    }
+
     /**
      * Send event to Facebook Conversions API.
      *
