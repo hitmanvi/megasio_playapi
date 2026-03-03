@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Models\Agent;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Throwable;
@@ -19,9 +20,13 @@ class KochavaService
 
     protected bool $enabled = false;
 
-    public function __construct()
+    public function __construct(?Agent $agent = null)
     {
-        $this->appId = config('services.kochava.app_id');
+        if ($agent && $agent->hasKochava()) {
+            $this->appId = $agent->kochava_app_id;
+        } else {
+            $this->appId = config('services.kochava.app_id');
+        }
         $this->enabled = config('services.kochava.enabled', false) && !empty($this->appId);
     }
 

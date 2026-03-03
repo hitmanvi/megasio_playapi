@@ -3,6 +3,7 @@
 namespace App\Listeners;
 
 use App\Events\DepositCompleted;
+use App\Services\AgentService;
 use App\Services\FacebookConversionsService;
 use App\Services\KochavaService;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -15,11 +16,12 @@ class SendFacebookDepositCompleteEvent implements ShouldQueue
     public function handle(DepositCompleted $event): void
     {
         $deposit = $event->deposit->loadMissing('user');
+        $agent = AgentService::getAgentForUser($deposit->user);
         $deviceInfo = KochavaService::deviceInfoFromDeposit($deposit);
         $userData = FacebookConversionsService::userDataFromDeposit($deposit, $deviceInfo);
         $userData['event_time'] = $deposit->completed_at?->timestamp ?? time();
 
-        $service = new FacebookConversionsService();
+        $service = new FacebookConversionsService($agent);
         $service->sendEvent(
             'purchase',
             $userData,

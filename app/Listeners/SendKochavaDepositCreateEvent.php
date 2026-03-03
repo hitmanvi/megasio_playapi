@@ -3,6 +3,7 @@
 namespace App\Listeners;
 
 use App\Events\DepositCreated;
+use App\Services\AgentService;
 use App\Services\KochavaService;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Queue\InteractsWithQueue;
@@ -13,12 +14,13 @@ class SendKochavaDepositCreateEvent implements ShouldQueue
 
     public function handle(DepositCreated $event): void
     {
-        $deposit = $event->deposit;
+        $deposit = $event->deposit->loadMissing('user');
+        $agent = AgentService::getAgentForUser($deposit->user);
         $deviceInfo = $event->deviceInfo;
         if (empty($deviceInfo['kochava_device_id']) && empty($deviceInfo['device_ids'] ?? [])) {
             return;
         }
-        $service = new KochavaService();
+        $service = new KochavaService($agent);
         $service->sendEvent('begin_checkout', [
             'user_id' => $deposit->user_id,
             'order_no' => $deposit->order_no,

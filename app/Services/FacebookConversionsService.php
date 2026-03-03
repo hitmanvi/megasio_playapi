@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Models\Agent;
 use App\Models\Deposit;
 use App\Models\User;
 use FacebookAds\Api;
@@ -31,10 +32,15 @@ class FacebookConversionsService
 
     protected bool $enabled = false;
 
-    public function __construct()
+    public function __construct(?Agent $agent = null)
     {
-        $this->pixelId = config('services.facebook_conversions.pixel_id');
-        $this->accessToken = config('services.facebook_conversions.access_token');
+        if ($agent && $agent->hasFacebookConversions()) {
+            $this->pixelId = $agent->facebook_pixel_id;
+            $this->accessToken = $agent->facebook_access_token;
+        } else {
+            $this->pixelId = config('services.facebook_conversions.pixel_id');
+            $this->accessToken = config('services.facebook_conversions.access_token');
+        }
         $this->appId = config('services.facebook_conversions.app_id');
         $this->appSecret = config('services.facebook_conversions.app_secret');
         $this->enabled = config('services.facebook_conversions.enabled', false)
