@@ -50,7 +50,7 @@ class FacebookConversionsService
     /**
      * Send event to Facebook Conversions API.
      *
-     * @param string $eventName register, begin_checkout, purchase
+     * @param string $eventName Meta Pixel 标准事件：CompleteRegistration, InitiateCheckout, Purchase, FirstDeposit
      * @param array $userData client_ip_address, client_user_agent, em, ph, fbc, fbp
      * @param array $customData currency, value, etc.
      * @param string|null $eventId Optional event ID for deduplication

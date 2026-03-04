@@ -34,7 +34,7 @@ class SendRegistrationEvent implements ShouldQueue
         if ($facebook->isEnabled()) {
             $userData = FacebookConversionsService::userDataFromUser($user, $deviceInfo);
             $userData['event_time'] = $deviceInfo['usertime'] ?? time();
-            $facebook->sendEvent('register', $userData, ['status' => 'registered'], 'register_' . $user->id);
+            $facebook->sendEvent('CompleteRegistration', $userData, ['status' => 'registered'], 'register_' . $user->id);
         }
     }
 }

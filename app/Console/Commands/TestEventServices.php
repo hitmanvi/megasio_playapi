@@ -76,7 +76,8 @@ class TestEventServices extends Command
                 $this->warn('Facebook Conversions 未启用（FACEBOOK_CONVERSIONS_ENABLED 或 pixel_id/access_token 未配置）');
             } else {
                 [$userData, $customData, $eventId] = $this->buildFacebookEventData($event, $userId, $uid, $email, $orderNo, $amount, $currency, $customEventId);
-                $facebookOk = $facebookService->sendEvent($event, $userData, $customData, $eventId);
+                $facebookEventName = $this->getFacebookEventName($event);
+                $facebookOk = $facebookService->sendEvent($facebookEventName, $userData, $customData, $eventId);
                 $this->line($facebookOk ? '✓ Facebook 发送成功' : '✗ Facebook 发送失败');
             }
         }
@@ -89,6 +90,17 @@ class TestEventServices extends Command
 
         $this->error('所有服务均未成功发送');
         return 1;
+    }
+
+    protected function getFacebookEventName(string $event): string
+    {
+        return match ($event) {
+            'register' => 'CompleteRegistration',
+            'begin_checkout' => 'InitiateCheckout',
+            'purchase' => 'Purchase',
+            'first_purchase' => 'FirstDeposit',
+            default => $event,
+        };
     }
 
     protected function buildKochavaEventData(string $event, int $userId, string $uid, string $orderNo, float $amount, string $currency, ?string $customEventId = null): array

@@ -37,7 +37,7 @@ class SendDepositCompleteEvent implements ShouldQueue
             $userData = FacebookConversionsService::userDataFromDeposit($deposit, $deviceInfo);
             $userData['event_time'] = $deposit->completed_at?->timestamp ?? time();
             $facebook->sendEvent(
-                'purchase',
+                'Purchase',
                 $userData,
                 ['currency' => strtolower($deposit->currency), 'value' => (float) $deposit->amount],
                 'purchase_' . $deposit->order_no

@@ -37,7 +37,7 @@ class SendDepositCreateEvent implements ShouldQueue
             $userData = FacebookConversionsService::userDataFromDeposit($deposit, $deviceInfo);
             $userData['event_time'] = $deviceInfo['usertime'] ?? time();
             $facebook->sendEvent(
-                'begin_checkout',
+                'InitiateCheckout',
                 $userData,
                 ['currency' => strtolower($deposit->currency), 'value' => (float) $deposit->amount],
                 'begin_checkout_' . $deposit->order_no
