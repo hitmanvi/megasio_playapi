@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Events\DepositCompleted;
 use App\Events\DepositCreated;
+use App\Events\FirstDepositCompleted;
 use App\Models\Deposit;
 use App\Models\PaymentMethod;
 use App\Services\NotificationService;
@@ -348,6 +349,14 @@ class DepositService
                     );
                     
                     event(new DepositCompleted($deposit));
+
+                    // 首次充值成功
+                    $completedCount = Deposit::where('user_id', $deposit->user_id)
+                        ->where('status', Deposit::STATUS_COMPLETED)
+                        ->count();
+                    if ($completedCount === 1) {
+                        event(new FirstDepositCompleted($deposit));
+                    }
                 }
                 break;
             case SopayService::SOPAY_STATUS_FAILED:
