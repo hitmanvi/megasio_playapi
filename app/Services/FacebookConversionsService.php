@@ -54,15 +54,13 @@ class FacebookConversionsService
      * @param array $userData client_ip_address, client_user_agent, em, ph, fbc, fbp
      * @param array $customData currency, value, etc.
      * @param string|null $eventId Optional event ID for deduplication
-     * @param bool $throwOnError When true, rethrow exception for debugging
      * @return bool Success
      */
     public function sendEvent(
         string $eventName,
         array $userData = [],
         array $customData = [],
-        ?string $eventId = null,
-        bool $throwOnError = false
+        ?string $eventId = null
     ): bool {
         if (!$this->enabled) {
             Log::debug('Facebook Conversions: disabled, skipping event', ['event' => $eventName]);
@@ -108,30 +106,10 @@ class FacebookConversionsService
             ]);
             return true;
         } catch (Throwable $e) {
-            $errorContext = [
+            Log::error('Facebook Conversions: exception', [
                 'event' => $eventName,
                 'message' => $e->getMessage(),
-                'code' => $e->getCode(),
-                'class' => get_class($e),
-            ];
-            if (method_exists($e, 'getResponse')) {
-                $response = $e->getResponse();
-                if ($response && method_exists($response, 'getBody')) {
-                    $errorContext['response_body'] = (string) $response->getBody();
-                }
-            }
-            if (method_exists($e, 'getErrorUserMessage')) {
-                $errorContext['user_message'] = $e->getErrorUserMessage();
-            }
-            if (method_exists($e, 'getErrorUserTitle')) {
-                $errorContext['user_title'] = $e->getErrorUserTitle();
-            }
-            Log::error('Facebook Conversions: exception', $errorContext);
-            Log::debug('Facebook Conversions: stack trace', ['trace' => $e->getTraceAsString()]);
-
-            if ($throwOnError) {
-                throw $e;
-            }
+            ]);
             return false;
         }
     }

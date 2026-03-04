@@ -17,8 +17,7 @@ class TestEventServices extends Command
                             {--order-no=TEST_ORD_001 : 订单号}
                             {--amount=10.00 : 金额}
                             {--currency=USD : 币种}
-                            {--event-id= : 自定义 event_id，不传则按规则生成}
-                            {--debug : 失败时输出完整错误信息}';
+                            {--event-id= : 自定义 event_id，不传则按规则生成}';
 
     protected $description = '测试 Kochava 和 Facebook Conversions 事件发送，支持自定义事件名';
 
@@ -77,32 +76,8 @@ class TestEventServices extends Command
                 $this->warn('Facebook Conversions 未启用（FACEBOOK_CONVERSIONS_ENABLED 或 pixel_id/access_token 未配置）');
             } else {
                 [$userData, $customData, $eventId] = $this->buildFacebookEventData($event, $userId, $uid, $email, $orderNo, $amount, $currency, $customEventId);
-                try {
-                    $facebookOk = $facebookService->sendEvent(
-                        $event,
-                        $userData,
-                        $customData,
-                        $eventId,
-                        $this->option('debug')
-                    );
-                    $this->line($facebookOk ? '✓ Facebook 发送成功' : '✗ Facebook 发送失败');
-                } catch (\Throwable $e) {
-                    $facebookOk = false;
-                    $this->line('✗ Facebook 发送失败');
-                    if ($this->option('debug')) {
-                        $this->newLine();
-                        $this->error('错误详情:');
-                        $this->line('  ' . $e->getMessage());
-                        $this->line('  异常类: ' . get_class($e));
-                        if (method_exists($e, 'getResponse') && $e->getResponse()) {
-                            $body = (string) $e->getResponse()->getBody();
-                            $this->line('  API 响应: ' . $body);
-                        }
-                        $this->line($e->getTraceAsString());
-                    } else {
-                        $this->line('  使用 --debug 查看完整错误信息');
-                    }
-                }
+                $facebookOk = $facebookService->sendEvent($event, $userData, $customData, $eventId);
+                $this->line($facebookOk ? '✓ Facebook 发送成功' : '✗ Facebook 发送失败');
             }
         }
 
