@@ -148,6 +148,7 @@ class TestEventServices extends Command
         $userData = [
             'client_ip_address' => '127.0.0.1',
             'client_user_agent' => 'TestEventServices/1.0',
+            'event_source_url' => config('app.url', 'https://example.com'),
             'event_time' => time(),
         ];
         if ($email) {

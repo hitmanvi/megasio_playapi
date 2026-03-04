@@ -7,7 +7,6 @@ use App\Models\Deposit;
 use App\Models\User;
 use FacebookAds\Api;
 use FacebookAds\Object\ServerSide\ActionSource;
-use FacebookAds\Object\ServerSide\AppData;
 use FacebookAds\Object\ServerSide\CustomData;
 use FacebookAds\Object\ServerSide\Event;
 use FacebookAds\Object\ServerSide\EventRequest;
@@ -74,18 +73,14 @@ class FacebookConversionsService
             Api::init(null, null, $this->accessToken);
 
             $serverUserData = $this->buildUserData($userData);
-            $advertiserTrackingEnabled = $userData['advertiser_tracking_enabled'] ?? true;
-
-            $appData = (new AppData())
-                ->setAdvertiserTrackingEnabled($advertiserTrackingEnabled)
-                ->setApplicationTrackingEnabled($advertiserTrackingEnabled);
+            $eventSourceUrl = $userData['event_source_url'] ?? config('app.url', 'https://example.com');
 
             $serverEvent = (new Event())
                 ->setEventName($eventName)
                 ->setEventTime($userData['event_time'] ?? time())
-                ->setActionSource(ActionSource::APP)
-                ->setUserData($serverUserData)
-                ->setAppData($appData);
+                ->setActionSource(ActionSource::WEBSITE)
+                ->setEventSourceUrl($eventSourceUrl)
+                ->setUserData($serverUserData);
 
             if (!empty($customData)) {
                 $serverCustomData = (new CustomData());
@@ -179,9 +174,9 @@ class FacebookConversionsService
         $data = [
             'client_ip_address' => $deviceInfo['origination_ip'] ?? '',
             'client_user_agent' => $deviceInfo['device_ua'] ?? '',
+            'event_source_url' => $deviceInfo['event_source_url'] ?? null,
             'fbc' => $deviceInfo['fbc'] ?? '',
             'fbp' => $deviceInfo['fbp'] ?? '',
-            'advertiser_tracking_enabled' => $deviceInfo['advertiser_tracking_enabled'] ?? $deviceInfo['app_tracking_transparency'] ?? true,
         ];
         if ($user->email) {
             $data['em'] = $user->email;
@@ -201,9 +196,9 @@ class FacebookConversionsService
         $data = [
             'client_ip_address' => $deposit->user_ip ?? $deviceInfo['origination_ip'] ?? '',
             'client_user_agent' => $deviceInfo['device_ua'] ?? '',
+            'event_source_url' => $deviceInfo['event_source_url'] ?? null,
             'fbc' => $deviceInfo['fbc'] ?? '',
             'fbp' => $deviceInfo['fbp'] ?? '',
-            'advertiser_tracking_enabled' => $deviceInfo['advertiser_tracking_enabled'] ?? $deviceInfo['app_tracking_transparency'] ?? true,
         ];
         if ($user && $user->email) {
             $data['em'] = $user->email;
