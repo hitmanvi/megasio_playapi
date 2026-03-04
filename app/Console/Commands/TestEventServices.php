@@ -9,11 +9,8 @@ use Illuminate\Console\Command;
 class TestEventServices extends Command
 {
     protected $signature = 'test:event-services
-                            {--event=register : 事件名称，支持 register|begin_checkout|purchase 或自定义}
+                            {--event=register : 事件名称，支持 register|begin_checkout|purchase|first_purchase 或自定义}
                             {--service=both : 目标服务：kochava|facebook|both}
-                            {--kochava-device-id= : Kochava 设备 ID（Kochava 必填）}
-                            {--idfa= : IDFA（与 kochava-device-id 二选一）}
-                            {--android-id= : Android ID（与 kochava-device-id 二选一）}
                             {--user-id=1 : 用户 ID}
                             {--uid=TEST001 : 用户 UID}
                             {--email= : 邮箱（Facebook 推荐）}
@@ -28,9 +25,6 @@ class TestEventServices extends Command
     {
         $event = $this->option('event');
         $service = $this->option('service');
-        $kochavaDeviceId = $this->option('kochava-device-id');
-        $idfa = $this->option('idfa');
-        $androidId = $this->option('android-id');
         $userId = (int) $this->option('user-id');
         $uid = $this->option('uid');
         $email = $this->option('email');
@@ -45,17 +39,9 @@ class TestEventServices extends Command
             return 1;
         }
 
-        $deviceIds = [];
-        if ($idfa) {
-            $deviceIds['idfa'] = $idfa;
-        }
-        if ($androidId) {
-            $deviceIds['android_id'] = $androidId;
-        }
-
         $deviceInfo = [
-            'kochava_device_id' => $kochavaDeviceId ?: '',
-            'device_ids' => $deviceIds,
+            'kochava_device_id' => 'TEST_DEVICE_001',
+            'device_ids' => ['idfa' => '00000000-0000-0000-0000-000000000001'],
             'device_ua' => 'TestEventServices/1.0',
             'origination_ip' => '127.0.0.1',
             'usertime' => time(),
@@ -63,11 +49,6 @@ class TestEventServices extends Command
 
         $sendKochava = in_array($service, ['kochava', 'both']);
         $sendFacebook = in_array($service, ['facebook', 'both']);
-
-        if ($sendKochava && empty($kochavaDeviceId) && empty($deviceIds)) {
-            $this->warn('Kochava 需要 kochava-device-id 或 idfa 或 android-id，已跳过 Kochava');
-            $sendKochava = false;
-        }
 
         $this->info("测试事件: {$event} | 目标: {$service}");
         $this->line('参数: user_id=' . $userId . ', uid=' . $uid . ', order_no=' . $orderNo . ', amount=' . $amount . ', currency=' . $currency);
@@ -121,12 +102,12 @@ class TestEventServices extends Command
         $eventId = $customEventId ?? match ($event) {
             'register' => 'register_' . $userId,
             'begin_checkout' => 'begin_checkout_' . $orderNo,
-            'purchase' => 'purchase_' . $orderNo,
+            'purchase', 'first_purchase' => $event . '_' . $orderNo,
             default => $event . '_' . $orderNo,
         };
 
         $data = array_merge($base, ['event_id' => $eventId]);
-        if (in_array($event, ['begin_checkout', 'purchase'])) {
+        if (in_array($event, ['begin_checkout', 'purchase', 'first_purchase'])) {
             $data['order_no'] = $orderNo;
             $data['amount'] = $amount;
         } elseif ($amount > 0) {
@@ -151,14 +132,14 @@ class TestEventServices extends Command
         $eventId = $customEventId ?? match ($event) {
             'register' => 'register_' . $userId,
             'begin_checkout' => 'begin_checkout_' . $orderNo,
-            'purchase' => 'purchase_' . $orderNo,
+            'purchase', 'first_purchase' => $event . '_' . $orderNo,
             default => $event . '_' . $orderNo,
         };
 
         $customData = [];
         if ($event === 'register') {
             $customData = ['status' => 'registered'];
-        } elseif (in_array($event, ['begin_checkout', 'purchase']) || $amount > 0) {
+        } elseif (in_array($event, ['begin_checkout', 'purchase', 'first_purchase']) || $amount > 0) {
             $customData = ['currency' => strtolower($currency), 'value' => $amount];
         }
 
