@@ -23,9 +23,8 @@ class SendRegistrationEvent implements ShouldQueue
         if (!empty($deviceInfo['kochava_device_id']) || !empty($deviceInfo['device_ids'] ?? [])) {
             $kochava = new KochavaService($agent);
             $kochava->sendEvent('register', [
-                'user_id' => $user->id,
                 'uid' => $user->uid,
-                'event_id' => 'register_' . $user->id,
+                'event_id' => 'register_' . $user->uid,
             ], $deviceInfo);
         }
 
@@ -34,7 +33,7 @@ class SendRegistrationEvent implements ShouldQueue
         if ($facebook->isEnabled()) {
             $userData = FacebookConversionsService::userDataFromUser($user, $deviceInfo);
             $userData['event_time'] = $deviceInfo['usertime'] ?? time();
-            $facebook->sendEvent('CompleteRegistration', $userData, ['status' => 'registered'], 'register_' . $user->id);
+            $facebook->sendEvent('CompleteRegistration', $userData, ['status' => 'registered'], 'register_' . $user->uid);
         }
     }
 }

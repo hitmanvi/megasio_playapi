@@ -51,7 +51,7 @@ class TestEventServices extends Command
         $sendFacebook = in_array($service, ['facebook', 'both']);
 
         $this->info("测试事件: {$event} | 目标: {$service}");
-        $this->line('参数: user_id=' . $userId . ', uid=' . $uid . ', order_no=' . $orderNo . ', amount=' . $amount . ', currency=' . $currency);
+        $this->line('参数: uid=' . $uid . ', order_no=' . $orderNo . ', amount=' . $amount . ', currency=' . $currency);
         $this->newLine();
 
         $kochavaOk = false;
@@ -106,13 +106,12 @@ class TestEventServices extends Command
     protected function buildKochavaEventData(string $event, int $userId, string $uid, string $orderNo, float $amount, string $currency, ?string $customEventId = null): array
     {
         $base = [
-            'user_id' => $userId,
             'uid' => $uid,
             'currency' => $currency,
         ];
 
         $eventId = $customEventId ?? match ($event) {
-            'register' => 'register_' . $userId,
+            'register' => 'register_' . $uid,
             'begin_checkout' => 'begin_checkout_' . $orderNo,
             'purchase', 'first_purchase' => $event . '_' . $orderNo,
             default => $event . '_' . $orderNo,
@@ -143,7 +142,7 @@ class TestEventServices extends Command
         }
 
         $eventId = $customEventId ?? match ($event) {
-            'register' => 'register_' . $userId,
+            'register' => 'register_' . $uid,
             'begin_checkout' => 'begin_checkout_' . $orderNo,
             'purchase', 'first_purchase' => $event . '_' . $orderNo,
             default => $event . '_' . $orderNo,
