@@ -15,18 +15,23 @@ class Agent extends Model
         'parent_id',
         'name',
         'promotion_code',
+        'account',
+        'remark',
         'facebook_config',
         'kochava_config',
         'status',
+        'two_factor_secret',
     ];
 
     protected $casts = [
         'facebook_config' => 'array',
         'kochava_config' => 'array',
+        'two_factor_secret' => 'encrypted',
     ];
 
     protected $hidden = [
         'facebook_config',
+        'two_factor_secret',
     ];
 
     /**
@@ -116,6 +121,14 @@ class Agent extends Model
             return false;
         }
         return !empty($cfg['pixel_id'] ?? '') && !empty($cfg['access_token'] ?? '');
+    }
+
+    /**
+     * 是否已开启二次验证（OTP/TOTP）
+     */
+    public function hasTwoFactorEnabled(): bool
+    {
+        return !empty($this->two_factor_secret);
     }
 
     /**

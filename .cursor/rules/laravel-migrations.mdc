@@ -1,0 +1,39 @@
+---
+description: Laravel 迁移文件约定：不添加外键约束，不使用字段位置修饰符
+globs: database/migrations/*.php
+alwaysApply: false
+---
+
+# Laravel 迁移约定
+
+## 1. 不要添加外键约束
+
+迁移中不要使用 `foreignId()`、`foreign()`、`constrained()` 等外键相关方法。
+
+```php
+// ❌ BAD
+$table->foreignId('user_id')->constrained()->onDelete('cascade');
+$table->foreign('agent_id')->references('id')->on('agents');
+
+// ✅ GOOD
+$table->unsignedBigInteger('user_id')->nullable();
+$table->unsignedBigInteger('agent_id')->nullable();
+```
+
+## 2. 不要使用字段位置修饰符
+
+不要使用 `after()`、`first()` 等指定字段位置的修饰符。
+
+```php
+// ❌ BAD
+$table->string('name')->after('id');
+$table->json('config')->nullable()->after('promotion_code');
+$table->string('status')->first();
+
+// ✅ GOOD
+$table->string('name');
+$table->json('config')->nullable();
+$table->string('status');
+```
+
+字段顺序由在 `Schema::create` / `Schema::table` 中的定义顺序决定即可。
