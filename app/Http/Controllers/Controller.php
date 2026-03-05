@@ -31,23 +31,27 @@ class Controller
     protected function getDeviceInfo(Request $request): array
     {
         $deviceIds = [];
-        if ($request->header('X-Kochava-Idfa')) {
-            $deviceIds['idfa'] = $request->header('X-Kochava-Idfa');
+        if ($request->header('x-mmp-idfa')) {
+            $deviceIds['idfa'] = $request->header('x-mmp-idfa');
         }
-        if ($request->header('X-Kochava-Android-Id')) {
-            $deviceIds['android_id'] = $request->header('X-Kochava-Android-Id');
+        if ($request->header('x-mmp-gaid')) {
+            $deviceIds['gaid'] = $request->header('x-mmp-gaid');
+        }
+        if ($request->header('x-mmp-idfv')) {
+            $deviceIds['idfv'] = $request->header('x-mmp-idfv');
         }
 
         return [
-            'kochava_device_id' => $request->header('X-Kochava-Device-Id', ''),
+            'kochava_device_id' => $request->header('x-mmp-kochava-device-id', ''),
             'device_ids' => $deviceIds,
-            'device_ua' => $request->header('User-Agent', ''),
+            'device_ua' => $request->header('user-agent', ''),
             'origination_ip' => $request->ip() ?? '0.0.0.0',
-            'app_version' => $request->header('X-App-Version', ''),
-            'device_ver' => $request->header('X-Device-Ver', ''),
-            'usertime' => (int) ($request->header('X-Usertime') ?? time()),
-            'fbc' => $request->header('X-Fbc', ''),
-            'fbp' => $request->header('X-Fbp', ''),
+            'app_version' => $request->header('x-app-version', ''),
+            'device_ver' => $request->header('x-device-ver', ''),
+            'usertime' => (int) ($request->header('x-usertime') ?? time()),
+            'fbc' => $request->header('x-mmp-fbc', ''),
+            'fbp' => $request->header('x-mmp-fbp', ''),
+            'env_type' => $request->header('x-mmp-env-type', ''),
         ];
     }
 }
