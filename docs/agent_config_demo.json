@@ -1,0 +1,10 @@
+{
+  "facebook_config": {
+    "pixel_id": "1234567890123456",
+    "access_token": "EAAxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+    "enabled": true
+  },
+  "kochava_config": {
+    "app_id": "kochava-xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+  }
+}
