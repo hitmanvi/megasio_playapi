@@ -19,14 +19,6 @@ class UtilsController extends Controller
     }
 
     /**
-     * 测试接口：展示 getDeviceInfo 获取到的设备信息
-     */
-    public function deviceInfo(Request $request)
-    {
-        return $this->responseItem($this->getDeviceInfo($request));
-    }
-
-    /**
      * 获取应用设置
      */
     public function settings()

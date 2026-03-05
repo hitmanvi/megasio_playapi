@@ -221,7 +221,6 @@ Route::prefix('help-center')->group(function () {
 
 // 工具类路由
 Route::get('/timestamp', [UtilsController::class, 'timestamp']);
-Route::get('/device-info', [UtilsController::class, 'deviceInfo']);
 Route::get('/settings', [UtilsController::class, 'settings']);
 Route::middleware('auth:sanctum')->post('/upload', [UtilsController::class, 'uploadImage']);
 
