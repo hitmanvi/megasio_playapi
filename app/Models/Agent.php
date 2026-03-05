@@ -15,14 +15,18 @@ class Agent extends Model
         'parent_id',
         'name',
         'promotion_code',
-        'facebook_pixel_id',
-        'facebook_access_token',
-        'kochava_app_id',
+        'facebook_config',
+        'kochava_config',
         'status',
     ];
 
+    protected $casts = [
+        'facebook_config' => 'array',
+        'kochava_config' => 'array',
+    ];
+
     protected $hidden = [
-        'facebook_access_token',
+        'facebook_config',
     ];
 
     /**
@@ -103,11 +107,15 @@ class Agent extends Model
     }
 
     /**
-     * 是否已配置 Facebook Conversions
+     * 是否已配置 Facebook Conversions（需 enabled 为 true）
      */
     public function hasFacebookConversions(): bool
     {
-        return !empty($this->facebook_pixel_id) && !empty($this->facebook_access_token);
+        $cfg = $this->facebook_config ?? [];
+        if (isset($cfg['enabled']) && !$cfg['enabled']) {
+            return false;
+        }
+        return !empty($cfg['pixel_id'] ?? '') && !empty($cfg['access_token'] ?? '');
     }
 
     /**
@@ -115,6 +123,22 @@ class Agent extends Model
      */
     public function hasKochava(): bool
     {
-        return !empty($this->kochava_app_id);
+        return !empty($this->kochava_config['app_id'] ?? '');
+    }
+
+    /**
+     * 获取 Facebook Conversions 配置（pixel_id, access_token, enabled）
+     */
+    public function getFacebookConfig(): array
+    {
+        return $this->facebook_config ?? [];
+    }
+
+    /**
+     * 获取 Kochava 配置（app_id）
+     */
+    public function getKochavaConfig(): array
+    {
+        return $this->kochava_config ?? [];
     }
 }

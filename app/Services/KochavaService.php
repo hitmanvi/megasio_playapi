@@ -23,7 +23,8 @@ class KochavaService
     public function __construct(?Agent $agent = null)
     {
         if ($agent && $agent->hasKochava()) {
-            $this->appId = $agent->kochava_app_id;
+            $cfg = $agent->getKochavaConfig();
+            $this->appId = $cfg['app_id'] ?? null;
         } else {
             $this->appId = config('services.kochava.app_id');
         }

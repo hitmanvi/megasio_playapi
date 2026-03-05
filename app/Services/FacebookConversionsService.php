@@ -31,8 +31,9 @@ class FacebookConversionsService
     public function __construct(?Agent $agent = null)
     {
         if ($agent && $agent->hasFacebookConversions()) {
-            $this->pixelId = $agent->facebook_pixel_id;
-            $this->accessToken = $agent->facebook_access_token;
+            $cfg = $agent->getFacebookConfig();
+            $this->pixelId = $cfg['pixel_id'] ?? null;
+            $this->accessToken = $cfg['access_token'] ?? null;
         } else {
             $this->pixelId = config('services.facebook_conversions.pixel_id');
             $this->accessToken = config('services.facebook_conversions.access_token');
