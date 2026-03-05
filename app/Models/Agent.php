@@ -16,6 +16,7 @@ class Agent extends Model
         'name',
         'promotion_code',
         'account',
+        'password',
         'remark',
         'facebook_config',
         'kochava_config',
@@ -27,9 +28,11 @@ class Agent extends Model
         'facebook_config' => 'array',
         'kochava_config' => 'array',
         'two_factor_secret' => 'encrypted',
+        'password' => 'hashed',
     ];
 
     protected $hidden = [
+        'password',
         'facebook_config',
         'two_factor_secret',
     ];
