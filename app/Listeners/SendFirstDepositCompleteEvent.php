@@ -23,11 +23,12 @@ class SendFirstDepositCompleteEvent implements ShouldQueue
         if (!empty($deviceInfo['kochava_device_id']) || !empty($deviceInfo['device_ids'])) {
             $kochava = new KochavaService($link);
             $kochava->sendEvent('first_purchase', [
-                'uid' => $deposit->user->uid,
-                'order_no' => $deposit->order_no,
+                'user_id' => $deposit->user->uid,
+                'order_id' => $deposit->order_no,
+                'content_id' => $deposit->order_no,
                 'currency' => $deposit->currency,
-                'amount' => (float) $deposit->amount,
-                'event_id' => 'first_purchase_' . $deposit->order_no,
+                'price' => (float) $deposit->amount,
+                'name' => 'First Deposit',
             ], $deviceInfo);
         }
 

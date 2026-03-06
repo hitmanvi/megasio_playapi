@@ -23,8 +23,8 @@ class SendRegistrationEvent implements ShouldQueue
         if (!empty($deviceInfo['kochava_device_id']) || !empty($deviceInfo['device_ids'] ?? [])) {
             $kochava = new KochavaService($link);
             $kochava->sendEvent('register', [
-                'uid' => $user->uid,
-                'event_id' => 'register_' . $user->uid,
+                'user_id' => $user->uid,
+                'user_name' => $user->uid,
             ], $deviceInfo);
         }
 

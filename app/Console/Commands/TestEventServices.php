@@ -9,7 +9,7 @@ use Illuminate\Console\Command;
 class TestEventServices extends Command
 {
     protected $signature = 'test:event-services
-                            {--event=register : 事件名称，支持 register|begin_checkout|purchase|first_purchase 或自定义}
+                            {--event=register : 事件名称，支持 register|begin_checkout|purchase|first_purchase (Kochava: Registration Complete|Checkout Start|Purchase|First Deposit) 或自定义}
                             {--service=both : 目标服务：kochava|facebook|both}
                             {--user-id=1 : 用户 ID}
                             {--uid=TEST001 : 用户 UID}
@@ -59,6 +59,7 @@ class TestEventServices extends Command
 
         if ($sendKochava) {
             $this->line('--- Kochava ---');
+            $this->line('Event: ' . $event . ' → ' . $this->getKochavaEventName($event));
             $kochavaService = new KochavaService();
             if (!$kochavaService->isEnabled()) {
                 $this->warn('Kochava 未启用（KOCHAVA_ENABLED 或 KOCHAVA_APP_ID 未配置）');
@@ -99,6 +100,22 @@ class TestEventServices extends Command
             'begin_checkout' => 'InitiateCheckout',
             'purchase' => 'Purchase',
             'first_purchase' => 'FirstDeposit',
+            default => $event,
+        };
+    }
+
+    /**
+     * Kochava event name mapping (per Post-Install Event Examples)
+     *
+     * @see https://support.kochava.com/articles/reference-information/2213-post-install-event-examples
+     */
+    protected function getKochavaEventName(string $event): string
+    {
+        return match ($event) {
+            'register' => 'Registration Complete',
+            'begin_checkout' => 'Checkout Start',
+            'purchase' => 'Purchase',
+            'first_purchase' => 'First Deposit',
             default => $event,
         };
     }
