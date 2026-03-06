@@ -56,6 +56,19 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Web URL (for frontend / event source)
+    |--------------------------------------------------------------------------
+    |
+    | This URL is used as the event source URL for Facebook Conversions API
+    | and other tracking events. Typically the frontend web app URL.
+    | Falls back to APP_URL if not set.
+    |
+    */
+
+    'web_url' => env('APP_WEB_URL', env('APP_URL', 'http://localhost')),
+
+    /*
+    |--------------------------------------------------------------------------
     | Application Timezone
     |--------------------------------------------------------------------------
     |

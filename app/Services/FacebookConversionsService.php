@@ -72,7 +72,7 @@ class FacebookConversionsService
             Api::init(null, null, $this->accessToken);
 
             $serverUserData = $this->buildUserData($userData);
-            $eventSourceUrl = $userData['event_source_url'] ?? config('app.url', 'https://example.com');
+            $eventSourceUrl = $userData['event_source_url'] ?? config('app.web_url', 'https://example.com');
 
             $serverEvent = (new Event())
                 ->setEventName($eventName)
