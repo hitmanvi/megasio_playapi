@@ -1,0 +1,271 @@
+{
+    "\/brands": {
+        "get": {
+            "tags": [
+                "Brand"
+            ],
+            "summary": "获取品牌列表",
+            "description": "获取所有启用的品牌列表，支持多语言和名称搜索",
+            "parameters": [
+                {
+                    "name": "Locale",
+                    "in": "header",
+                    "description": "语言代码",
+                    "schema": {
+                        "type": "string",
+                        "default": "en"
+                    }
+                },
+                {
+                    "name": "name",
+                    "in": "query",
+                    "description": "品牌名称搜索（支持原始名称和翻译名称）",
+                    "schema": {
+                        "type": "string"
+                    }
+                },
+                {
+                    "name": "ids",
+                    "in": "query",
+                    "description": "品牌ID筛选（支持多个，使用数组格式：ids[]=1&ids[]=2）",
+                    "style": "form",
+                    "explode": true,
+                    "schema": {
+                        "type": "array",
+                        "items": {
+                            "type": "integer"
+                        }
+                    }
+                },
+                {
+                    "name": "page",
+                    "in": "query",
+                    "description": "页码",
+                    "schema": {
+                        "type": "integer",
+                        "default": 1,
+                        "minimum": 1
+                    }
+                },
+                {
+                    "name": "per_page",
+                    "in": "query",
+                    "description": "每页数量",
+                    "schema": {
+                        "type": "integer",
+                        "default": 10,
+                        "minimum": 1
+                    }
+                }
+            ],
+            "responses": {
+                "200": {
+                    "description": "获取品牌列表成功",
+                    "content": {
+                        "application\/json": {
+                            "schema": {
+                                "$ref": "#\/components\/schemas\/BrandListResponse"
+                            },
+                            "example": {
+                                "code": 0,
+                                "errmsg": "Success",
+                                "data": {
+                                    "items": [
+                                        {
+                                            "id": 1,
+                                            "name": "Netflix",
+                                            "provider": "netflix",
+                                            "icon": "https:\/\/example.com\/icons\/netflix.png",
+                                            "sort_id": 1
+                                        },
+                                        {
+                                            "id": 2,
+                                            "name": "Disney+",
+                                            "provider": "disney",
+                                            "icon": "https:\/\/example.com\/icons\/disney.png",
+                                            "sort_id": 2
+                                        }
+                                    ],
+                                    "meta": {
+                                        "current_page": 1,
+                                        "last_page": 1,
+                                        "total": 2
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "\/brands\/recommend": {
+        "get": {
+            "tags": [
+                "Brand"
+            ],
+            "summary": "获取推荐品牌列表",
+            "description": "根据指定游戏获取推荐品牌列表（分页）",
+            "parameters": [
+                {
+                    "name": "Locale",
+                    "in": "header",
+                    "description": "语言代码",
+                    "schema": {
+                        "type": "string",
+                        "default": "en"
+                    }
+                },
+                {
+                    "name": "id",
+                    "in": "query",
+                    "required": true,
+                    "description": "游戏ID",
+                    "schema": {
+                        "type": "integer",
+                        "minimum": 1
+                    }
+                },
+                {
+                    "name": "page",
+                    "in": "query",
+                    "description": "页码",
+                    "schema": {
+                        "type": "integer",
+                        "default": 1,
+                        "minimum": 1
+                    }
+                },
+                {
+                    "name": "per_page",
+                    "in": "query",
+                    "description": "每页数量",
+                    "schema": {
+                        "type": "integer",
+                        "default": 20,
+                        "minimum": 1,
+                        "maximum": 100
+                    }
+                }
+            ],
+            "responses": {
+                "200": {
+                    "description": "获取推荐品牌列表成功",
+                    "content": {
+                        "application\/json": {
+                            "schema": {
+                                "$ref": "#\/components\/schemas\/BrandListResponse"
+                            },
+                            "example": {
+                                "code": 0,
+                                "errmsg": "Success",
+                                "data": {
+                                    "items": [
+                                        {
+                                            "id": 2,
+                                            "name": "Disney+",
+                                            "provider": "disney",
+                                            "sort_id": 2
+                                        },
+                                        {
+                                            "id": 3,
+                                            "name": "HBO Max",
+                                            "provider": "hbo",
+                                            "sort_id": 3
+                                        }
+                                    ],
+                                    "meta": {
+                                        "current_page": 1,
+                                        "last_page": 3,
+                                        "total": 50
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "404": {
+                    "description": "游戏不存在或已禁用",
+                    "content": {
+                        "application\/json": {
+                            "schema": {
+                                "$ref": "#\/components\/schemas\/ErrorResponse"
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "\/brands\/{id}": {
+        "get": {
+            "tags": [
+                "Brand"
+            ],
+            "summary": "获取品牌详情",
+            "description": "获取指定品牌的详细信息",
+            "parameters": [
+                {
+                    "name": "id",
+                    "in": "path",
+                    "required": true,
+                    "description": "品牌ID",
+                    "schema": {
+                        "type": "integer"
+                    }
+                },
+                {
+                    "name": "Locale",
+                    "in": "header",
+                    "description": "语言代码",
+                    "schema": {
+                        "type": "string",
+                        "default": "en"
+                    }
+                }
+            ],
+            "responses": {
+                "200": {
+                    "description": "获取品牌详情成功",
+                    "content": {
+                        "application\/json": {
+                            "schema": {
+                                "$ref": "#\/components\/schemas\/BrandDetailResponse"
+                            },
+                            "example": {
+                                "code": 0,
+                                "errmsg": "Success",
+                                "data": {
+                                    "id": 1,
+                                    "name": "Netflix",
+                                    "provider": "netflix",
+                                    "restricted_region": [
+                                        "CN",
+                                        "US"
+                                    ],
+                                    "sort_id": 1,
+                                    "enabled": true,
+                                    "maintain_start": null,
+                                    "maintain_end": null,
+                                    "maintain_auto": false,
+                                    "created_at": "2024-01-01T00:00:00.000000Z",
+                                    "updated_at": "2024-01-01T00:00:00.000000Z"
+                                }
+                            }
+                        }
+                    }
+                },
+                "404": {
+                    "description": "品牌不存在或已禁用",
+                    "content": {
+                        "application\/json": {
+                            "schema": {
+                                "$ref": "#\/components\/schemas\/ErrorResponse"
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

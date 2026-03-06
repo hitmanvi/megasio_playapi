@@ -1,0 +1,744 @@
+{
+    "\/auth\/register": {
+        "post": {
+            "tags": [
+                "Authentication"
+            ],
+            "summary": "用户注册",
+            "description": "创建新用户账户",
+            "requestBody": {
+                "required": true,
+                "content": {
+                    "application\/json": {
+                        "schema": {
+                            "$ref": "#\/components\/schemas\/RegisterRequest"
+                        },
+                        "example": {
+                            "name": "张三",
+                            "phone": "13800138000",
+                            "area_code": "86",
+                            "email": "zhangsan@example.com",
+                            "password": "password123",
+                            "password_confirmation": "password123"
+                        }
+                    }
+                }
+            },
+            "responses": {
+                "200": {
+                    "description": "注册成功",
+                    "content": {
+                        "application\/json": {
+                            "schema": {
+                                "$ref": "#\/components\/schemas\/AuthResponse"
+                            },
+                            "example": {
+                                "code": 0,
+                                "errmsg": "Success",
+                                "data": {
+                                    "user": {
+                                        "uid": "01ARZ3NDEKTSV4RRFFQ69G5FAV",
+                                        "name": "张三",
+                                        "phone": "13800138000",
+                                        "area_code": "86",
+                                        "email": "zhangsan@example.com"
+                                    },
+                                    "token": "1|abcdef123456789",
+                                    "token_type": "Bearer"
+                                }
+                            }
+                        }
+                    }
+                },
+                "422": {
+                    "description": "验证失败",
+                    "content": {
+                        "application\/json": {
+                            "schema": {
+                                "$ref": "#\/components\/schemas\/ErrorResponse"
+                            },
+                            "examples": {
+                                "phone_exists": {
+                                    "summary": "手机号已存在",
+                                    "value": {
+                                        "code": 3003,
+                                        "errmsg": "This phone number has already been registered",
+                                        "data": null
+                                    }
+                                },
+                                "email_exists": {
+                                    "summary": "邮箱已存在",
+                                    "value": {
+                                        "code": 3004,
+                                        "errmsg": "This email has already been registered",
+                                        "data": null
+                                    }
+                                },
+                                "phone_email_required": {
+                                    "summary": "手机号和邮箱不能都为空",
+                                    "value": {
+                                        "code": 3005,
+                                        "errmsg": "Please provide either phone number or email",
+                                        "data": {
+                                            "phone": [
+                                                "Phone number and email cannot both be empty"
+                                            ],
+                                            "email": [
+                                                "Phone number and email cannot both be empty"
+                                            ]
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "\/auth\/login": {
+        "post": {
+            "tags": [
+                "Authentication"
+            ],
+            "summary": "用户登录",
+            "description": "使用手机号或邮箱登录",
+            "requestBody": {
+                "required": true,
+                "content": {
+                    "application\/json": {
+                        "schema": {
+                            "$ref": "#\/components\/schemas\/LoginRequest"
+                        },
+                        "examples": {
+                            "phone_login": {
+                                "summary": "手机号登录",
+                                "value": {
+                                    "login": "13800138000",
+                                    "password": "password123"
+                                }
+                            },
+                            "email_login": {
+                                "summary": "邮箱登录",
+                                "value": {
+                                    "login": "zhangsan@example.com",
+                                    "password": "password123"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "responses": {
+                "200": {
+                    "description": "登录成功",
+                    "content": {
+                        "application\/json": {
+                            "schema": {
+                                "$ref": "#\/components\/schemas\/AuthResponse"
+                            },
+                            "example": {
+                                "code": 0,
+                                "errmsg": "Success",
+                                "data": {
+                                    "user": {
+                                        "uid": "01ARZ3NDEKTSV4RRFFQ69G5FAV",
+                                        "name": "张三",
+                                        "phone": "13800138000",
+                                        "email": "zhangsan@example.com"
+                                    },
+                                    "token": "1|abcdef123456789",
+                                    "token_type": "Bearer"
+                                }
+                            }
+                        }
+                    }
+                },
+                "401": {
+                    "description": "认证失败",
+                    "content": {
+                        "application\/json": {
+                            "schema": {
+                                "$ref": "#\/components\/schemas\/ErrorResponse"
+                            },
+                            "examples": {
+                                "invalid_credentials": {
+                                    "summary": "用户名或密码错误",
+                                    "value": {
+                                        "code": 2001,
+                                        "errmsg": "The provided credentials are incorrect",
+                                        "data": null
+                                    }
+                                },
+                                "account_disabled": {
+                                    "summary": "账户被禁用",
+                                    "value": {
+                                        "code": 2002,
+                                        "errmsg": "Account has been disabled. Please contact administrator",
+                                        "data": null
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "\/auth\/google": {
+        "post": {
+            "tags": [
+                "Authentication"
+            ],
+            "summary": "Google 登录\/注册",
+            "description": "使用 Google ID Token 进行登录或注册。不同客户端（ios\/android\/web）使用不同的 client_id 验证。若传 client 参数或 X-Platform header，则使用对应 client_id；否则默认使用 web。如果用户已存在（通过 google_id 或 email 匹配），则直接登录；如果不存在，则创建新用户。支持邀请码绑定。",
+            "requestBody": {
+                "required": true,
+                "content": {
+                    "application\/json": {
+                        "schema": {
+                            "$ref": "#\/components\/schemas\/GoogleLoginRequest"
+                        },
+                        "example": {
+                            "id_token": "eyJhbGciOiJSUzI1NiIsImtpZCI6IjEyMzQ1Njc4OTAifQ.eyJpc3MiOiJodHRwczovL2FjY291bnRzLmdvb2dsZS5jb20iLCJhenAiOiIxMjM0NTY3ODkwLmFwcHMuZ29vZ2xldXNlcmNvbnRlbnQuY29tIiwiYXVkIjoiMTIzNDU2Nzg5MC5hcHBzLmdvb2dsZXVzZXJjb250ZW50LmNvbSIsInN1YiI6IjEyMzQ1Njc4OTAxMjM0NTY3ODkwMTIzNDU2Nzg5MCIsImVtYWlsIjoiZXhhbXBsZUBnb29nbGUuY29tIiwiZW1haWxfdmVyaWZpZWQiOnRydWUsIm5hbWUiOiJKb2huIERvZSIsInBpY3R1cmUiOiJodHRwczovL2xoMy5nb29nbGV1c2VyY29udGVudC5jb20vYS9leGFtcGxlIiwiaWF0IjoxNzEwMDAwMDAwLCJleHAiOjE3MTAwODY0MDB9.example_signature",
+                            "invite_code": "ABC12345"
+                        }
+                    }
+                }
+            },
+            "responses": {
+                "200": {
+                    "description": "登录\/注册成功",
+                    "content": {
+                        "application\/json": {
+                            "schema": {
+                                "$ref": "#\/components\/schemas\/AuthResponse"
+                            },
+                            "example": {
+                                "code": 0,
+                                "errmsg": "Success",
+                                "data": {
+                                    "user": {
+                                        "uid": "01ARZ3NDEKTSV4RRFFQ69G5FAV",
+                                        "name": "John Doe",
+                                        "email": "example@google.com"
+                                    },
+                                    "token": "1|abcdef123456789",
+                                    "token_type": "Bearer"
+                                }
+                            }
+                        }
+                    }
+                },
+                "400": {
+                    "description": "请求参数错误",
+                    "content": {
+                        "application\/json": {
+                            "schema": {
+                                "$ref": "#\/components\/schemas\/ErrorResponse"
+                            },
+                            "examples": {
+                                "invalid_token": {
+                                    "summary": "无效的 ID Token",
+                                    "value": {
+                                        "code": 1001,
+                                        "errmsg": "Invalid Google ID token",
+                                        "data": null
+                                    }
+                                },
+                                "invalid_invite_code": {
+                                    "summary": "无效的邀请码",
+                                    "value": {
+                                        "code": 2003,
+                                        "errmsg": "Invalid invite code",
+                                        "data": null
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "422": {
+                    "description": "参数验证失败",
+                    "content": {
+                        "application\/json": {
+                            "schema": {
+                                "$ref": "#\/components\/schemas\/ErrorResponse"
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "\/auth\/send-verification-code": {
+        "post": {
+            "tags": [
+                "Authentication"
+            ],
+            "summary": "发送验证码",
+            "description": "向指定手机号或邮箱发送验证码。根据提供的参数自动选择发送方式：如果提供 phone 参数则发送短信，如果提供 email 参数则发送邮件。验证码有效期为5分钟，重发间隔为60秒。",
+            "requestBody": {
+                "required": true,
+                "content": {
+                    "application\/json": {
+                        "schema": {
+                            "$ref": "#\/components\/schemas\/SendVerificationCodeRequest"
+                        },
+                        "examples": {
+                            "phone": {
+                                "summary": "手机号发送",
+                                "description": "使用手机号发送短信验证码",
+                                "value": {
+                                    "phone": "13800138000",
+                                    "area_code": "86",
+                                    "type": "register"
+                                }
+                            },
+                            "email": {
+                                "summary": "邮箱发送",
+                                "description": "使用邮箱发送邮件验证码",
+                                "value": {
+                                    "email": "user@example.com",
+                                    "type": "register"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "responses": {
+                "200": {
+                    "description": "发送验证码成功",
+                    "content": {
+                        "application\/json": {
+                            "schema": {
+                                "$ref": "#\/components\/schemas\/SendVerificationCodeResponse"
+                            },
+                            "example": {
+                                "code": 0,
+                                "errmsg": "Success",
+                                "data": {
+                                    "success": true,
+                                    "message": "Verification code sent successfully",
+                                    "expires_in": 300
+                                }
+                            }
+                        }
+                    }
+                },
+                "422": {
+                    "description": "验证失败",
+                    "content": {
+                        "application\/json": {
+                            "schema": {
+                                "$ref": "#\/components\/schemas\/ErrorResponse"
+                            },
+                            "examples": {
+                                "invalid_phone": {
+                                    "summary": "手机号格式错误",
+                                    "value": {
+                                        "code": 1001,
+                                        "errmsg": "Validation failed",
+                                        "data": {
+                                            "phone": [
+                                                "Invalid phone number format"
+                                            ]
+                                        }
+                                    }
+                                },
+                                "invalid_email": {
+                                    "summary": "邮箱格式错误",
+                                    "value": {
+                                        "code": 1001,
+                                        "errmsg": "Validation failed",
+                                        "data": {
+                                            "email": [
+                                                "Invalid email format"
+                                            ]
+                                        }
+                                    }
+                                },
+                                "phone_email_required": {
+                                    "summary": "手机号或邮箱必填",
+                                    "value": {
+                                        "code": 1001,
+                                        "errmsg": "Validation failed",
+                                        "data": {
+                                            "phone": [
+                                                "Phone or email is required"
+                                            ],
+                                            "email": [
+                                                "Phone or email is required"
+                                            ]
+                                        }
+                                    }
+                                },
+                                "both_provided": {
+                                    "summary": "不能同时提供手机号和邮箱",
+                                    "value": {
+                                        "code": 1001,
+                                        "errmsg": "Validation failed",
+                                        "data": {
+                                            "phone": [
+                                                "Cannot provide both phone and email"
+                                            ],
+                                            "email": [
+                                                "Cannot provide both phone and email"
+                                            ]
+                                        }
+                                    }
+                                },
+                                "too_frequent": {
+                                    "summary": "发送过于频繁",
+                                    "description": "距离上次发送验证码不足60秒",
+                                    "value": {
+                                        "code": 2009,
+                                        "errmsg": "SMS sending too frequent, please try again later",
+                                        "data": null
+                                    }
+                                },
+                                "send_failed": {
+                                    "summary": "发送失败",
+                                    "value": {
+                                        "code": 2008,
+                                        "errmsg": "Failed to send SMS",
+                                        "data": null
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "\/auth\/logout": {
+        "post": {
+            "tags": [
+                "Authentication"
+            ],
+            "summary": "用户登出",
+            "description": "注销当前用户的访问令牌",
+            "security": [
+                {
+                    "bearerAuth": []
+                }
+            ],
+            "responses": {
+                "200": {
+                    "description": "登出成功",
+                    "content": {
+                        "application\/json": {
+                            "schema": {
+                                "$ref": "#\/components\/schemas\/SuccessResponse"
+                            },
+                            "example": {
+                                "code": 0,
+                                "errmsg": "Success",
+                                "data": null
+                            }
+                        }
+                    }
+                },
+                "401": {
+                    "description": "未授权",
+                    "content": {
+                        "application\/json": {
+                            "schema": {
+                                "$ref": "#\/components\/schemas\/ErrorResponse"
+                            },
+                            "example": {
+                                "code": 1002,
+                                "errmsg": "Unauthorized access",
+                                "data": null
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "\/auth\/refresh": {
+        "post": {
+            "tags": [
+                "Authentication"
+            ],
+            "summary": "刷新访问令牌",
+            "description": "刷新当前用户的访问令牌",
+            "security": [
+                {
+                    "bearerAuth": []
+                }
+            ],
+            "responses": {
+                "200": {
+                    "description": "刷新令牌成功",
+                    "content": {
+                        "application\/json": {
+                            "schema": {
+                                "$ref": "#\/components\/schemas\/TokenResponse"
+                            },
+                            "example": {
+                                "code": 0,
+                                "errmsg": "Success",
+                                "data": {
+                                    "token": "2|xyz789abcdef",
+                                    "token_type": "Bearer"
+                                }
+                            }
+                        }
+                    }
+                },
+                "401": {
+                    "description": "未授权",
+                    "content": {
+                        "application\/json": {
+                            "schema": {
+                                "$ref": "#\/components\/schemas\/ErrorResponse"
+                            },
+                            "example": {
+                                "code": 1002,
+                                "errmsg": "Unauthorized access",
+                                "data": null
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "\/auth\/change-password": {
+        "post": {
+            "tags": [
+                "Authentication"
+            ],
+            "summary": "修改密码",
+            "description": "修改当前用户的密码",
+            "security": [
+                {
+                    "bearerAuth": []
+                }
+            ],
+            "requestBody": {
+                "required": true,
+                "content": {
+                    "application\/json": {
+                        "schema": {
+                            "$ref": "#\/components\/schemas\/ChangePasswordRequest"
+                        },
+                        "example": {
+                            "current_password": "oldpassword123",
+                            "password": "newpassword123",
+                            "password_confirmation": "newpassword123"
+                        }
+                    }
+                }
+            },
+            "responses": {
+                "200": {
+                    "description": "修改密码成功",
+                    "content": {
+                        "application\/json": {
+                            "schema": {
+                                "$ref": "#\/components\/schemas\/SuccessResponse"
+                            },
+                            "example": {
+                                "code": 0,
+                                "errmsg": "Success",
+                                "data": null
+                            }
+                        }
+                    }
+                },
+                "401": {
+                    "description": "未授权",
+                    "content": {
+                        "application\/json": {
+                            "schema": {
+                                "$ref": "#\/components\/schemas\/ErrorResponse"
+                            },
+                            "example": {
+                                "code": 1002,
+                                "errmsg": "Unauthorized access",
+                                "data": null
+                            }
+                        }
+                    }
+                },
+                "422": {
+                    "description": "验证失败",
+                    "content": {
+                        "application\/json": {
+                            "schema": {
+                                "$ref": "#\/components\/schemas\/ErrorResponse"
+                            },
+                            "examples": {
+                                "current_password_incorrect": {
+                                    "summary": "当前密码错误",
+                                    "value": {
+                                        "code": 2007,
+                                        "errmsg": "The current password is incorrect",
+                                        "data": null
+                                    }
+                                },
+                                "password_confirmation_mismatch": {
+                                    "summary": "密码确认不匹配",
+                                    "value": {
+                                        "code": 1001,
+                                        "errmsg": "Validation failed",
+                                        "data": {
+                                            "password": [
+                                                "The password confirmation does not match."
+                                            ]
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "\/auth\/reset-password": {
+        "post": {
+            "tags": [
+                "Authentication"
+            ],
+            "summary": "重置密码",
+            "description": "通过验证码重置用户密码（无需登录）",
+            "requestBody": {
+                "required": true,
+                "content": {
+                    "application\/json": {
+                        "schema": {
+                            "$ref": "#\/components\/schemas\/ResetPasswordRequest"
+                        },
+                        "examples": {
+                            "reset_by_phone": {
+                                "summary": "使用手机号重置密码",
+                                "value": {
+                                    "phone": "13800138000",
+                                    "area_code": "86",
+                                    "code": "123456",
+                                    "password": "newpassword123"
+                                }
+                            },
+                            "reset_by_email": {
+                                "summary": "使用邮箱重置密码",
+                                "value": {
+                                    "email": "user@example.com",
+                                    "code": "123456",
+                                    "password": "newpassword123"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "responses": {
+                "200": {
+                    "description": "重置密码成功",
+                    "content": {
+                        "application\/json": {
+                            "schema": {
+                                "$ref": "#\/components\/schemas\/SuccessResponse"
+                            },
+                            "example": {
+                                "code": 0,
+                                "errmsg": "Success",
+                                "data": null
+                            }
+                        }
+                    }
+                },
+                "422": {
+                    "description": "验证失败",
+                    "content": {
+                        "application\/json": {
+                            "schema": {
+                                "$ref": "#\/components\/schemas\/ErrorResponse"
+                            },
+                            "examples": {
+                                "invalid_verification_code": {
+                                    "summary": "验证码无效",
+                                    "value": {
+                                        "code": 2010,
+                                        "errmsg": "Invalid verification code",
+                                        "data": null
+                                    }
+                                },
+                                "user_not_found": {
+                                    "summary": "用户不存在",
+                                    "value": {
+                                        "code": 3001,
+                                        "errmsg": "User not found",
+                                        "data": null
+                                    }
+                                },
+                                "password_confirmation_mismatch": {
+                                    "summary": "密码确认不匹配",
+                                    "value": {
+                                        "code": 1001,
+                                        "errmsg": "Validation failed",
+                                        "data": {
+                                            "password": [
+                                                "The password confirmation does not match."
+                                            ]
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "\/auth\/jwt-token": {
+        "post": {
+            "tags": [
+                "Authentication"
+            ],
+            "summary": "生成 JWT token",
+            "description": "生成用于 WebSocket 认证的 JWT token",
+            "security": [
+                {
+                    "bearerAuth": []
+                }
+            ],
+            "responses": {
+                "200": {
+                    "description": "生成 JWT token 成功",
+                    "content": {
+                        "application\/json": {
+                            "schema": {
+                                "$ref": "#\/components\/schemas\/JwtTokenResponse"
+                            },
+                            "example": {
+                                "code": 0,
+                                "errmsg": "Success",
+                                "data": {
+                                    "token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwOi8vbG9jYWxob3N0OjgwMDAiLCJ1aWQiOiIwMUFSWjNORElLVFNWNFJSRkZRNjlHNUZBViIsImlhdCI6MTcxMDAwMDAwMCwiZXhwIjoxNzEwMDg2NDAwfQ.example_signature",
+                                    "expires_in": 86400,
+                                    "token_type": "Bearer"
+                                }
+                            }
+                        }
+                    }
+                },
+                "401": {
+                    "description": "未授权",
+                    "content": {
+                        "application\/json": {
+                            "schema": {
+                                "$ref": "#\/components\/schemas\/ErrorResponse"
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

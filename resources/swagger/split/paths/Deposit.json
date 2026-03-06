@@ -1,0 +1,528 @@
+{
+    "\/deposits": {
+        "get": {
+            "tags": [
+                "Deposit"
+            ],
+            "summary": "获取存款订单列表",
+            "description": "获取当前用户的存款订单列表，支持按状态、支付状态、货币类型、支付方式筛选",
+            "security": [
+                {
+                    "bearerAuth": []
+                }
+            ],
+            "parameters": [
+                {
+                    "name": "status",
+                    "in": "query",
+                    "description": "订单状态筛选",
+                    "schema": {
+                        "type": "string",
+                        "enum": [
+                            "PENDING",
+                            "PROCESSING",
+                            "COMPLETED",
+                            "FAILED",
+                            "CANCELLED",
+                            "EXPIRED"
+                        ]
+                    }
+                },
+                {
+                    "name": "pay_status",
+                    "in": "query",
+                    "description": "支付状态筛选",
+                    "schema": {
+                        "type": "string",
+                        "enum": [
+                            "PENDING",
+                            "PAID",
+                            "FAILED",
+                            "CANCELLED"
+                        ]
+                    }
+                },
+                {
+                    "name": "currency",
+                    "in": "query",
+                    "description": "货币类型筛选",
+                    "schema": {
+                        "type": "string"
+                    }
+                },
+                {
+                    "name": "payment_method_id",
+                    "in": "query",
+                    "description": "支付方式ID筛选",
+                    "schema": {
+                        "type": "integer"
+                    }
+                },
+                {
+                    "name": "per_page",
+                    "in": "query",
+                    "description": "每页数量",
+                    "schema": {
+                        "type": "integer",
+                        "default": 20,
+                        "minimum": 1
+                    }
+                }
+            ],
+            "responses": {
+                "200": {
+                    "description": "获取存款订单列表成功",
+                    "content": {
+                        "application\/json": {
+                            "schema": {
+                                "$ref": "#\/components\/schemas\/DepositListResponse"
+                            },
+                            "example": {
+                                "code": 0,
+                                "errmsg": "Success",
+                                "data": {
+                                    "items": [
+                                        {
+                                            "order_no": "DEP01ARZ3NDEKTSV4RRFFQ69G5FAV",
+                                            "out_trade_no": "SOPAY123456",
+                                            "currency": "USD",
+                                            "amount": 100,
+                                            "actual_amount": null,
+                                            "pay_fee": null,
+                                            "payment_method": {
+                                                "key": "bank_transfer_usd",
+                                                "name": "bank_transfer",
+                                                "display_name": "Bank Transfer",
+                                                "icon": "fas fa-university"
+                                            },
+                                            "status": "PENDING",
+                                            "pay_status": "PENDING",
+                                            "expired_at": "2024-01-01 12:30:00",
+                                            "completed_at": null,
+                                            "created_at": "2024-01-01 12:00:00",
+                                            "is_expired": false
+                                        }
+                                    ],
+                                    "meta": {
+                                        "current_page": 1,
+                                        "last_page": 1,
+                                        "total": 1
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "401": {
+                    "description": "未授权",
+                    "content": {
+                        "application\/json": {
+                            "schema": {
+                                "$ref": "#\/components\/schemas\/ErrorResponse"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "post": {
+            "tags": [
+                "Deposit"
+            ],
+            "summary": "创建存款订单",
+            "description": "创建新的存款订单",
+            "security": [
+                {
+                    "bearerAuth": []
+                }
+            ],
+            "requestBody": {
+                "required": true,
+                "content": {
+                    "application\/json": {
+                        "schema": {
+                            "$ref": "#\/components\/schemas\/CreateDepositRequest"
+                        },
+                        "example": {
+                            "payment_method_id": 1,
+                            "amount": 100,
+                            "native_app": "1",
+                            "currency": "USD",
+                            "deposit_info": {
+                                "channel_id": "123",
+                                "ua": "Mozilla\/5.0",
+                                "aaid": "",
+                                "android_id": "",
+                                "client_id": "",
+                                "fb_info": ""
+                            },
+                            "extra_info": []
+                        }
+                    }
+                }
+            },
+            "responses": {
+                "200": {
+                    "description": "创建存款订单成功",
+                    "content": {
+                        "application\/json": {
+                            "schema": {
+                                "$ref": "#\/components\/schemas\/CreateDepositResponse"
+                            },
+                            "example": {
+                                "code": 0,
+                                "errmsg": "Success",
+                                "data": {
+                                    "order_no": "DEP01ARZ3NDEKTSV4RRFFQ69G5FAV",
+                                    "url": "https:\/\/payment.example.com\/pay?order_id=123456",
+                                    "extra_info": null,
+                                    "datetime": 1699526400,
+                                    "html": null
+                                }
+                            }
+                        }
+                    }
+                },
+                "401": {
+                    "description": "未授权",
+                    "content": {
+                        "application\/json": {
+                            "schema": {
+                                "$ref": "#\/components\/schemas\/ErrorResponse"
+                            }
+                        }
+                    }
+                },
+                "422": {
+                    "description": "验证失败",
+                    "content": {
+                        "application\/json": {
+                            "schema": {
+                                "$ref": "#\/components\/schemas\/ErrorResponse"
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "\/deposits\/statuses": {
+        "get": {
+            "tags": [
+                "Deposit"
+            ],
+            "summary": "获取存款订单状态集合",
+            "description": "获取所有可用的存款订单状态列表",
+            "security": [
+                {
+                    "bearerAuth": []
+                }
+            ],
+            "responses": {
+                "200": {
+                    "description": "获取成功",
+                    "content": {
+                        "application\/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "code": {
+                                        "type": "integer",
+                                        "example": 0
+                                    },
+                                    "errmsg": {
+                                        "type": "string",
+                                        "example": "Success"
+                                    },
+                                    "data": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "string",
+                                            "enum": [
+                                                "PENDING",
+                                                "PROCESSING",
+                                                "COMPLETED",
+                                                "FAILED",
+                                                "CANCELLED",
+                                                "EXPIRED"
+                                            ]
+                                        },
+                                        "example": [
+                                            "PENDING",
+                                            "PROCESSING",
+                                            "COMPLETED",
+                                            "FAILED",
+                                            "CANCELLED",
+                                            "EXPIRED"
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "401": {
+                    "description": "未授权",
+                    "content": {
+                        "application\/json": {
+                            "schema": {
+                                "$ref": "#\/components\/schemas\/ErrorResponse"
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "\/deposits\/form-fields": {
+        "get": {
+            "tags": [
+                "Deposit"
+            ],
+            "summary": "获取充值表单字段配置",
+            "description": "根据支付方式和金额获取用户需要填写的表单字段",
+            "security": [
+                {
+                    "bearerAuth": []
+                }
+            ],
+            "parameters": [
+                {
+                    "name": "payment_method_id",
+                    "in": "query",
+                    "required": true,
+                    "description": "支付方式ID",
+                    "schema": {
+                        "type": "integer"
+                    }
+                },
+                {
+                    "name": "amount",
+                    "in": "query",
+                    "required": true,
+                    "description": "金额",
+                    "schema": {
+                        "type": "number",
+                        "minimum": 0.01
+                    }
+                }
+            ],
+            "responses": {
+                "200": {
+                    "description": "获取表单字段成功",
+                    "content": {
+                        "application\/json": {
+                            "schema": {
+                                "$ref": "#\/components\/schemas\/DepositFormFieldsResponse"
+                            },
+                            "example": {
+                                "code": 0,
+                                "errmsg": "Success",
+                                "data": {
+                                    "channel_id": "123",
+                                    "need_info": true,
+                                    "deposit_fields": [
+                                        {
+                                            "field": "account_name",
+                                            "require": true,
+                                            "type": "string",
+                                            "title": "account_name",
+                                            "placeholder": "account_name"
+                                        }
+                                    ],
+                                    "native_support": true
+                                }
+                            }
+                        }
+                    }
+                },
+                "401": {
+                    "description": "未授权",
+                    "content": {
+                        "application\/json": {
+                            "schema": {
+                                "$ref": "#\/components\/schemas\/ErrorResponse"
+                            }
+                        }
+                    }
+                },
+                "404": {
+                    "description": "支付方式不存在",
+                    "content": {
+                        "application\/json": {
+                            "schema": {
+                                "$ref": "#\/components\/schemas\/ErrorResponse"
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "\/deposits\/extra-step-fields": {
+        "post": {
+            "tags": [
+                "Deposit"
+            ],
+            "summary": "获取额外步骤表单字段",
+            "description": "根据支付方式、金额和额外信息获取额外步骤需要填写的表单字段",
+            "security": [
+                {
+                    "bearerAuth": []
+                }
+            ],
+            "requestBody": {
+                "required": true,
+                "content": {
+                    "application\/json": {
+                        "schema": {
+                            "type": "object",
+                            "required": [
+                                "payment_method_id",
+                                "amount",
+                                "extra_info"
+                            ],
+                            "properties": {
+                                "payment_method_id": {
+                                    "type": "integer",
+                                    "description": "支付方式ID"
+                                },
+                                "amount": {
+                                    "type": "number",
+                                    "description": "金额"
+                                },
+                                "extra_info": {
+                                    "type": "object",
+                                    "description": "额外信息"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "responses": {
+                "200": {
+                    "description": "获取额外步骤字段成功",
+                    "content": {
+                        "application\/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "code": {
+                                        "type": "integer",
+                                        "example": 0
+                                    },
+                                    "data": {
+                                        "type": "object",
+                                        "description": "额外步骤表单字段配置"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "401": {
+                    "description": "未授权"
+                },
+                "404": {
+                    "description": "支付方式不存在"
+                },
+                "422": {
+                    "description": "参数验证失败"
+                }
+            }
+        }
+    },
+    "\/deposits\/{orderNo}": {
+        "get": {
+            "tags": [
+                "Deposit"
+            ],
+            "summary": "获取存款订单详情",
+            "description": "根据订单号获取存款订单的详细信息",
+            "security": [
+                {
+                    "bearerAuth": []
+                }
+            ],
+            "parameters": [
+                {
+                    "name": "orderNo",
+                    "in": "path",
+                    "required": true,
+                    "description": "订单号",
+                    "schema": {
+                        "type": "string"
+                    }
+                }
+            ],
+            "responses": {
+                "200": {
+                    "description": "获取存款订单详情成功",
+                    "content": {
+                        "application\/json": {
+                            "schema": {
+                                "$ref": "#\/components\/schemas\/DepositDetailResponse"
+                            },
+                            "example": {
+                                "code": 0,
+                                "errmsg": "Success",
+                                "data": {
+                                    "order_no": "DEP01ARZ3NDEKTSV4RRFFQ69G5FAV",
+                                    "out_trade_no": "SOPAY123456",
+                                    "currency": "USD",
+                                    "amount": 100,
+                                    "actual_amount": null,
+                                    "pay_fee": null,
+                                    "payment_method": {
+                                        "key": "bank_transfer_usd",
+                                        "name": "bank_transfer",
+                                        "display_name": "Bank Transfer",
+                                        "icon": "fas fa-university"
+                                    },
+                                    "status": "PENDING",
+                                    "pay_status": "PENDING",
+                                    "user_ip": "192.168.1.1",
+                                    "expired_at": "2024-01-01 12:30:00",
+                                    "completed_at": null,
+                                    "created_at": "2024-01-01 12:00:00",
+                                    "updated_at": "2024-01-01 12:00:00",
+                                    "deposit_info": {
+                                        "channel_id": "123",
+                                        "ua": "Mozilla\/5.0",
+                                        "aaid": "",
+                                        "android_id": "",
+                                        "client_id": "",
+                                        "fb_info": ""
+                                    },
+                                    "extra_info": [],
+                                    "is_expired": false
+                                }
+                            }
+                        }
+                    }
+                },
+                "401": {
+                    "description": "未授权",
+                    "content": {
+                        "application\/json": {
+                            "schema": {
+                                "$ref": "#\/components\/schemas\/ErrorResponse"
+                            }
+                        }
+                    }
+                },
+                "404": {
+                    "description": "存款订单不存在",
+                    "content": {
+                        "application\/json": {
+                            "schema": {
+                                "$ref": "#\/components\/schemas\/ErrorResponse"
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

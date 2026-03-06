@@ -1,0 +1,68 @@
+{
+    "\/banners": {
+        "get": {
+            "tags": [
+                "Banner"
+            ],
+            "summary": "获取Banner列表",
+            "description": "获取当前可用的Banner轮播图",
+            "parameters": [
+                {
+                    "name": "type",
+                    "in": "query",
+                    "description": "Banner类型",
+                    "schema": {
+                        "type": "string",
+                        "enum": [
+                            "home",
+                            "promotion",
+                            "advertisement"
+                        ]
+                    }
+                },
+                {
+                    "name": "platform",
+                    "in": "query",
+                    "description": "平台类型",
+                    "schema": {
+                        "type": "string",
+                        "enum": [
+                            "web",
+                            "app"
+                        ],
+                        "default": "web"
+                    }
+                }
+            ],
+            "responses": {
+                "200": {
+                    "description": "获取Banner列表成功",
+                    "content": {
+                        "application\/json": {
+                            "schema": {
+                                "$ref": "#\/components\/schemas\/BannerListResponse"
+                            },
+                            "example": {
+                                "code": 0,
+                                "errmsg": "Success",
+                                "data": {
+                                    "items": [
+                                        {
+                                            "id": 1,
+                                            "type": "home",
+                                            "img_url": "https:\/\/example.com\/banner1.jpg",
+                                            "rule_url": "https:\/\/example.com\/click",
+                                            "description": "首页Banner",
+                                            "sort_id": 1
+                                        }
+                                    ],
+                                    "meta": []
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

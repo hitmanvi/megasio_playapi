@@ -1,0 +1,328 @@
+{
+    "\/help-center\/groups": {
+        "get": {
+            "tags": [
+                "HelpCenter"
+            ],
+            "summary": "获取文章分组列表",
+            "description": "获取启用的文章分组列表（分页），不传 parent_id 时默认返回根分组",
+            "parameters": [
+                {
+                    "name": "parent_id",
+                    "in": "query",
+                    "description": "父级分组ID，不传或传0时返回根分组",
+                    "schema": {
+                        "type": "integer",
+                        "nullable": true
+                    }
+                },
+                {
+                    "name": "name",
+                    "in": "query",
+                    "description": "分组名称搜索",
+                    "schema": {
+                        "type": "string"
+                    }
+                },
+                {
+                    "name": "page",
+                    "in": "query",
+                    "description": "页码",
+                    "schema": {
+                        "type": "integer",
+                        "default": 1,
+                        "minimum": 1
+                    }
+                },
+                {
+                    "name": "per_page",
+                    "in": "query",
+                    "description": "每页数量",
+                    "schema": {
+                        "type": "integer",
+                        "default": 10,
+                        "minimum": 1,
+                        "maximum": 100
+                    }
+                }
+            ],
+            "responses": {
+                "200": {
+                    "description": "获取分组列表成功",
+                    "content": {
+                        "application\/json": {
+                            "schema": {
+                                "$ref": "#\/components\/schemas\/ArticleGroupListResponse"
+                            },
+                            "example": {
+                                "code": 0,
+                                "errmsg": "Success",
+                                "data": {
+                                    "items": [
+                                        {
+                                            "id": 1,
+                                            "name": "常见问题",
+                                            "icon": "fas fa-question-circle",
+                                            "parent_id": null,
+                                            "enabled": true,
+                                            "sort_id": 1,
+                                            "created_at": "2026-01-15 10:00:00",
+                                            "updated_at": "2026-01-15 10:00:00"
+                                        }
+                                    ],
+                                    "meta": {
+                                        "current_page": 1,
+                                        "last_page": 1,
+                                        "per_page": 10,
+                                        "total": 1
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "\/help-center\/groups\/{id}": {
+        "get": {
+            "tags": [
+                "HelpCenter"
+            ],
+            "summary": "获取文章分组详情",
+            "description": "根据ID获取文章分组详情，包含所有上级分组和子分组",
+            "parameters": [
+                {
+                    "name": "id",
+                    "in": "path",
+                    "required": true,
+                    "description": "分组ID",
+                    "schema": {
+                        "type": "integer"
+                    }
+                }
+            ],
+            "responses": {
+                "200": {
+                    "description": "获取分组详情成功",
+                    "content": {
+                        "application\/json": {
+                            "schema": {
+                                "$ref": "#\/components\/schemas\/ArticleGroupDetailResponse"
+                            },
+                            "example": {
+                                "code": 0,
+                                "errmsg": "Success",
+                                "data": {
+                                    "id": 2,
+                                    "name": "存款相关",
+                                    "icon": "fas fa-money-bill-wave",
+                                    "parent_id": 1,
+                                    "enabled": true,
+                                    "sort_id": 1,
+                                    "article_count": 5,
+                                    "created_at": "2026-01-15 10:00:00",
+                                    "updated_at": "2026-01-15 10:00:00",
+                                    "ancestors": [
+                                        {
+                                            "id": 1,
+                                            "name": "常见问题",
+                                            "icon": "fas fa-question-circle",
+                                            "parent_id": null,
+                                            "enabled": true,
+                                            "sort_id": 1,
+                                            "article_count": 10,
+                                            "created_at": "2026-01-15 10:00:00",
+                                            "updated_at": "2026-01-15 10:00:00"
+                                        }
+                                    ],
+                                    "children": [
+                                        {
+                                            "id": 3,
+                                            "name": "提款相关",
+                                            "icon": "fas fa-hand-holding-usd",
+                                            "parent_id": 1,
+                                            "enabled": true,
+                                            "sort_id": 2,
+                                            "created_at": "2026-01-15 10:00:00",
+                                            "updated_at": "2026-01-15 10:00:00"
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                },
+                "404": {
+                    "description": "分组不存在或已禁用",
+                    "content": {
+                        "application\/json": {
+                            "schema": {
+                                "$ref": "#\/components\/schemas\/ErrorResponse"
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "\/help-center\/articles": {
+        "get": {
+            "tags": [
+                "HelpCenter"
+            ],
+            "summary": "获取文章列表",
+            "description": "获取启用的文章列表（分页），支持按分组筛选和关键词搜索",
+            "parameters": [
+                {
+                    "name": "group_id",
+                    "in": "query",
+                    "description": "分组ID筛选",
+                    "schema": {
+                        "type": "integer",
+                        "nullable": true
+                    }
+                },
+                {
+                    "name": "keyword",
+                    "in": "query",
+                    "description": "关键词搜索（标题和内容）",
+                    "schema": {
+                        "type": "string"
+                    }
+                },
+                {
+                    "name": "page",
+                    "in": "query",
+                    "description": "页码",
+                    "schema": {
+                        "type": "integer",
+                        "default": 1,
+                        "minimum": 1
+                    }
+                },
+                {
+                    "name": "per_page",
+                    "in": "query",
+                    "description": "每页数量",
+                    "schema": {
+                        "type": "integer",
+                        "default": 10,
+                        "minimum": 1,
+                        "maximum": 100
+                    }
+                }
+            ],
+            "responses": {
+                "200": {
+                    "description": "获取文章列表成功",
+                    "content": {
+                        "application\/json": {
+                            "schema": {
+                                "$ref": "#\/components\/schemas\/ArticleListResponse"
+                            },
+                            "example": {
+                                "code": 0,
+                                "errmsg": "Success",
+                                "data": {
+                                    "items": [
+                                        {
+                                            "id": 1,
+                                            "title": "如何存款？",
+                                            "group_id": 2,
+                                            "enabled": true,
+                                            "sort_id": 1,
+                                            "created_at": "2026-01-15 10:00:00",
+                                            "updated_at": "2026-01-15 10:00:00",
+                                            "group": {
+                                                "id": 2,
+                                                "name": "存款相关",
+                                                "icon": "fas fa-money-bill-wave"
+                                            }
+                                        }
+                                    ],
+                                    "meta": {
+                                        "current_page": 1,
+                                        "last_page": 1,
+                                        "per_page": 10,
+                                        "total": 1
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "\/help-center\/articles\/{id}": {
+        "get": {
+            "tags": [
+                "HelpCenter"
+            ],
+            "summary": "获取文章详情",
+            "description": "根据ID获取文章详情",
+            "parameters": [
+                {
+                    "name": "id",
+                    "in": "path",
+                    "required": true,
+                    "description": "文章ID",
+                    "schema": {
+                        "type": "integer"
+                    }
+                },
+                {
+                    "name": "with_group",
+                    "in": "query",
+                    "description": "是否包含分组信息",
+                    "schema": {
+                        "type": "boolean",
+                        "default": true
+                    }
+                }
+            ],
+            "responses": {
+                "200": {
+                    "description": "获取文章详情成功",
+                    "content": {
+                        "application\/json": {
+                            "schema": {
+                                "$ref": "#\/components\/schemas\/ArticleDetailResponse"
+                            },
+                            "example": {
+                                "code": 0,
+                                "errmsg": "Success",
+                                "data": {
+                                    "id": 1,
+                                    "title": "如何存款？",
+                                    "content": "您可以通过以下方式存款：\\n1. 登录您的账户\\n2. 进入存款页面\\n3. 选择支付方式\\n4. 输入存款金额\\n5. 完成支付",
+                                    "group_id": 2,
+                                    "enabled": true,
+                                    "sort_id": 1,
+                                    "created_at": "2026-01-15 10:00:00",
+                                    "updated_at": "2026-01-15 10:00:00",
+                                    "group": {
+                                        "id": 2,
+                                        "name": "存款相关",
+                                        "icon": "fas fa-money-bill-wave"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "404": {
+                    "description": "文章不存在或已禁用",
+                    "content": {
+                        "application\/json": {
+                            "schema": {
+                                "$ref": "#\/components\/schemas\/ErrorResponse"
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

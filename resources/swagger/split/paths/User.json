@@ -1,0 +1,254 @@
+{
+    "\/users\/mine": {
+        "get": {
+            "tags": [
+                "User"
+            ],
+            "summary": "获取当前用户信息",
+            "description": "获取当前登录用户的详细信息，包括货币偏好设置",
+            "security": [
+                {
+                    "bearerAuth": []
+                }
+            ],
+            "responses": {
+                "200": {
+                    "description": "获取用户信息成功",
+                    "content": {
+                        "application\/json": {
+                            "schema": {
+                                "$ref": "#\/components\/schemas\/UserResponse"
+                            },
+                            "example": {
+                                "code": 0,
+                                "errmsg": "Success",
+                                "data": {
+                                    "uid": "01ARZ3NDEKTSV4RRFFQ69G5FAV",
+                                    "name": "张三",
+                                    "phone": "13800138000",
+                                    "email": "zhangsan@example.com",
+                                    "invite_code": "ABC12345",
+                                    "display_currencies": [
+                                        "USD",
+                                        "EUR",
+                                        "CNY"
+                                    ],
+                                    "base_currency": "USD",
+                                    "current_currency": "USD"
+                                }
+                            }
+                        }
+                    }
+                },
+                "401": {
+                    "description": "未授权",
+                    "content": {
+                        "application\/json": {
+                            "schema": {
+                                "$ref": "#\/components\/schemas\/ErrorResponse"
+                            },
+                            "example": {
+                                "code": 1002,
+                                "errmsg": "Unauthorized access",
+                                "data": null
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "patch": {
+            "tags": [
+                "User"
+            ],
+            "summary": "更新用户信息",
+            "description": "更新当前用户的基本信息（name 和 invite_code）",
+            "security": [
+                {
+                    "bearerAuth": []
+                }
+            ],
+            "requestBody": {
+                "required": true,
+                "content": {
+                    "application\/json": {
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "name": {
+                                    "type": "string",
+                                    "maxLength": 255,
+                                    "description": "用户昵称"
+                                },
+                                "invite_code": {
+                                    "type": "string",
+                                    "minLength": 8,
+                                    "maxLength": 8,
+                                    "pattern": "^[ABCDEFGHJKLMNPQRSTUVWXYZ23456789]{8}$",
+                                    "description": "邀请码（8位大写字母和数字，排除容易混淆的字符 0, O, I, 1）"
+                                }
+                            },
+                            "anyOf": [
+                                {
+                                    "required": [
+                                        "name"
+                                    ]
+                                },
+                                {
+                                    "required": [
+                                        "invite_code"
+                                    ]
+                                }
+                            ]
+                        },
+                        "example": {
+                            "name": "新昵称",
+                            "invite_code": "ABC12345"
+                        }
+                    }
+                }
+            },
+            "responses": {
+                "200": {
+                    "description": "更新成功",
+                    "content": {
+                        "application\/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "code": {
+                                        "type": "integer",
+                                        "example": 0
+                                    },
+                                    "errmsg": {
+                                        "type": "string",
+                                        "example": "Success"
+                                    },
+                                    "data": {
+                                        "type": "object",
+                                        "properties": {
+                                            "name": {
+                                                "type": "string",
+                                                "description": "用户昵称"
+                                            },
+                                            "invite_code": {
+                                                "type": "string",
+                                                "description": "邀请码"
+                                            }
+                                        }
+                                    }
+                                }
+                            },
+                            "example": {
+                                "code": 0,
+                                "errmsg": "Success",
+                                "data": {
+                                    "name": "新昵称",
+                                    "invite_code": "ABC12345"
+                                }
+                            }
+                        }
+                    }
+                },
+                "401": {
+                    "description": "未授权",
+                    "content": {
+                        "application\/json": {
+                            "schema": {
+                                "$ref": "#\/components\/schemas\/ErrorResponse"
+                            }
+                        }
+                    }
+                },
+                "422": {
+                    "description": "验证失败",
+                    "content": {
+                        "application\/json": {
+                            "schema": {
+                                "$ref": "#\/components\/schemas\/ErrorResponse"
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "\/users\/currency-preferences": {
+        "patch": {
+            "tags": [
+                "User"
+            ],
+            "summary": "更新用户货币偏好设置",
+            "description": "统一更新用户的货币偏好设置，包括展示货币列表、基准币种和当前使用的币种。所有字段都是可选的，只更新提供的字段",
+            "security": [
+                {
+                    "bearerAuth": []
+                }
+            ],
+            "requestBody": {
+                "required": true,
+                "content": {
+                    "application\/json": {
+                        "schema": {
+                            "$ref": "#\/components\/schemas\/UpdateCurrencyPreferencesRequest"
+                        },
+                        "example": {
+                            "display_currencies": [
+                                "USD",
+                                "EUR",
+                                "CNY"
+                            ],
+                            "base_currency": "USD",
+                            "current_currency": "USD"
+                        }
+                    }
+                }
+            },
+            "responses": {
+                "200": {
+                    "description": "更新成功",
+                    "content": {
+                        "application\/json": {
+                            "schema": {
+                                "$ref": "#\/components\/schemas\/CurrencyPreferencesResponse"
+                            },
+                            "example": {
+                                "code": 0,
+                                "errmsg": "Success",
+                                "data": {
+                                    "display_currencies": [
+                                        "USD",
+                                        "EUR",
+                                        "CNY"
+                                    ],
+                                    "base_currency": "USD",
+                                    "current_currency": "USD"
+                                }
+                            }
+                        }
+                    }
+                },
+                "401": {
+                    "description": "未授权",
+                    "content": {
+                        "application\/json": {
+                            "schema": {
+                                "$ref": "#\/components\/schemas\/ErrorResponse"
+                            }
+                        }
+                    }
+                },
+                "422": {
+                    "description": "参数验证失败",
+                    "content": {
+                        "application\/json": {
+                            "schema": {
+                                "$ref": "#\/components\/schemas\/ErrorResponse"
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

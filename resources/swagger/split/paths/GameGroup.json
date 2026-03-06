@@ -1,0 +1,404 @@
+{
+    "\/game-groups": {
+        "get": {
+            "tags": [
+                "GameGroup"
+            ],
+            "summary": "获取游戏群组列表",
+            "description": "获取启用状态的游戏群组（分页），支持按分类筛选",
+            "parameters": [
+                {
+                    "name": "category",
+                    "in": "query",
+                    "description": "分类筛选",
+                    "schema": {
+                        "type": "string",
+                        "enum": [
+                            "Event",
+                            "System"
+                        ]
+                    }
+                },
+                {
+                    "name": "Locale",
+                    "in": "header",
+                    "description": "语言代码",
+                    "schema": {
+                        "type": "string",
+                        "default": "en"
+                    }
+                },
+                {
+                    "name": "page",
+                    "in": "query",
+                    "description": "页码",
+                    "schema": {
+                        "type": "integer",
+                        "default": 1,
+                        "minimum": 1
+                    }
+                },
+                {
+                    "name": "per_page",
+                    "in": "query",
+                    "description": "每页数量",
+                    "schema": {
+                        "type": "integer",
+                        "default": 20,
+                        "minimum": 1,
+                        "maximum": 100
+                    }
+                }
+            ],
+            "responses": {
+                "200": {
+                    "description": "获取游戏群组列表成功",
+                    "content": {
+                        "application\/json": {
+                            "schema": {
+                                "$ref": "#\/components\/schemas\/GameGroupListResponse"
+                            },
+                            "example": {
+                                "code": 0,
+                                "errmsg": "Success",
+                                "data": {
+                                    "items": [
+                                        {
+                                            "id": 1,
+                                            "category": "Event",
+                                            "sort_id": 1,
+                                            "name": "热门游戏",
+                                            "app_limit": 10,
+                                            "web_limit": 20
+                                        }
+                                    ],
+                                    "meta": {
+                                        "current_page": 1,
+                                        "last_page": 5,
+                                        "total": 100
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "\/game-groups\/bonus": {
+        "get": {
+            "tags": [
+                "GameGroup"
+            ],
+            "summary": "获取 support_bonus 群组详情",
+            "description": "获取 name=Support Bonus 的游戏群组详情",
+            "parameters": [
+                {
+                    "name": "Locale",
+                    "in": "header",
+                    "description": "语言代码",
+                    "schema": {
+                        "type": "string",
+                        "default": "en"
+                    }
+                }
+            ],
+            "responses": {
+                "200": {
+                    "description": "获取成功",
+                    "content": {
+                        "application\/json": {
+                            "schema": {
+                                "$ref": "#\/components\/schemas\/SupportBonusGroupDetailResponse"
+                            },
+                            "example": {
+                                "code": 0,
+                                "errmsg": "Success",
+                                "data": {
+                                    "id": 1,
+                                    "category": "System",
+                                    "name": "Support Bonus",
+                                    "sort_id": 1,
+                                    "app_limit": 10,
+                                    "web_limit": 20
+                                }
+                            }
+                        }
+                    }
+                },
+                "404": {
+                    "description": "support_bonus 群组不存在或已禁用",
+                    "content": {
+                        "application\/json": {
+                            "schema": {
+                                "$ref": "#\/components\/schemas\/ErrorResponse"
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "\/game-groups\/{id}": {
+        "get": {
+            "tags": [
+                "GameGroup"
+            ],
+            "summary": "获取游戏群组详情",
+            "description": "根据ID获取游戏群组详情",
+            "parameters": [
+                {
+                    "name": "id",
+                    "in": "path",
+                    "required": true,
+                    "description": "游戏群组ID",
+                    "schema": {
+                        "type": "integer"
+                    }
+                },
+                {
+                    "name": "Locale",
+                    "in": "header",
+                    "description": "语言代码",
+                    "schema": {
+                        "type": "string",
+                        "default": "en"
+                    }
+                }
+            ],
+            "responses": {
+                "200": {
+                    "description": "获取游戏群组详情成功",
+                    "content": {
+                        "application\/json": {
+                            "schema": {
+                                "$ref": "#\/components\/schemas\/GameGroupDetailResponse"
+                            },
+                            "example": {
+                                "code": 0,
+                                "errmsg": "Success",
+                                "data": {
+                                    "id": 1,
+                                    "category": "Event",
+                                    "name": "热门游戏",
+                                    "sort_id": 1,
+                                    "app_limit": 10,
+                                    "web_limit": 20,
+                                    "enabled": true
+                                }
+                            }
+                        }
+                    }
+                },
+                "404": {
+                    "description": "游戏群组不存在或已禁用",
+                    "content": {
+                        "application\/json": {
+                            "schema": {
+                                "$ref": "#\/components\/schemas\/ErrorResponse"
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "\/game-groups\/category\/{category}": {
+        "get": {
+            "tags": [
+                "GameGroup"
+            ],
+            "summary": "获取指定分类的游戏群组",
+            "description": "根据分类获取游戏群组（分页）",
+            "parameters": [
+                {
+                    "name": "category",
+                    "in": "path",
+                    "required": true,
+                    "description": "分类名称",
+                    "schema": {
+                        "type": "string",
+                        "enum": [
+                            "Event",
+                            "System"
+                        ]
+                    }
+                },
+                {
+                    "name": "Locale",
+                    "in": "header",
+                    "description": "语言代码",
+                    "schema": {
+                        "type": "string",
+                        "default": "en"
+                    }
+                },
+                {
+                    "name": "page",
+                    "in": "query",
+                    "description": "页码",
+                    "schema": {
+                        "type": "integer",
+                        "default": 1,
+                        "minimum": 1
+                    }
+                },
+                {
+                    "name": "per_page",
+                    "in": "query",
+                    "description": "每页数量",
+                    "schema": {
+                        "type": "integer",
+                        "default": 20,
+                        "minimum": 1,
+                        "maximum": 100
+                    }
+                }
+            ],
+            "responses": {
+                "200": {
+                    "description": "获取游戏群组列表成功",
+                    "content": {
+                        "application\/json": {
+                            "schema": {
+                                "$ref": "#\/components\/schemas\/GameGroupListResponse"
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "\/game-groups\/{groupId}\/games": {
+        "get": {
+            "tags": [
+                "GameGroup"
+            ],
+            "summary": "获取游戏群组中的游戏列表",
+            "description": "根据群组ID获取该群组中的游戏列表（分页）",
+            "parameters": [
+                {
+                    "name": "groupId",
+                    "in": "path",
+                    "required": true,
+                    "description": "游戏群组ID",
+                    "schema": {
+                        "type": "integer"
+                    }
+                },
+                {
+                    "name": "platform",
+                    "in": "query",
+                    "description": "平台类型（保留参数，但不再限制返回结果）",
+                    "schema": {
+                        "type": "string",
+                        "enum": [
+                            "web",
+                            "app"
+                        ],
+                        "default": "web"
+                    }
+                },
+                {
+                    "name": "brand_id",
+                    "in": "query",
+                    "description": "按品牌ID过滤，支持单个或数组",
+                    "schema": {
+                        "oneOf": [
+                            {
+                                "type": "integer"
+                            },
+                            {
+                                "type": "array",
+                                "items": {
+                                    "type": "integer"
+                                }
+                            }
+                        ]
+                    }
+                },
+                {
+                    "name": "theme_id",
+                    "in": "query",
+                    "description": "按主题ID过滤，支持单个或数组",
+                    "schema": {
+                        "oneOf": [
+                            {
+                                "type": "integer"
+                            },
+                            {
+                                "type": "array",
+                                "items": {
+                                    "type": "integer"
+                                }
+                            }
+                        ]
+                    }
+                },
+                {
+                    "name": "Locale",
+                    "in": "header",
+                    "description": "语言代码",
+                    "schema": {
+                        "type": "string",
+                        "default": "en"
+                    }
+                },
+                {
+                    "name": "page",
+                    "in": "query",
+                    "description": "页码",
+                    "schema": {
+                        "type": "integer",
+                        "default": 1,
+                        "minimum": 1
+                    }
+                },
+                {
+                    "name": "per_page",
+                    "in": "query",
+                    "description": "每页数量",
+                    "schema": {
+                        "type": "integer",
+                        "default": 20,
+                        "minimum": 1,
+                        "maximum": 100
+                    }
+                }
+            ],
+            "responses": {
+                "200": {
+                    "description": "获取游戏列表成功",
+                    "content": {
+                        "application\/json": {
+                            "schema": {
+                                "$ref": "#\/components\/schemas\/GameListResponse"
+                            },
+                            "example": {
+                                "code": 0,
+                                "errmsg": "Success",
+                                "data": {
+                                    "items": [
+                                        {
+                                            "id": 1,
+                                            "name": "The Matrix",
+                                            "thumbnail": "https:\/\/example.com\/thumbnails\/matrix.jpg",
+                                            "sort_id": 1,
+                                            "has_demo": true,
+                                            "support_bonus": false
+                                        }
+                                    ],
+                                    "meta": {
+                                        "current_page": 1,
+                                        "last_page": 5,
+                                        "total": 100
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

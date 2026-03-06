@@ -1,0 +1,124 @@
+{
+    "openapi": "3.0.0",
+    "info": {
+        "title": "PlayAPI - Authentication API",
+        "description": "用户认证系统API文档",
+        "version": "1.0.0",
+        "contact": {
+            "name": "API Support",
+            "email": "support@example.com"
+        }
+    },
+    "servers": [
+        {
+            "url": "http:\/\/localhost:8000\/api",
+            "description": "开发环境"
+        }
+    ],
+    "tags": [
+        {
+            "name": "Authentication",
+            "description": "用户认证相关接口"
+        },
+        {
+            "name": "Banner",
+            "description": "Banner轮播图相关接口"
+        },
+        {
+            "name": "Balance",
+            "description": "余额相关接口"
+        },
+        {
+            "name": "Rollover",
+            "description": "Rollover 相关接口"
+        },
+        {
+            "name": "WeeklyCashback",
+            "description": "周返现相关接口"
+        },
+        {
+            "name": "Brand",
+            "description": "品牌相关接口"
+        },
+        {
+            "name": "Game",
+            "description": "游戏相关接口"
+        },
+        {
+            "name": "GameCategory",
+            "description": "游戏分类相关接口"
+        },
+        {
+            "name": "Theme",
+            "description": "主题相关接口"
+        },
+        {
+            "name": "GameGroup",
+            "description": "游戏群组相关接口"
+        },
+        {
+            "name": "Utils",
+            "description": "工具类接口"
+        },
+        {
+            "name": "PaymentMethod",
+            "description": "支付方式相关接口"
+        },
+        {
+            "name": "Currency",
+            "description": "货币相关接口"
+        },
+        {
+            "name": "Deposit",
+            "description": "存款订单相关接口"
+        },
+        {
+            "name": "Withdraw",
+            "description": "提款订单相关接口"
+        },
+        {
+            "name": "Transaction",
+            "description": "交易记录相关接口"
+        },
+        {
+            "name": "Order",
+            "description": "订单相关接口"
+        },
+        {
+            "name": "Invitation",
+            "description": "邀请相关接口"
+        },
+        {
+            "name": "User",
+            "description": "用户相关接口"
+        },
+        {
+            "name": "Bundle",
+            "description": "捆绑包相关接口（双币种模式）"
+        },
+        {
+            "name": "Redeem",
+            "description": "SC兑换USD相关接口（双币种模式）"
+        },
+        {
+            "name": "HelpCenter",
+            "description": "帮助中心相关接口"
+        },
+        {
+            "name": "BonusTask",
+            "description": "奖励任务相关接口"
+        },
+        {
+            "name": "Notification",
+            "description": "通知消息相关接口"
+        },
+        {
+            "name": "GameFavorite",
+            "description": "游戏收藏相关接口"
+        },
+        {
+            "name": "VIP",
+            "description": "VIP等级相关接口"
+        }
+    ]
+}

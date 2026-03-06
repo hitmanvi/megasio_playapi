@@ -1,0 +1,698 @@
+{
+    "\/bonus-tasks": {
+        "get": {
+            "tags": [
+                "BonusTask"
+            ],
+            "summary": "获取奖励任务列表",
+            "description": "获取当前用户的所有奖励任务列表，支持按状态过滤，按创建时间倒序返回。",
+            "security": [
+                {
+                    "bearerAuth": []
+                }
+            ],
+            "parameters": [
+                {
+                    "name": "status",
+                    "in": "query",
+                    "required": false,
+                    "description": "任务状态过滤（可选，支持单个值或数组，例如：status=pending 或 status[]=pending&status[]=active）",
+                    "schema": {
+                        "oneOf": [
+                            {
+                                "type": "string",
+                                "enum": [
+                                    "pending",
+                                    "active",
+                                    "completed",
+                                    "claimed",
+                                    "expired",
+                                    "cancelled",
+                                    "depleted"
+                                ]
+                            },
+                            {
+                                "type": "array",
+                                "items": {
+                                    "type": "string",
+                                    "enum": [
+                                        "pending",
+                                        "active",
+                                        "completed",
+                                        "claimed",
+                                        "expired",
+                                        "cancelled",
+                                        "depleted"
+                                    ]
+                                }
+                            }
+                        ]
+                    },
+                    "style": "form",
+                    "explode": true
+                },
+                {
+                    "name": "per_page",
+                    "in": "query",
+                    "required": false,
+                    "description": "每页数量",
+                    "schema": {
+                        "type": "integer",
+                        "default": 20,
+                        "minimum": 1
+                    }
+                },
+                {
+                    "name": "page",
+                    "in": "query",
+                    "required": false,
+                    "description": "页码",
+                    "schema": {
+                        "type": "integer",
+                        "default": 1,
+                        "minimum": 1
+                    }
+                }
+            ],
+            "responses": {
+                "200": {
+                    "description": "获取成功",
+                    "content": {
+                        "application\/json": {
+                            "schema": {
+                                "$ref": "#\/components\/schemas\/BonusTaskListResponse"
+                            },
+                            "example": {
+                                "code": 0,
+                                "errmsg": "Success",
+                                "data": {
+                                    "items": [
+                                        {
+                                            "id": 1,
+                                            "task_no": "FIRST_DEPOSIT_BONUS",
+                                            "bonus_name": "First Deposit Bonus",
+                                            "cap_bonus": 100,
+                                            "base_bonus": 50,
+                                            "last_bonus": 100,
+                                            "need_wager": 500,
+                                            "wager": 500,
+                                            "status": "completed",
+                                            "currency": "USD",
+                                            "expired_at": "2026-02-15T10:00:00Z",
+                                            "progress_percent": 100,
+                                            "created_at": "2026-01-15 10:00:00",
+                                            "updated_at": "2026-01-15 12:00:00"
+                                        }
+                                    ],
+                                    "meta": {
+                                        "current_page": 1,
+                                        "last_page": 5,
+                                        "total": 100
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "401": {
+                    "description": "未授权",
+                    "content": {
+                        "application\/json": {
+                            "schema": {
+                                "$ref": "#\/components\/schemas\/ErrorResponse"
+                            }
+                        }
+                    }
+                },
+                "400": {
+                    "description": "参数验证失败",
+                    "content": {
+                        "application\/json": {
+                            "schema": {
+                                "$ref": "#\/components\/schemas\/ErrorResponse"
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "\/bonus-tasks\/claimable": {
+        "get": {
+            "tags": [
+                "BonusTask"
+            ],
+            "summary": "获取可领取的奖励任务列表",
+            "description": "获取当前用户所有可领取（已完成）的奖励任务列表。已完成的任务不受过期时间限制。",
+            "security": [
+                {
+                    "bearerAuth": []
+                }
+            ],
+            "responses": {
+                "200": {
+                    "description": "获取成功",
+                    "content": {
+                        "application\/json": {
+                            "schema": {
+                                "$ref": "#\/components\/schemas\/BonusTaskListResponse"
+                            },
+                            "example": {
+                                "code": 0,
+                                "errmsg": "Success",
+                                "data": [
+                                    {
+                                        "id": 1,
+                                        "task_no": "TASK001",
+                                        "bonus_name": "首充奖励",
+                                        "cap_bonus": 100,
+                                        "base_bonus": 50,
+                                        "last_bonus": 100,
+                                        "need_wager": 500,
+                                        "wager": 500,
+                                        "status": "completed",
+                                        "currency": "USD",
+                                        "expired_at": "2026-02-15T10:00:00Z",
+                                        "progress_percent": 100,
+                                        "created_at": "2026-01-15 10:00:00",
+                                        "updated_at": "2026-01-15 12:00:00"
+                                    }
+                                ]
+                            }
+                        }
+                    }
+                },
+                "401": {
+                    "description": "未授权",
+                    "content": {
+                        "application\/json": {
+                            "schema": {
+                                "$ref": "#\/components\/schemas\/ErrorResponse"
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "\/bonus-tasks\/stats": {
+        "get": {
+            "tags": [
+                "BonusTask"
+            ],
+            "summary": "获取奖励任务统计数据",
+            "description": "获取当前用户的奖励任务统计数据，包括所有任务的 cap_bonus 总和",
+            "security": [
+                {
+                    "bearerAuth": []
+                }
+            ],
+            "responses": {
+                "200": {
+                    "description": "获取成功",
+                    "content": {
+                        "application\/json": {
+                            "schema": {
+                                "$ref": "#\/components\/schemas\/BonusTaskStatsResponse"
+                            },
+                            "example": {
+                                "code": 0,
+                                "errmsg": "Success",
+                                "data": {
+                                    "total": 500,
+                                    "currency": "USD"
+                                }
+                            }
+                        }
+                    }
+                },
+                "401": {
+                    "description": "未授权",
+                    "content": {
+                        "application\/json": {
+                            "schema": {
+                                "$ref": "#\/components\/schemas\/ErrorResponse"
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "\/bonus-tasks\/{id}": {
+        "get": {
+            "tags": [
+                "BonusTask"
+            ],
+            "summary": "获取奖励任务详情",
+            "description": "获取指定奖励任务的详细信息",
+            "security": [
+                {
+                    "bearerAuth": []
+                }
+            ],
+            "parameters": [
+                {
+                    "name": "id",
+                    "in": "path",
+                    "required": true,
+                    "description": "奖励任务ID",
+                    "schema": {
+                        "type": "integer"
+                    }
+                }
+            ],
+            "responses": {
+                "200": {
+                    "description": "获取成功",
+                    "content": {
+                        "application\/json": {
+                            "schema": {
+                                "$ref": "#\/components\/schemas\/BonusTaskResponse"
+                            },
+                            "example": {
+                                "code": 0,
+                                "errmsg": "Success",
+                                "data": {
+                                    "id": 1,
+                                    "task_no": "TASK001",
+                                    "bonus_name": "首充奖励",
+                                    "cap_bonus": 100,
+                                    "base_bonus": 50,
+                                    "last_bonus": 100,
+                                    "need_wager": 500,
+                                    "wager": 250,
+                                    "status": "active",
+                                    "currency": "USD",
+                                    "expired_at": "2026-02-15T10:00:00Z",
+                                    "progress_percent": 50,
+                                    "created_at": "2026-01-15 10:00:00",
+                                    "updated_at": "2026-01-15 12:00:00"
+                                }
+                            }
+                        }
+                    }
+                },
+                "401": {
+                    "description": "未授权",
+                    "content": {
+                        "application\/json": {
+                            "schema": {
+                                "$ref": "#\/components\/schemas\/ErrorResponse"
+                            }
+                        }
+                    }
+                },
+                "404": {
+                    "description": "奖励任务不存在",
+                    "content": {
+                        "application\/json": {
+                            "schema": {
+                                "$ref": "#\/components\/schemas\/ErrorResponse"
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "\/bonus-tasks\/{id}\/claim": {
+        "post": {
+            "tags": [
+                "BonusTask"
+            ],
+            "summary": "领取奖励任务奖励",
+            "description": "领取指定奖励任务的奖励，奖励金额为 min(cap_bonus, last_bonus)。任务必须已完成，已完成的任务不受过期时间限制。",
+            "security": [
+                {
+                    "bearerAuth": []
+                }
+            ],
+            "parameters": [
+                {
+                    "name": "id",
+                    "in": "path",
+                    "required": true,
+                    "description": "奖励任务ID",
+                    "schema": {
+                        "type": "integer"
+                    }
+                }
+            ],
+            "responses": {
+                "200": {
+                    "description": "领取成功",
+                    "content": {
+                        "application\/json": {
+                            "schema": {
+                                "$ref": "#\/components\/schemas\/BonusTaskClaimResponse"
+                            },
+                            "example": {
+                                "code": 0,
+                                "errmsg": "Success",
+                                "data": {
+                                    "id": 1,
+                                    "task_no": "TASK001",
+                                    "bonus_name": "首充奖励",
+                                    "cap_bonus": 100,
+                                    "base_bonus": 50,
+                                    "last_bonus": 100,
+                                    "need_wager": 500,
+                                    "wager": 500,
+                                    "status": "claimed",
+                                    "currency": "USD",
+                                    "expired_at": "2026-02-15T10:00:00Z",
+                                    "progress_percent": 100,
+                                    "claim_amount": 100,
+                                    "created_at": "2026-01-15 10:00:00",
+                                    "updated_at": "2026-01-15 12:00:00"
+                                }
+                            }
+                        }
+                    }
+                },
+                "401": {
+                    "description": "未授权",
+                    "content": {
+                        "application\/json": {
+                            "schema": {
+                                "$ref": "#\/components\/schemas\/ErrorResponse"
+                            }
+                        }
+                    }
+                },
+                "404": {
+                    "description": "奖励任务不存在",
+                    "content": {
+                        "application\/json": {
+                            "schema": {
+                                "$ref": "#\/components\/schemas\/ErrorResponse"
+                            }
+                        }
+                    }
+                },
+                "400": {
+                    "description": "奖励任务不可领取",
+                    "content": {
+                        "application\/json": {
+                            "schema": {
+                                "$ref": "#\/components\/schemas\/ErrorResponse"
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "\/bonus-tasks\/{id}\/active": {
+        "post": {
+            "tags": [
+                "BonusTask"
+            ],
+            "summary": "激活奖励任务",
+            "description": "激活指定的奖励任务。只有 pending 状态且未过期的任务可以被激活。如果用户已有其他激活的任务，会自动将其变为 pending 状态，然后激活新任务。",
+            "security": [
+                {
+                    "bearerAuth": []
+                }
+            ],
+            "parameters": [
+                {
+                    "name": "id",
+                    "in": "path",
+                    "required": true,
+                    "description": "奖励任务ID",
+                    "schema": {
+                        "type": "integer"
+                    }
+                }
+            ],
+            "responses": {
+                "200": {
+                    "description": "激活成功",
+                    "content": {
+                        "application\/json": {
+                            "schema": {
+                                "$ref": "#\/components\/schemas\/BonusTaskResponse"
+                            },
+                            "example": {
+                                "code": 0,
+                                "errmsg": "Success",
+                                "data": {
+                                    "id": 1,
+                                    "task_no": "TASK001",
+                                    "bonus_name": "首充奖励",
+                                    "cap_bonus": 100,
+                                    "base_bonus": 50,
+                                    "last_bonus": 100,
+                                    "need_wager": 500,
+                                    "wager": 0,
+                                    "status": "active",
+                                    "currency": "USD",
+                                    "expired_at": "2026-02-15T10:00:00Z",
+                                    "progress_percent": 0,
+                                    "created_at": "2026-01-15 10:00:00",
+                                    "updated_at": "2026-01-15 12:00:00"
+                                }
+                            }
+                        }
+                    }
+                },
+                "401": {
+                    "description": "未授权",
+                    "content": {
+                        "application\/json": {
+                            "schema": {
+                                "$ref": "#\/components\/schemas\/ErrorResponse"
+                            }
+                        }
+                    }
+                },
+                "404": {
+                    "description": "奖励任务不存在",
+                    "content": {
+                        "application\/json": {
+                            "schema": {
+                                "$ref": "#\/components\/schemas\/ErrorResponse"
+                            }
+                        }
+                    }
+                },
+                "400": {
+                    "description": "操作不允许（任务不是 pending 状态或已过期）",
+                    "content": {
+                        "application\/json": {
+                            "schema": {
+                                "$ref": "#\/components\/schemas\/ErrorResponse"
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "\/bonus-tasks\/deposit-bonus-status": {
+        "get": {
+            "tags": [
+                "BonusTask"
+            ],
+            "summary": "获取用户充值奖励状态",
+            "description": "获取用户充值奖励状态。如果首充\/二充\/三充未完成，返回当前可以获得的第一个奖励；如果都完成了，返回每日充值奖励状态。",
+            "security": [
+                {
+                    "bearerAuth": []
+                }
+            ],
+            "responses": {
+                "200": {
+                    "description": "获取成功",
+                    "content": {
+                        "application\/json": {
+                            "schema": {
+                                "$ref": "#\/components\/schemas\/DepositBonusStatusResponse"
+                            },
+                            "examples": {
+                                "first_second_third": {
+                                    "summary": "首充\/二充\/三充奖励",
+                                    "value": {
+                                        "code": 0,
+                                        "errmsg": "Success",
+                                        "data": {
+                                            "type": "first_second_third",
+                                            "current_reward": {
+                                                "type": "first_deposit_bonus",
+                                                "name": "First Deposit Bonus",
+                                                "completed": false,
+                                                "config": {
+                                                    "amounts": [
+                                                        10,
+                                                        20,
+                                                        30
+                                                    ],
+                                                    "ratio": [
+                                                        100,
+                                                        120,
+                                                        140
+                                                    ],
+                                                    "max_bonus_amount": 100,
+                                                    "currency": "USD"
+                                                }
+                                            }
+                                        }
+                                    }
+                                },
+                                "daily": {
+                                    "summary": "每日充值奖励",
+                                    "value": {
+                                        "code": 0,
+                                        "errmsg": "Success",
+                                        "data": {
+                                            "type": "daily",
+                                            "current_reward": {
+                                                "enabled": true,
+                                                "today_count": 1,
+                                                "max_times": 3,
+                                                "remaining_times": 2,
+                                                "config": {
+                                                    "amounts": [
+                                                        50,
+                                                        100,
+                                                        150
+                                                    ],
+                                                    "ratio": [
+                                                        50,
+                                                        100,
+                                                        150
+                                                    ],
+                                                    "max_bonus_amount": 200,
+                                                    "currency": "USD"
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "401": {
+                    "description": "未授权",
+                    "content": {
+                        "application\/json": {
+                            "schema": {
+                                "$ref": "#\/components\/schemas\/ErrorResponse"
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "\/bonus-tasks\/deposit-bonus-config": {
+        "get": {
+            "tags": [
+                "BonusTask"
+            ],
+            "summary": "获取充值奖励配置",
+            "description": "获取所有启用的充值奖励配置，包括首充、二充、三充和每日充值奖励的配置信息。",
+            "security": [
+                {
+                    "bearerAuth": []
+                }
+            ],
+            "responses": {
+                "200": {
+                    "description": "获取成功",
+                    "content": {
+                        "application\/json": {
+                            "schema": {
+                                "$ref": "#\/components\/schemas\/DepositBonusConfigResponse"
+                            },
+                            "example": {
+                                "code": 0,
+                                "errmsg": "Success",
+                                "data": {
+                                    "first_deposit_bonus": {
+                                        "method": "ratio",
+                                        "currency": "USD",
+                                        "amounts": [
+                                            10,
+                                            20,
+                                            30
+                                        ],
+                                        "ratio": [
+                                            100,
+                                            120,
+                                            140
+                                        ],
+                                        "max_bonus_amount": 100,
+                                        "enabled": true
+                                    },
+                                    "second_deposit_bonus": {
+                                        "method": "ratio",
+                                        "currency": "USD",
+                                        "amounts": [
+                                            10,
+                                            20,
+                                            30
+                                        ],
+                                        "ratio": [
+                                            100,
+                                            140,
+                                            160
+                                        ],
+                                        "max_bonus_amount": 100,
+                                        "enabled": true
+                                    },
+                                    "third_deposit_bonus": {
+                                        "method": "ratio",
+                                        "currency": "USD",
+                                        "amounts": [
+                                            10,
+                                            20,
+                                            30
+                                        ],
+                                        "ratio": [
+                                            100,
+                                            160,
+                                            180
+                                        ],
+                                        "max_bonus_amount": 100,
+                                        "enabled": true
+                                    },
+                                    "daily_deposit_bonus": {
+                                        "method": "ratio",
+                                        "currency": "USD",
+                                        "amounts": [
+                                            10,
+                                            20,
+                                            30
+                                        ],
+                                        "ratio": [
+                                            10,
+                                            20,
+                                            30
+                                        ],
+                                        "max_bonus_amount": 100,
+                                        "times": 3,
+                                        "enabled": true
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "401": {
+                    "description": "未授权",
+                    "content": {
+                        "application\/json": {
+                            "schema": {
+                                "$ref": "#\/components\/schemas\/ErrorResponse"
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

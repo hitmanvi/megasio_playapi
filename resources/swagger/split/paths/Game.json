@@ -1,0 +1,672 @@
+{
+    "\/games": {
+        "get": {
+            "tags": [
+                "Game"
+            ],
+            "summary": "获取游戏列表",
+            "description": "获取启用的游戏列表（分页），支持按名称、分类、品牌、主题筛选和排序",
+            "parameters": [
+                {
+                    "name": "name",
+                    "in": "query",
+                    "description": "游戏名称搜索（支持原始名称和翻译名称）",
+                    "schema": {
+                        "type": "string"
+                    }
+                },
+                {
+                    "name": "category_id",
+                    "in": "query",
+                    "description": "分类ID筛选（支持多个，使用数组格式：category_id[]=1&category_id[]=2）",
+                    "style": "form",
+                    "explode": true,
+                    "schema": {
+                        "type": "array",
+                        "items": {
+                            "type": "integer"
+                        }
+                    }
+                },
+                {
+                    "name": "brand_id",
+                    "in": "query",
+                    "description": "品牌ID筛选（支持多个，使用数组格式：brand_id[]=1&brand_id[]=2）",
+                    "style": "form",
+                    "explode": true,
+                    "schema": {
+                        "type": "array",
+                        "items": {
+                            "type": "integer"
+                        }
+                    }
+                },
+                {
+                    "name": "theme_id",
+                    "in": "query",
+                    "description": "主题ID筛选（支持多个，使用数组格式：theme_id[]=1&theme_id[]=2）",
+                    "style": "form",
+                    "explode": true,
+                    "schema": {
+                        "type": "array",
+                        "items": {
+                            "type": "integer"
+                        }
+                    }
+                },
+                {
+                    "name": "sort",
+                    "in": "query",
+                    "description": "排序方式",
+                    "schema": {
+                        "type": "string",
+                        "enum": [
+                            "new",
+                            "hot",
+                            "a-z",
+                            "z-a"
+                        ],
+                        "default": "new"
+                    }
+                },
+                {
+                    "name": "Locale",
+                    "in": "header",
+                    "description": "语言代码",
+                    "schema": {
+                        "type": "string",
+                        "default": "en"
+                    }
+                },
+                {
+                    "name": "page",
+                    "in": "query",
+                    "description": "页码",
+                    "schema": {
+                        "type": "integer",
+                        "default": 1,
+                        "minimum": 1
+                    }
+                },
+                {
+                    "name": "per_page",
+                    "in": "query",
+                    "description": "每页数量",
+                    "schema": {
+                        "type": "integer",
+                        "default": 20,
+                        "minimum": 1,
+                        "maximum": 100
+                    }
+                }
+            ],
+            "responses": {
+                "200": {
+                    "description": "获取游戏列表成功",
+                    "content": {
+                        "application\/json": {
+                            "schema": {
+                                "$ref": "#\/components\/schemas\/GameListResponse"
+                            },
+                            "example": {
+                                "code": 0,
+                                "errmsg": "Success",
+                                "data": {
+                                    "items": [
+                                        {
+                                            "id": 1,
+                                            "name": "The Matrix",
+                                            "thumbnail": "https:\/\/example.com\/thumbnails\/matrix.jpg",
+                                            "sort_id": 1,
+                                            "has_demo": true,
+                                            "support_bonus": false,
+                                            "brand": {
+                                                "id": 1,
+                                                "name": "Netflix",
+                                                "provider": "netflix"
+                                            },
+                                            "category": {
+                                                "id": 1,
+                                                "name": "Movie"
+                                            },
+                                            "themes": [
+                                                {
+                                                    "id": 1,
+                                                    "name": "Action",
+                                                    "icon": "fas fa-fist-raised"
+                                                }
+                                            ],
+                                            "created_at": "2024-01-01T00:00:00.000000Z"
+                                        }
+                                    ],
+                                    "meta": {
+                                        "current_page": 1,
+                                        "last_page": 5,
+                                        "total": 100
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "\/games\/{id}": {
+        "get": {
+            "tags": [
+                "Game"
+            ],
+            "summary": "获取游戏详情",
+            "description": "获取指定游戏的详细信息",
+            "parameters": [
+                {
+                    "name": "id",
+                    "in": "path",
+                    "required": true,
+                    "description": "游戏ID",
+                    "schema": {
+                        "type": "integer"
+                    }
+                },
+                {
+                    "name": "Locale",
+                    "in": "header",
+                    "description": "语言代码",
+                    "schema": {
+                        "type": "string",
+                        "default": "en"
+                    }
+                }
+            ],
+            "responses": {
+                "200": {
+                    "description": "获取游戏详情成功",
+                    "content": {
+                        "application\/json": {
+                            "schema": {
+                                "$ref": "#\/components\/schemas\/GameDetailResponse"
+                            },
+                            "example": {
+                                "code": 0,
+                                "errmsg": "Success",
+                                "data": {
+                                    "id": 1,
+                                    "name": "The Matrix",
+                                    "thumbnail": "https:\/\/example.com\/thumbnails\/matrix.jpg",
+                                    "out_id": "netflix_001",
+                                    "sort_id": 1,
+                                    "has_demo": true,
+                                    "support_bonus": false,
+                                    "memo": "Classic sci-fi action movie",
+                                    "languages": [
+                                        "en",
+                                        "zh-CN",
+                                        "ja",
+                                        "ko"
+                                    ],
+                                    "brand": {
+                                        "id": 1,
+                                        "name": "Netflix",
+                                        "provider": "netflix"
+                                    },
+                                    "category": {
+                                        "id": 1,
+                                        "name": "Movie",
+                                        "icon": "fas fa-film"
+                                    },
+                                    "themes": [
+                                        {
+                                            "id": 1,
+                                            "name": "Action",
+                                            "icon": "fas fa-fist-raised"
+                                        },
+                                        {
+                                            "id": 7,
+                                            "name": "Science Fiction",
+                                            "icon": "fas fa-rocket"
+                                        }
+                                    ],
+                                    "created_at": "2024-01-01T00:00:00.000000Z",
+                                    "updated_at": "2024-01-01T00:00:00.000000Z"
+                                }
+                            }
+                        }
+                    }
+                },
+                "404": {
+                    "description": "游戏不存在或已禁用",
+                    "content": {
+                        "application\/json": {
+                            "schema": {
+                                "$ref": "#\/components\/schemas\/ErrorResponse"
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "\/games\/{id}\/demo": {
+        "post": {
+            "tags": [
+                "Game"
+            ],
+            "summary": "获取游戏 demo 地址",
+            "description": "获取指定游戏的 demo 地址（使用 USD 货币）",
+            "parameters": [
+                {
+                    "name": "id",
+                    "in": "path",
+                    "required": true,
+                    "description": "游戏ID",
+                    "schema": {
+                        "type": "integer"
+                    }
+                }
+            ],
+            "responses": {
+                "200": {
+                    "description": "获取 demo 地址成功",
+                    "content": {
+                        "application\/json": {
+                            "schema": {
+                                "$ref": "#\/components\/schemas\/GameUrlResponse"
+                            },
+                            "example": {
+                                "code": 0,
+                                "errmsg": "Success",
+                                "data": {
+                                    "url": "https:\/\/demo.example.com\/game\/123"
+                                }
+                            }
+                        }
+                    }
+                },
+                "404": {
+                    "description": "游戏不存在或 demo 不可用",
+                    "content": {
+                        "application\/json": {
+                            "schema": {
+                                "$ref": "#\/components\/schemas\/ErrorResponse"
+                            },
+                            "example": {
+                                "code": 1004,
+                                "errmsg": "Game demo not available",
+                                "data": null
+                            }
+                        }
+                    }
+                },
+                "422": {
+                    "description": "验证失败",
+                    "content": {
+                        "application\/json": {
+                            "schema": {
+                                "$ref": "#\/components\/schemas\/ErrorResponse"
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "\/games\/{id}\/session": {
+        "post": {
+            "tags": [
+                "Game"
+            ],
+            "summary": "获取游戏 session 地址",
+            "description": "获取指定游戏的 session 地址（需要认证）",
+            "security": [
+                {
+                    "bearerAuth": []
+                }
+            ],
+            "parameters": [
+                {
+                    "name": "id",
+                    "in": "path",
+                    "required": true,
+                    "description": "游戏ID",
+                    "schema": {
+                        "type": "integer"
+                    }
+                }
+            ],
+            "requestBody": {
+                "required": true,
+                "content": {
+                    "application\/json": {
+                        "schema": {
+                            "type": "object",
+                            "required": [
+                                "currency"
+                            ],
+                            "properties": {
+                                "currency": {
+                                    "type": "string",
+                                    "minLength": 3,
+                                    "maxLength": 3,
+                                    "pattern": "^[A-Z]{3}$",
+                                    "description": "货币类型（3位代码，如：USD）"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "responses": {
+                "200": {
+                    "description": "获取 session 地址成功",
+                    "content": {
+                        "application\/json": {
+                            "schema": {
+                                "$ref": "#\/components\/schemas\/GameUrlResponse"
+                            },
+                            "example": {
+                                "code": 0,
+                                "errmsg": "Success",
+                                "data": {
+                                    "url": "https:\/\/game.example.com\/session\/abc123?token=xyz789"
+                                }
+                            }
+                        }
+                    }
+                },
+                "401": {
+                    "description": "未授权",
+                    "content": {
+                        "application\/json": {
+                            "schema": {
+                                "$ref": "#\/components\/schemas\/ErrorResponse"
+                            },
+                            "example": {
+                                "code": 1002,
+                                "errmsg": "Unauthorized access",
+                                "data": null
+                            }
+                        }
+                    }
+                },
+                "404": {
+                    "description": "游戏不存在或 provider 未配置",
+                    "content": {
+                        "application\/json": {
+                            "schema": {
+                                "$ref": "#\/components\/schemas\/ErrorResponse"
+                            },
+                            "example": {
+                                "code": 1004,
+                                "errmsg": "Game not found",
+                                "data": null
+                            }
+                        }
+                    }
+                },
+                "422": {
+                    "description": "验证失败",
+                    "content": {
+                        "application\/json": {
+                            "schema": {
+                                "$ref": "#\/components\/schemas\/ErrorResponse"
+                            }
+                        }
+                    }
+                },
+                "500": {
+                    "description": "服务器错误",
+                    "content": {
+                        "application\/json": {
+                            "schema": {
+                                "$ref": "#\/components\/schemas\/ErrorResponse"
+                            },
+                            "example": {
+                                "code": 1005,
+                                "errmsg": "Failed to create game session",
+                                "data": null
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "\/games\/recommend": {
+        "get": {
+            "tags": [
+                "Game"
+            ],
+            "summary": "获取推荐游戏列表",
+            "description": "根据指定游戏获取推荐游戏列表（分页）",
+            "parameters": [
+                {
+                    "name": "id",
+                    "in": "query",
+                    "required": true,
+                    "description": "游戏ID",
+                    "schema": {
+                        "type": "integer",
+                        "minimum": 1
+                    }
+                },
+                {
+                    "name": "Locale",
+                    "in": "header",
+                    "description": "语言代码",
+                    "schema": {
+                        "type": "string",
+                        "default": "en"
+                    }
+                },
+                {
+                    "name": "page",
+                    "in": "query",
+                    "description": "页码",
+                    "schema": {
+                        "type": "integer",
+                        "default": 1,
+                        "minimum": 1
+                    }
+                },
+                {
+                    "name": "per_page",
+                    "in": "query",
+                    "description": "每页数量",
+                    "schema": {
+                        "type": "integer",
+                        "default": 20,
+                        "minimum": 1,
+                        "maximum": 100
+                    }
+                }
+            ],
+            "responses": {
+                "200": {
+                    "description": "获取推荐游戏列表成功",
+                    "content": {
+                        "application\/json": {
+                            "schema": {
+                                "$ref": "#\/components\/schemas\/GameListResponse"
+                            },
+                            "example": {
+                                "code": 0,
+                                "errmsg": "Success",
+                                "data": {
+                                    "items": [
+                                        {
+                                            "id": 2,
+                                            "name": "The Matrix Reloaded",
+                                            "thumbnail": "https:\/\/example.com\/thumbnails\/matrix2.jpg",
+                                            "sort_id": 2,
+                                            "brand": {
+                                                "id": 1,
+                                                "name": "Netflix",
+                                                "provider": "netflix"
+                                            },
+                                            "category": {
+                                                "id": 1,
+                                                "name": "Movie"
+                                            },
+                                            "themes": [
+                                                {
+                                                    "id": 1,
+                                                    "name": "Action",
+                                                    "icon": "fas fa-fist-raised"
+                                                },
+                                                {
+                                                    "id": 7,
+                                                    "name": "Science Fiction",
+                                                    "icon": "fas fa-rocket"
+                                                }
+                                            ],
+                                            "created_at": "2024-01-02T00:00:00.000000Z"
+                                        }
+                                    ],
+                                    "meta": {
+                                        "current_page": 1,
+                                        "last_page": 5,
+                                        "total": 100
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "404": {
+                    "description": "游戏不存在或已禁用",
+                    "content": {
+                        "application\/json": {
+                            "schema": {
+                                "$ref": "#\/components\/schemas\/ErrorResponse"
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "\/games\/recent\/list": {
+        "get": {
+            "tags": [
+                "Game"
+            ],
+            "summary": "获取用户最近游玩的游戏列表",
+            "description": "获取当前登录用户最近游玩的游戏列表（分页），支持按最近游玩时间、游玩次数、最大奖励倍数排序",
+            "security": [
+                {
+                    "bearerAuth": []
+                }
+            ],
+            "parameters": [
+                {
+                    "name": "Locale",
+                    "in": "header",
+                    "description": "语言代码",
+                    "schema": {
+                        "type": "string",
+                        "default": "en"
+                    }
+                },
+                {
+                    "name": "sort",
+                    "in": "query",
+                    "description": "排序方式：recent(最近游玩)、play_count(游玩次数)、max_multiplier(最大倍数)",
+                    "schema": {
+                        "type": "string",
+                        "enum": [
+                            "recent",
+                            "play_count",
+                            "max_multiplier"
+                        ],
+                        "default": "recent"
+                    }
+                },
+                {
+                    "name": "page",
+                    "in": "query",
+                    "description": "页码",
+                    "schema": {
+                        "type": "integer",
+                        "default": 1,
+                        "minimum": 1
+                    }
+                },
+                {
+                    "name": "per_page",
+                    "in": "query",
+                    "description": "每页数量",
+                    "schema": {
+                        "type": "integer",
+                        "default": 20,
+                        "minimum": 1,
+                        "maximum": 100
+                    }
+                }
+            ],
+            "responses": {
+                "200": {
+                    "description": "获取最近游玩游戏列表成功",
+                    "content": {
+                        "application\/json": {
+                            "schema": {
+                                "$ref": "#\/components\/schemas\/RecentGameListResponse"
+                            },
+                            "example": {
+                                "code": 0,
+                                "errmsg": "Success",
+                                "data": {
+                                    "items": [
+                                        {
+                                            "id": 1,
+                                            "name": "The Matrix",
+                                            "thumbnail": "https:\/\/example.com\/thumbnails\/matrix.jpg",
+                                            "sort_id": 1,
+                                            "brand": {
+                                                "id": 1,
+                                                "name": "Netflix",
+                                                "provider": "netflix"
+                                            },
+                                            "category": {
+                                                "id": 1,
+                                                "name": "Movie"
+                                            },
+                                            "themes": [
+                                                {
+                                                    "id": 1,
+                                                    "name": "Action",
+                                                    "icon": "fas fa-fist-raised"
+                                                }
+                                            ],
+                                            "created_at": "2024-01-01T00:00:00.000000Z",
+                                            "has_demo": true,
+                                            "support_bonus": false,
+                                            "play_count": 25,
+                                            "max_multiplier": 15.5,
+                                            "last_played_at": "2026-01-07T06:00:00.000000Z"
+                                        }
+                                    ],
+                                    "meta": {
+                                        "current_page": 1,
+                                        "last_page": 1,
+                                        "total": 5
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "401": {
+                    "description": "未授权",
+                    "content": {
+                        "application\/json": {
+                            "schema": {
+                                "$ref": "#\/components\/schemas\/ErrorResponse"
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

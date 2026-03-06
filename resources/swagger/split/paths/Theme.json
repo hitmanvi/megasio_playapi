@@ -1,0 +1,152 @@
+{
+    "\/themes": {
+        "get": {
+            "tags": [
+                "Theme"
+            ],
+            "summary": "获取主题列表",
+            "description": "获取所有启用的主题列表（分页），支持多语言和名称搜索",
+            "parameters": [
+                {
+                    "name": "Locale",
+                    "in": "header",
+                    "description": "语言代码",
+                    "schema": {
+                        "type": "string",
+                        "default": "en"
+                    }
+                },
+                {
+                    "name": "name",
+                    "in": "query",
+                    "description": "主题名称搜索（支持原始名称和翻译名称）",
+                    "schema": {
+                        "type": "string"
+                    }
+                },
+                {
+                    "name": "page",
+                    "in": "query",
+                    "description": "页码",
+                    "schema": {
+                        "type": "integer",
+                        "default": 1,
+                        "minimum": 1
+                    }
+                },
+                {
+                    "name": "per_page",
+                    "in": "query",
+                    "description": "每页数量",
+                    "schema": {
+                        "type": "integer",
+                        "default": 20,
+                        "minimum": 1,
+                        "maximum": 100
+                    }
+                }
+            ],
+            "responses": {
+                "200": {
+                    "description": "获取主题列表成功",
+                    "content": {
+                        "application\/json": {
+                            "schema": {
+                                "$ref": "#\/components\/schemas\/ThemeListResponse"
+                            },
+                            "example": {
+                                "code": 0,
+                                "errmsg": "Success",
+                                "data": {
+                                    "items": [
+                                        {
+                                            "id": 1,
+                                            "name": "Action",
+                                            "icon": "fas fa-fist-raised",
+                                            "sort_id": 1
+                                        },
+                                        {
+                                            "id": 2,
+                                            "name": "Comedy",
+                                            "icon": "fas fa-laugh",
+                                            "sort_id": 2
+                                        }
+                                    ],
+                                    "meta": {
+                                        "current_page": 1,
+                                        "last_page": 5,
+                                        "total": 100
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "\/themes\/{id}": {
+        "get": {
+            "tags": [
+                "Theme"
+            ],
+            "summary": "获取主题详情",
+            "description": "获取指定主题的详细信息",
+            "parameters": [
+                {
+                    "name": "id",
+                    "in": "path",
+                    "required": true,
+                    "description": "主题ID",
+                    "schema": {
+                        "type": "integer"
+                    }
+                },
+                {
+                    "name": "Locale",
+                    "in": "header",
+                    "description": "语言代码",
+                    "schema": {
+                        "type": "string",
+                        "default": "en"
+                    }
+                }
+            ],
+            "responses": {
+                "200": {
+                    "description": "获取主题详情成功",
+                    "content": {
+                        "application\/json": {
+                            "schema": {
+                                "$ref": "#\/components\/schemas\/ThemeDetailResponse"
+                            },
+                            "example": {
+                                "code": 0,
+                                "errmsg": "Success",
+                                "data": {
+                                    "id": 1,
+                                    "name": "Action",
+                                    "icon": "fas fa-fist-raised",
+                                    "sort_id": 1,
+                                    "enabled": true,
+                                    "created_at": "2024-01-01T00:00:00.000000Z",
+                                    "updated_at": "2024-01-01T00:00:00.000000Z"
+                                }
+                            }
+                        }
+                    }
+                },
+                "404": {
+                    "description": "主题不存在或已禁用",
+                    "content": {
+                        "application\/json": {
+                            "schema": {
+                                "$ref": "#\/components\/schemas\/ErrorResponse"
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

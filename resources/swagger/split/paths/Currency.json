@@ -1,0 +1,123 @@
+{
+    "\/currencies": {
+        "get": {
+            "tags": [
+                "Currency"
+            ],
+            "summary": "获取支持的货币列表",
+            "description": "获取所有启用的货币列表，按排序顺序返回，支持按类型筛选",
+            "parameters": [
+                {
+                    "name": "type",
+                    "in": "query",
+                    "description": "货币类型筛选：fiat(法币), crypto(加密货币), virtual(虚拟货币)",
+                    "schema": {
+                        "type": "string",
+                        "enum": [
+                            "fiat",
+                            "crypto",
+                            "virtual"
+                        ]
+                    }
+                }
+            ],
+            "responses": {
+                "200": {
+                    "description": "获取货币列表成功",
+                    "content": {
+                        "application\/json": {
+                            "schema": {
+                                "$ref": "#\/components\/schemas\/CurrencyListResponse"
+                            },
+                            "example": {
+                                "code": 0,
+                                "errmsg": "Success",
+                                "data": {
+                                    "items": [
+                                        {
+                                            "code": "USD",
+                                            "name": "US Dollar",
+                                            "type": "fiat",
+                                            "symbol": "$",
+                                            "icon": "usd.svg"
+                                        },
+                                        {
+                                            "code": "EUR",
+                                            "name": "Euro",
+                                            "type": "fiat",
+                                            "symbol": "€",
+                                            "icon": "eur.svg"
+                                        },
+                                        {
+                                            "code": "CNY",
+                                            "name": "Chinese Yuan",
+                                            "type": "fiat",
+                                            "symbol": "¥",
+                                            "icon": "cny.svg"
+                                        }
+                                    ],
+                                    "meta": []
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "\/exchange-rates": {
+        "get": {
+            "tags": [
+                "Currency"
+            ],
+            "summary": "获取汇率列表",
+            "description": "传入主币种，返回各个币种相对于主币种的汇率。汇率信息从外部服务获取（以USD为基准），然后根据传入的主币种进行换算",
+            "parameters": [
+                {
+                    "name": "base",
+                    "in": "query",
+                    "required": true,
+                    "description": "主币种代码（如：USD, JPY, CNY）",
+                    "schema": {
+                        "type": "string",
+                        "maxLength": 10
+                    }
+                }
+            ],
+            "responses": {
+                "200": {
+                    "description": "获取汇率列表成功",
+                    "content": {
+                        "application\/json": {
+                            "schema": {
+                                "$ref": "#\/components\/schemas\/ExchangeRateResponse"
+                            },
+                            "example": {
+                                "code": 0,
+                                "errmsg": "Success",
+                                "data": {
+                                    "USD": 1,
+                                    "JPY": 140,
+                                    "CNY": 7.2,
+                                    "EUR": 0.85,
+                                    "KRW": 1300,
+                                    "GBP": 0.8
+                                }
+                            }
+                        }
+                    }
+                },
+                "422": {
+                    "description": "参数验证失败",
+                    "content": {
+                        "application\/json": {
+                            "schema": {
+                                "$ref": "#\/components\/schemas\/ErrorResponse"
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

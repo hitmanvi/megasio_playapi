@@ -1,0 +1,138 @@
+{
+    "\/orders": {
+        "get": {
+            "tags": [
+                "Order"
+            ],
+            "summary": "获取订单列表",
+            "description": "获取当前用户的订单列表，支持按货币类型、订单状态、游戏ID和时间范围筛选。时间范围仅支持：24h（最近24小时）、7d（最近7天）、30d（最近30天）",
+            "security": [
+                {
+                    "bearerAuth": []
+                }
+            ],
+            "parameters": [
+                {
+                    "name": "period",
+                    "in": "query",
+                    "description": "时间范围筛选，仅支持：24h（最近24小时）、7d（最近7天）、30d（最近30天）。不传此参数则查询所有记录",
+                    "schema": {
+                        "type": "string",
+                        "enum": [
+                            "24h",
+                            "7d",
+                            "30d"
+                        ]
+                    }
+                },
+                {
+                    "name": "currency",
+                    "in": "query",
+                    "description": "货币类型筛选",
+                    "schema": {
+                        "type": "string"
+                    }
+                },
+                {
+                    "name": "status",
+                    "in": "query",
+                    "description": "订单状态筛选",
+                    "schema": {
+                        "type": "string",
+                        "enum": [
+                            "PENDING",
+                            "COMPLETED",
+                            "CANCELLED",
+                            "FAILED",
+                            "SETTLED"
+                        ]
+                    }
+                },
+                {
+                    "name": "game_id",
+                    "in": "query",
+                    "description": "游戏ID筛选",
+                    "schema": {
+                        "type": "integer"
+                    }
+                },
+                {
+                    "name": "per_page",
+                    "in": "query",
+                    "description": "每页数量",
+                    "schema": {
+                        "type": "integer",
+                        "default": 20,
+                        "minimum": 1
+                    }
+                }
+            ],
+            "responses": {
+                "200": {
+                    "description": "获取订单列表成功",
+                    "content": {
+                        "application\/json": {
+                            "schema": {
+                                "$ref": "#\/components\/schemas\/OrderListResponse"
+                            },
+                            "example": {
+                                "code": 0,
+                                "errmsg": "Success",
+                                "data": {
+                                    "items": [
+                                        {
+                                            "id": 1,
+                                            "order_id": "ORD01ARZ3NDEKTSV4RRFFQ69G5FAV",
+                                            "out_id": "EXT_001",
+                                            "currency": "USD",
+                                            "amount": 100,
+                                            "payout": 150,
+                                            "status": "COMPLETED",
+                                            "finished_at": "2024-01-01 12:30:00",
+                                            "created_at": "2024-01-01 12:00:00",
+                                            "game": {
+                                                "id": 1,
+                                                "name": "Game Name",
+                                                "key": "game_key"
+                                            },
+                                            "brand": {
+                                                "id": 1,
+                                                "name": "Brand Name",
+                                                "provider": "netflix"
+                                            }
+                                        }
+                                    ],
+                                    "meta": {
+                                        "current_page": 1,
+                                        "last_page": 5,
+                                        "total": 100
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "401": {
+                    "description": "未授权",
+                    "content": {
+                        "application\/json": {
+                            "schema": {
+                                "$ref": "#\/components\/schemas\/ErrorResponse"
+                            }
+                        }
+                    }
+                },
+                "422": {
+                    "description": "参数验证失败",
+                    "content": {
+                        "application\/json": {
+                            "schema": {
+                                "$ref": "#\/components\/schemas\/ErrorResponse"
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

@@ -1,0 +1,98 @@
+{
+    "\/game-categories": {
+        "get": {
+            "tags": [
+                "GameCategory"
+            ],
+            "summary": "获取游戏分类列表",
+            "description": "获取所有启用的游戏分类列表，支持多语言",
+            "parameters": [
+                {
+                    "name": "Locale",
+                    "in": "header",
+                    "description": "语言代码",
+                    "schema": {
+                        "type": "string",
+                        "default": "en"
+                    }
+                },
+                {
+                    "name": "page",
+                    "in": "query",
+                    "description": "页码",
+                    "schema": {
+                        "type": "integer",
+                        "default": 1,
+                        "minimum": 1
+                    }
+                },
+                {
+                    "name": "per_page",
+                    "in": "query",
+                    "description": "每页数量",
+                    "schema": {
+                        "type": "integer",
+                        "default": 10,
+                        "minimum": 1
+                    }
+                },
+                {
+                    "name": "name",
+                    "in": "query",
+                    "description": "分类名称（模糊搜索）",
+                    "schema": {
+                        "type": "string"
+                    }
+                },
+                {
+                    "name": "ids",
+                    "in": "query",
+                    "description": "分类ID列表",
+                    "schema": {
+                        "type": "array",
+                        "items": {
+                            "type": "integer"
+                        }
+                    }
+                }
+            ],
+            "responses": {
+                "200": {
+                    "description": "获取游戏分类列表成功",
+                    "content": {
+                        "application\/json": {
+                            "schema": {
+                                "$ref": "#\/components\/schemas\/GameCategoryListResponse"
+                            },
+                            "example": {
+                                "code": 0,
+                                "errmsg": "Success",
+                                "data": {
+                                    "items": [
+                                        {
+                                            "id": 1,
+                                            "name": "Movie",
+                                            "icon": "fas fa-film",
+                                            "sort_id": 1
+                                        },
+                                        {
+                                            "id": 2,
+                                            "name": "TV Show",
+                                            "icon": "fas fa-tv",
+                                            "sort_id": 2
+                                        }
+                                    ],
+                                    "meta": {
+                                        "current_page": 1,
+                                        "last_page": 1,
+                                        "total": 2
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

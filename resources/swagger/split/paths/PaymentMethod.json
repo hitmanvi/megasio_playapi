@@ -1,0 +1,130 @@
+{
+    "\/payment-methods": {
+        "get": {
+            "tags": [
+                "PaymentMethod"
+            ],
+            "summary": "获取支付方式列表",
+            "description": "获取支付方式列表，支持根据 ids、currency、type、is_fiat 进行筛选（均为可选参数）。",
+            "parameters": [
+                {
+                    "name": "ids",
+                    "in": "query",
+                    "description": "支付方式ID数组，用于筛选指定的支付方式",
+                    "schema": {
+                        "type": "array",
+                        "items": {
+                            "type": "integer"
+                        }
+                    },
+                    "style": "form",
+                    "explode": true,
+                    "required": false,
+                    "example": [
+                        1,
+                        2,
+                        3
+                    ]
+                },
+                {
+                    "name": "currency",
+                    "in": "query",
+                    "description": "货币类型（如：USD, EUR）",
+                    "schema": {
+                        "type": "string"
+                    },
+                    "required": false
+                },
+                {
+                    "name": "type",
+                    "in": "query",
+                    "description": "支付类型：deposit（存款）或 withdraw（提款）",
+                    "schema": {
+                        "type": "string",
+                        "enum": [
+                            "deposit",
+                            "withdraw"
+                        ]
+                    },
+                    "required": false
+                },
+                {
+                    "name": "is_fiat",
+                    "in": "query",
+                    "description": "是否法币：true（法币）或 false（加密货币）",
+                    "schema": {
+                        "type": "boolean"
+                    },
+                    "required": false
+                }
+            ],
+            "responses": {
+                "200": {
+                    "description": "获取支付方式列表成功",
+                    "content": {
+                        "application\/json": {
+                            "schema": {
+                                "$ref": "#\/components\/schemas\/PaymentMethodListResponse"
+                            },
+                            "example": {
+                                "code": 0,
+                                "errmsg": "Success",
+                                "data": {
+                                    "items": [
+                                        {
+                                            "id": 1,
+                                            "key": "bank_transfer_usd",
+                                            "icon": "fas fa-university",
+                                            "name": "bank_transfer",
+                                            "display_name": "Bank Transfer",
+                                            "currency": "USD",
+                                            "type": "deposit",
+                                            "amounts": [
+                                                "100",
+                                                "500",
+                                                "1000"
+                                            ],
+                                            "max_amount": 10000,
+                                            "min_amount": 100,
+                                            "default_amount": 500,
+                                            "sort_id": 1,
+                                            "crypto_info": null,
+                                            "fields": null,
+                                            "extra_step_type": null,
+                                            "extra_step_fields": null
+                                        },
+                                        {
+                                            "id": 2,
+                                            "key": "credit_card_usd",
+                                            "icon": "fas fa-credit-card",
+                                            "name": "credit_card",
+                                            "display_name": "Credit Card",
+                                            "currency": "USD",
+                                            "type": "deposit",
+                                            "amounts": null,
+                                            "max_amount": 5000,
+                                            "min_amount": 50,
+                                            "default_amount": 100,
+                                            "sort_id": 2,
+                                            "crypto_info": null,
+                                            "fields": null,
+                                            "extra_step_type": "verification",
+                                            "extra_step_fields": [
+                                                {
+                                                    "field": "otp",
+                                                    "type": "string",
+                                                    "required": true
+                                                }
+                                            ]
+                                        }
+                                    ],
+                                    "meta": []
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
