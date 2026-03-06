@@ -16,12 +16,12 @@ class SendRegistrationEvent implements ShouldQueue
     public function handle(UserRegistered $event): void
     {
         $user = $event->user;
-        $agent = AgentService::getAgentForUser($user);
+        $link = AgentService::getAgentLinkForUser($user);
         $deviceInfo = $event->deviceInfo;
 
         // Kochava
         if (!empty($deviceInfo['kochava_device_id']) || !empty($deviceInfo['device_ids'] ?? [])) {
-            $kochava = new KochavaService($agent);
+            $kochava = new KochavaService($link);
             $kochava->sendEvent('register', [
                 'uid' => $user->uid,
                 'event_id' => 'register_' . $user->uid,
@@ -29,7 +29,7 @@ class SendRegistrationEvent implements ShouldQueue
         }
 
         // Facebook
-        $facebook = new FacebookConversionsService($agent);
+        $facebook = new FacebookConversionsService($link);
         if ($facebook->isEnabled()) {
             $userData = FacebookConversionsService::userDataFromUser($user, $deviceInfo);
             $userData['event_time'] = $deviceInfo['usertime'] ?? time();

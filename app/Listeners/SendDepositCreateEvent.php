@@ -16,12 +16,12 @@ class SendDepositCreateEvent implements ShouldQueue
     public function handle(DepositCreated $event): void
     {
         $deposit = $event->deposit->loadMissing('user');
-        $agent = AgentService::getAgentForUser($deposit->user);
+        $link = AgentService::getAgentLinkForUser($deposit->user);
         $deviceInfo = $event->deviceInfo;
 
         // Kochava
         if (!empty($deviceInfo['kochava_device_id']) || !empty($deviceInfo['device_ids'] ?? [])) {
-            $kochava = new KochavaService($agent);
+            $kochava = new KochavaService($link);
             $kochava->sendEvent('begin_checkout', [
                 'uid' => $deposit->user->uid,
                 'order_no' => $deposit->order_no,
@@ -32,7 +32,7 @@ class SendDepositCreateEvent implements ShouldQueue
         }
 
         // Facebook
-        $facebook = new FacebookConversionsService($agent);
+        $facebook = new FacebookConversionsService($link);
         if ($facebook->isEnabled()) {
             $userData = FacebookConversionsService::userDataFromDeposit($deposit, $deviceInfo);
             $userData['event_time'] = $deviceInfo['usertime'] ?? time();

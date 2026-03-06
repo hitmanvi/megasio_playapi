@@ -2,7 +2,7 @@
 
 namespace App\Services;
 
-use App\Models\Agent;
+use App\Models\AgentLink;
 use App\Models\Deposit;
 use App\Models\User;
 use FacebookAds\Api;
@@ -28,10 +28,10 @@ class FacebookConversionsService
 
     protected bool $enabled = false;
 
-    public function __construct(?Agent $agent = null)
+    public function __construct(?AgentLink $link = null)
     {
-        if ($agent && $agent->hasFacebookConversions()) {
-            $cfg = $agent->getFacebookConfig();
+        if ($link && $link->hasFacebookConversions()) {
+            $cfg = $link->getFacebookConfig();
             $this->pixelId = $cfg['pixel_id'] ?? null;
             $this->accessToken = $cfg['access_token'] ?? null;
         } else {
