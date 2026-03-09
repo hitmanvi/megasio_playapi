@@ -20,13 +20,13 @@ class SendRegistrationEvent implements ShouldQueue
         $deviceInfo = $event->deviceInfo;
 
         // Kochava
-        if (!empty($deviceInfo['kochava_device_id']) || !empty($deviceInfo['device_ids'] ?? [])) {
-            $kochava = new KochavaService($link);
-            $kochava->sendEvent('register', [
-                'user_id' => $user->uid,
-                'user_name' => $user->uid,
-            ], $deviceInfo);
-        }
+        // if (!empty($deviceInfo['kochava_device_id']) || !empty($deviceInfo['device_ids'] ?? [])) {
+        //     $kochava = new KochavaService($link);
+        //     $kochava->sendEvent('register', [
+        //         'user_id' => $user->uid,
+        //         'user_name' => $user->uid,
+        //     ], $deviceInfo);
+        // }
 
         // Facebook
         $facebook = new FacebookConversionsService($link);

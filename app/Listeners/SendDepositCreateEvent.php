@@ -20,15 +20,15 @@ class SendDepositCreateEvent implements ShouldQueue
         $deviceInfo = $event->deviceInfo;
 
         // Kochava
-        if (!empty($deviceInfo['kochava_device_id']) || !empty($deviceInfo['device_ids'] ?? [])) {
-            $kochava = new KochavaService($link);
-            $kochava->sendEvent('begin_checkout', [
-                'user_id' => $deposit->user->uid,
-                'content_id' => $deposit->order_no,
-                'currency' => $deposit->currency,
-                'name' => 'Deposit',
-            ], $deviceInfo);
-        }
+        // if (!empty($deviceInfo['kochava_device_id']) || !empty($deviceInfo['device_ids'] ?? [])) {
+        //     $kochava = new KochavaService($link);
+        //     $kochava->sendEvent('begin_checkout', [
+        //         'user_id' => $deposit->user->uid,
+        //         'content_id' => $deposit->order_no,
+        //         'currency' => $deposit->currency,
+        //         'name' => 'Deposit',
+        //     ], $deviceInfo);
+        // }
 
         // Facebook
         $facebook = new FacebookConversionsService($link);
