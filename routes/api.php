@@ -34,6 +34,7 @@ use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\GameFavoriteController;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\WeeklyCashbackController;
+use App\Http\Controllers\TempDataController;
 use Illuminate\Http\Request;
 
 // 认证相关路由
@@ -221,6 +222,12 @@ Route::prefix('help-center')->group(function () {
 
 // 工具类路由
 Route::get('/timestamp', [UtilsController::class, 'timestamp']);
+
+// 临时接口：接收/展示数据（调试用）
+Route::prefix('temp-data')->group(function () {
+    Route::post('/', [TempDataController::class, 'store']);
+    Route::get('/', [TempDataController::class, 'index']);
+});
 Route::get('/settings', [UtilsController::class, 'settings']);
 Route::middleware('auth:sanctum')->post('/upload', [UtilsController::class, 'uploadImage']);
 
