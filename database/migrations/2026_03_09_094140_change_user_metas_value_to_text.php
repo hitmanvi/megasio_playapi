@@ -12,6 +12,10 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('user_metas', function (Blueprint $table) {
+            $table->dropIndex(['key', 'value']);
+            $table->dropIndex(['value']);
+        });
+        Schema::table('user_metas', function (Blueprint $table) {
             $table->text('value')->nullable()->change();
         });
     }
@@ -23,6 +27,10 @@ return new class extends Migration
     {
         Schema::table('user_metas', function (Blueprint $table) {
             $table->string('value', 500)->nullable()->change();
+        });
+        Schema::table('user_metas', function (Blueprint $table) {
+            $table->index('value');
+            $table->index(['key', 'value']);
         });
     }
 };
