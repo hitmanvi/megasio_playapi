@@ -192,5 +192,41 @@ class Deposit extends Model
     {
         return $this->pay_status == SopayService::SOPAY_STATUS_SUCCEED;
     }
+
+    /**
+     * 获取用于事件上报的 device info
+     * 仅从 device_info 读取（创建充值时由 Controller::getDeviceInfoForEvent 传入）
+     *
+     * @return array{kochava_device_id: string, device_ids: array, device_ua: string, origination_ip: string, current_ip: string, ...}
+     */
+    public function getDeviceInfoForEvent(): array
+    {
+        $extra = $this->device_info ?? [];
+
+        $deviceIds = $extra['device_ids'] ?? $extra['kochava_device_ids'] ?? [];
+        if (is_string($deviceIds)) {
+            $deviceIds = json_decode($deviceIds, true) ?: [];
+        }
+        if (empty($deviceIds) && !empty($extra['idfa'])) {
+            $deviceIds = ['idfa' => $extra['idfa']];
+        }
+        if (empty($deviceIds) && !empty($extra['android_id'])) {
+            $deviceIds = ['android_id' => $extra['android_id']];
+        }
+
+        return [
+            'kochava_device_id' => $extra['kochava_device_id'] ?? '',
+            'device_ids' => $deviceIds,
+            'device_ua' => $extra['device_ua'] ?? '',
+            'origination_ip' => $extra['origination_ip'] ?? '0.0.0.0',
+            'current_ip' => $extra['current_ip'] ?? $extra['origination_ip'] ?? '0.0.0.0',
+            'app_version' => $extra['app_version'] ?? '',
+            'device_ver' => $extra['device_ver'] ?? '',
+            'usertime' => $extra['usertime'] ?? time(),
+            'fbc' => $extra['fbc'] ?? '',
+            'fbp' => $extra['fbp'] ?? '',
+            'event_source_url' => $extra['event_source_url'] ?? config('app.web_url', config('app.url', 'https://example.com')),
+        ];
+    }
 }
 

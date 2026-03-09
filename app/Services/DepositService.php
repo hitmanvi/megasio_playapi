@@ -7,6 +7,7 @@ use App\Events\DepositCreated;
 use App\Events\FirstDepositCompleted;
 use App\Models\Deposit;
 use App\Models\PaymentMethod;
+use App\Models\UserMeta;
 use App\Services\NotificationService;
 use Illuminate\Support\Str;
 use Carbon\Carbon;
@@ -206,6 +207,11 @@ class DepositService
             'user_ip' => $userIp,
             'expired_at' => $expiredAt,
         ]);
+
+        // 创建充值时覆盖 latest_info
+        if (!empty($deviceInfo)) {
+            UserMeta::setValue($userId, 'latest_info', json_encode($deviceInfo));
+        }
 
         $res = $this->deposit($deposit, $paymentMethod, $nativeApp);
         if (!$res) {

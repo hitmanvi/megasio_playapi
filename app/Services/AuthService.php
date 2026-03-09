@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\User;
+use App\Models\UserMeta;
 use App\Models\Invitation;
 use App\Models\UserVip;
 use App\Models\VipLevel;
@@ -123,6 +124,13 @@ class AuthService
             // 创建欢迎通知
             $this->notificationService->createWelcomeNotification($user->id);
 
+            // 存储注册时的 device info 到 user_meta
+            if (!empty($deviceInfo)) {
+                $json = json_encode($deviceInfo);
+                UserMeta::addValue($user->id, 'register_info', $json);
+                UserMeta::setValue($user->id, 'latest_info', $json);
+            }
+
             // 生成 token
             $token = $user->createToken('auth_token')->plainTextToken;
 
@@ -146,7 +154,7 @@ class AuthService
      * @return array 包含 token 的数组
      * @throws Exception
      */
-    public function login(string $login, string $password, ?string $ipAddress = null, ?string $userAgent = null): array
+    public function login(string $login, string $password, ?string $ipAddress = null, ?string $userAgent = null, array $deviceInfo = []): array
     {
         // 判断是手机号还是邮箱
         $loginField = filter_var($login, FILTER_VALIDATE_EMAIL) ? 'email' : 'phone';
@@ -161,6 +169,11 @@ class AuthService
         // 检查用户状态
         if ($user->status !== 'active') {
             throw new Exception(ErrorCode::ACCOUNT_DISABLED);
+        }
+
+        // 覆盖 latest_info
+        if (!empty($deviceInfo)) {
+            UserMeta::setValue($user->id, 'latest_info', json_encode($deviceInfo));
         }
 
         // 生成 token
@@ -383,6 +396,13 @@ class AuthService
                     // 创建欢迎通知
                     $this->notificationService->createWelcomeNotification($user->id);
 
+                    // 存储注册时的 device info 到 user_meta
+                    if (!empty($deviceInfo)) {
+                        $json = json_encode($deviceInfo);
+                        UserMeta::addValue($user->id, 'register_info', $json);
+                        UserMeta::setValue($user->id, 'latest_info', $json);
+                    }
+
                     event(new UserRegistered($user, $deviceInfo));
                 } else {
                     // 更新用户信息（如果 Google 信息有变化）
@@ -395,6 +415,10 @@ class AuthService
                     }
                     if (!empty($updateData)) {
                         $user->update($updateData);
+                    }
+                    // 登录时覆盖 latest_info
+                    if (!empty($deviceInfo)) {
+                        UserMeta::setValue($user->id, 'latest_info', json_encode($deviceInfo));
                     }
                 }
 

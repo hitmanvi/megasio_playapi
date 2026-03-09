@@ -38,7 +38,7 @@ class UserMeta extends Model
     }
 
     /**
-     * 添加用户的 meta 值
+     * 添加用户的 meta 值（追加新记录）
      */
     public static function addValue(int $userId, string $key, string $value): self
     {
@@ -47,6 +47,19 @@ class UserMeta extends Model
             'key' => $key,
             'value' => $value,
         ]);
+    }
+
+    /**
+     * 设置/覆盖用户 meta 的最新值（更新最新记录或创建）
+     */
+    public static function setValue(int $userId, string $key, string $value): self
+    {
+        $latest = self::where('user_id', $userId)->where('key', $key)->latest()->first();
+        if ($latest) {
+            $latest->update(['value' => $value]);
+            return $latest;
+        }
+        return self::addValue($userId, $key, $value);
     }
 
     /**

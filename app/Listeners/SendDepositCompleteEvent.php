@@ -17,7 +17,7 @@ class SendDepositCompleteEvent implements ShouldQueue
     {
         $deposit = $event->deposit->loadMissing('user');
         $link = AgentService::getAgentLinkForUser($deposit->user);
-        $deviceInfo = KochavaService::deviceInfoFromDeposit($deposit);
+        $deviceInfo = $deposit->getDeviceInfoForEvent();
 
         // Kochava
         if (!empty($deviceInfo['kochava_device_id']) || !empty($deviceInfo['device_ids'])) {

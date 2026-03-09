@@ -112,7 +112,7 @@ class KochavaService
         ];
 
         try {
-            $response = Http::timeout(10)
+            $response = Http::timeout(30)
                 ->withHeaders(['Content-Type' => 'application/json'])
                 ->post($this->endpoint, $payload);
 
@@ -167,35 +167,5 @@ class KochavaService
         }
 
         return $mapped;
-    }
-
-    /**
-     * Extract device info from deposit.device_info or extra_info (fallback).
-     */
-    public static function deviceInfoFromDeposit($deposit): array
-    {
-        $extra = $deposit->device_info ?? $deposit->extra_info ?? [];
-        $deviceIds = $extra['device_ids'] ?? $extra['kochava_device_ids'] ?? [];
-        if (is_string($deviceIds)) {
-            $deviceIds = json_decode($deviceIds, true) ?: [];
-        }
-        if (empty($deviceIds) && !empty($extra['idfa'])) {
-            $deviceIds = ['idfa' => $extra['idfa']];
-        }
-        if (empty($deviceIds) && !empty($extra['android_id'])) {
-            $deviceIds = ['android_id' => $extra['android_id']];
-        }
-
-        return [
-            'kochava_device_id' => $extra['kochava_device_id'] ?? '',
-            'device_ids' => $deviceIds,
-            'device_ua' => $extra['device_ua'] ?? '',
-            'origination_ip' => $deposit->user_ip ?? $extra['origination_ip'] ?? '0.0.0.0',
-            'app_version' => $extra['app_version'] ?? '',
-            'device_ver' => $extra['device_ver'] ?? '',
-            'usertime' => $extra['usertime'] ?? time(),
-            'fbc' => $extra['fbc'] ?? '',
-            'fbp' => $extra['fbp'] ?? '',
-        ];
     }
 }

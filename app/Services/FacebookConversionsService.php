@@ -121,7 +121,7 @@ class FacebookConversionsService
     protected function buildUserData(array $data): UserData
     {
         $userData = (new UserData())
-            ->setClientIpAddress($data['client_ip_address'] ?? $data['origination_ip'] ?? '')
+            ->setClientIpAddress($data['client_ip_address'] ?? $data['current_ip'] ?? $data['origination_ip'] ?? '')
             ->setClientUserAgent($data['client_user_agent'] ?? $data['device_ua'] ?? '');
 
         if (!empty($data['em'])) {
@@ -151,7 +151,7 @@ class FacebookConversionsService
     public static function userDataFromUser(User $user, array $deviceInfo = []): array
     {
         $data = [
-            'client_ip_address' => $deviceInfo['origination_ip'] ?? '',
+            'client_ip_address' => $deviceInfo['current_ip'] ?? $deviceInfo['origination_ip'] ?? '',
             'client_user_agent' => $deviceInfo['device_ua'] ?? '',
             'event_source_url' => $deviceInfo['event_source_url'] ?? null,
             'fbc' => $deviceInfo['fbc'] ?? '',
@@ -173,7 +173,7 @@ class FacebookConversionsService
     {
         $user = $deposit->user;
         $data = [
-            'client_ip_address' => $deposit->user_ip ?? $deviceInfo['origination_ip'] ?? '',
+            'client_ip_address' => $deviceInfo['current_ip'] ?? $deposit->user_ip ?? $deviceInfo['origination_ip'] ?? '',
             'client_user_agent' => $deviceInfo['device_ua'] ?? '',
             'event_source_url' => $deviceInfo['event_source_url'] ?? null,
             'fbc' => $deviceInfo['fbc'] ?? '',

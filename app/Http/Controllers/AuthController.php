@@ -46,7 +46,7 @@ class AuthController extends Controller
                     throw new AppException(ErrorCode::PHONE_ALREADY_EXISTS, 'Phone number already exists');
                 }
             }
-            $deviceInfo = $this->getDeviceInfo($request);
+            $deviceInfo = $this->getDeviceInfoForEvent($request, null);
             $result = $this->authService->register([
                 'name' => $request->name,
                 'phone' => $request->phone,
@@ -77,11 +77,13 @@ class AuthController extends Controller
         ]);
 
         try {
+            $deviceInfo = $this->getDeviceInfo($request);
             $result = $this->authService->login(
                 $request->login,
                 $request->password,
                 $request->ip(),
-                $request->userAgent()
+                $request->userAgent(),
+                $deviceInfo
             );
 
             return $this->responseItem($result);

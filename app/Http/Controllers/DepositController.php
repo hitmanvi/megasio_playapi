@@ -92,7 +92,7 @@ class DepositController extends Controller
             return $this->error(ErrorCode::VALIDATION_ERROR, $validation['errors']);
         }
 
-        $deviceInfo = $this->getDeviceInfo($request);
+        $deviceInfo = $this->getDeviceInfoForEvent($request, $user);
 
         // 创建存款订单
         $jumpData = $this->depositService->createDeposit(
