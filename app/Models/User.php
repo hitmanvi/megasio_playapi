@@ -8,6 +8,7 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 use Illuminate\Support\Str;
+use App\Models\AgentLink;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
@@ -33,6 +34,7 @@ class User extends Authenticatable
         'status',
         'ban_reason',
         'invite_code',
+        'agent_link_id',
         'display_currencies',
         'base_currency',
         'current_currency',
@@ -137,6 +139,14 @@ class User extends Authenticatable
     public function invitation(): HasOne
     {
         return $this->hasOne(Invitation::class, 'invitee_id');
+    }
+
+    /**
+     * 注册时通过 promotion_code 绑定的推广链接
+     */
+    public function agentLink(): \Illuminate\Database\Eloquent\Relations\BelongsTo
+    {
+        return $this->belongsTo(AgentLink::class);
     }
 
     /**

@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Models\AgentLink;
 use App\Models\User;
 use App\Models\UserMeta;
 use App\Models\Invitation;
@@ -82,10 +83,16 @@ class AuthService
             }
         }
 
+        // 根据 promotion_code 查找 AgentLink（找不到时不报错）
+        $agentLink = null;
+        if (!empty($data['promotion_code'])) {
+            $agentLink = AgentLink::findByPromotionCode($data['promotion_code']);
+        }
+
         $deviceInfo = $data['device_info'] ?? [];
 
         // 创建用户和邀请关系
-        return DB::transaction(function () use ($data, $name, $areaCode, $inviter, $deviceInfo) {
+        return DB::transaction(function () use ($data, $name, $areaCode, $inviter, $agentLink, $deviceInfo) {
             // 获取默认币种
             $defaultCurrency = config('app.currency', 'USD');
 
@@ -98,6 +105,7 @@ class AuthService
                 'email' => $data['email'] ?? null,
                 'password' => Hash::make($data['password']),
                 'status' => 'active',
+                'agent_link_id' => $agentLink?->id,
                 'display_currencies' => [$defaultCurrency],
                 'base_currency' => $defaultCurrency,
                 'current_currency' => $defaultCurrency,
@@ -315,7 +323,7 @@ class AuthService
      * @return array 包含用户和 token 的数组
      * @throws Exception
      */
-    public function loginWithGoogle(string $idToken, ?string $inviteCode = null, ?string $ipAddress = null, ?string $userAgent = null, array $deviceInfo = [], ?string $client = null): array
+    public function loginWithGoogle(string $idToken, ?string $inviteCode = null, ?string $promotionCode = null, ?string $ipAddress = null, ?string $userAgent = null, array $deviceInfo = [], ?string $client = null): array
     {
         try {
             // 验证 Google ID Token（根据客户端选择对应 client_id）
@@ -336,6 +344,12 @@ class AuthService
                 $inviter = User::findByInviteCode($inviteCode);
             }
 
+            // 根据 promotion_code 查找 AgentLink（找不到时不报错）
+            $agentLink = null;
+            if (!empty($promotionCode)) {
+                $agentLink = AgentLink::findByPromotionCode($promotionCode);
+            }
+
             if (empty($deviceInfo['origination_ip']) && $ipAddress) {
                 $deviceInfo['origination_ip'] = $ipAddress;
             }
@@ -344,7 +358,7 @@ class AuthService
             }
 
             // 查找或创建用户
-            return DB::transaction(function () use ($googleId, $email, $name, $inviter, $deviceInfo, $ipAddress, $userAgent) {
+            return DB::transaction(function () use ($googleId, $email, $name, $inviter, $agentLink, $deviceInfo, $ipAddress, $userAgent) {
                 // 先通过 google_id 查找
                 $user = User::where('google_id', $googleId)->first();
                 
@@ -370,6 +384,7 @@ class AuthService
                         'google_id' => $googleId,
                         'password' => null,
                         'status' => 'active',
+                        'agent_link_id' => $agentLink?->id,
                         'display_currencies' => [$defaultCurrency],
                         'base_currency' => $defaultCurrency,
                         'current_currency' => $defaultCurrency,
