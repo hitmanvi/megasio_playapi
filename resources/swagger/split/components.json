@@ -501,10 +501,8 @@
                 },
                 "invite_code": {
                     "type": "string",
-                    "maxLength": 8,
-                    "minLength": 8,
                     "nullable": true,
-                    "description": "邀请码（8位字符）"
+                    "description": "4位为推广码（promotion_code，绑定 AgentLink）；非4位为邀请码（绑定邀请人，无效时注册接口报错）"
                 }
             }
         },
@@ -537,10 +535,8 @@
                 },
                 "invite_code": {
                     "type": "string",
-                    "maxLength": 8,
-                    "minLength": 8,
                     "nullable": true,
-                    "description": "邀请码（8位字符），可选"
+                    "description": "4位为推广码（promotion_code，绑定 AgentLink）；非4位为邀请码（绑定邀请人）。无效时不报错"
                 },
                 "client": {
                     "type": "string",

@@ -5,7 +5,7 @@
                 "Authentication"
             ],
             "summary": "用户注册",
-            "description": "创建新用户账户",
+            "description": "创建新用户账户。invite_code：4位为推广码（绑定 AgentLink），非4位为邀请码（绑定邀请人）",
             "requestBody": {
                 "required": true,
                 "content": {
@@ -87,6 +87,14 @@
                                                 "Phone number and email cannot both be empty"
                                             ]
                                         }
+                                    }
+                                },
+                                "invalid_invite_code": {
+                                    "summary": "无效的邀请码（非4位时）",
+                                    "value": {
+                                        "code": 3006,
+                                        "errmsg": "Invalid invite code",
+                                        "data": null
                                     }
                                 }
                             }
@@ -191,7 +199,7 @@
                 "Authentication"
             ],
             "summary": "Google 登录\/注册",
-            "description": "使用 Google ID Token 进行登录或注册。不同客户端（ios\/android\/web）使用不同的 client_id 验证。若传 client 参数或 X-Platform header，则使用对应 client_id；否则默认使用 web。如果用户已存在（通过 google_id 或 email 匹配），则直接登录；如果不存在，则创建新用户。支持邀请码绑定。",
+            "description": "使用 Google ID Token 进行登录或注册。不同客户端（ios\/android\/web）使用不同的 client_id 验证。若传 client 参数或 X-Platform header，则使用对应 client_id；否则默认使用 web。如果用户已存在（通过 google_id 或 email 匹配），则直接登录；如果不存在，则创建新用户。invite_code：4位为推广码（绑定 AgentLink），非4位为邀请码（绑定邀请人），无效时不报错。",
             "requestBody": {
                 "required": true,
                 "content": {
@@ -243,14 +251,6 @@
                                     "value": {
                                         "code": 1001,
                                         "errmsg": "Invalid Google ID token",
-                                        "data": null
-                                    }
-                                },
-                                "invalid_invite_code": {
-                                    "summary": "无效的邀请码",
-                                    "value": {
-                                        "code": 2003,
-                                        "errmsg": "Invalid invite code",
                                         "data": null
                                     }
                                 }
