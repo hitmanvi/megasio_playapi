@@ -41,7 +41,7 @@ class TestEventServices extends Command
 
         $deviceInfo = [
             'kochava_device_id' => 'TEST_DEVICE_001',
-            'device_ids' => ['idfa' => '00000000-0000-0000-0000-000000000001'],
+            'device_ids' => ['idfa' => '633344A3-155D-4FEE-AC83-FA4205805FD8'],
             'device_ua' => 'TestEventServices/1.0',
             'origination_ip' => '127.0.0.1',
             'usertime' => time(),
