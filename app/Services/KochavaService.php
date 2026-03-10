@@ -61,7 +61,11 @@ class KochavaService
     public function sendEvent(string $eventName, array $eventData = [], array $deviceInfo = []): bool
     {
         if (!$this->enabled) {
-            Log::debug('Kochava: disabled, skipping event', ['event' => $eventName]);
+            Log::debug('Kochava: disabled, skipping event', [
+                'event' => $eventName,
+                'config_enabled' => config('services.kochava.enabled', false),
+                'app_id_set' => !empty($this->appId),
+            ]);
             return false;
         }
 
@@ -73,7 +77,12 @@ class KochavaService
         // Kochava requires at least one of kochava_device_id or device_ids (with at least one id)
         $hasDeviceId = !empty($kochavaDeviceId) || !empty($deviceIds);
         if (!$hasDeviceId) {
-            Log::debug('Kochava: missing device identifiers, skipping event', ['event' => $eventName]);
+            Log::debug('Kochava: missing device identifiers, skipping event', [
+                'event' => $eventName,
+                'device_info_keys' => array_keys($deviceInfo),
+                'kochava_device_id_empty' => empty($kochavaDeviceId),
+                'device_ids_empty' => empty($deviceIds),
+            ]);
             return false;
         }
 
@@ -111,6 +120,13 @@ class KochavaService
             'data' => $data,
         ];
 
+        Log::debug('Kochava: sending event', [
+            'endpoint' => $this->endpoint,
+            'event_name' => $kochavaEventName,
+            'event_data' => $kochavaEventData,
+            'payload' => $payload,
+        ]);
+
         try {
             $response = Http::timeout(30)
                 ->withHeaders(['Content-Type' => 'application/json'])
@@ -120,17 +136,24 @@ class KochavaService
                 Log::warning('Kochava: event failed', [
                     'event' => $kochavaEventName,
                     'status' => $response->status(),
-                    'body' => $response->body(),
+                    'response_body' => $response->body(),
+                    'payload' => $payload,
                 ]);
                 return false;
             }
 
-            Log::debug('Kochava: event sent', ['event' => $kochavaEventName]);
+            Log::debug('Kochava: event sent successfully', [
+                'event' => $kochavaEventName,
+                'status' => $response->status(),
+                'response_body' => $response->body(),
+            ]);
             return true;
         } catch (Throwable $e) {
             Log::error('Kochava: exception', [
                 'event' => $kochavaEventName,
                 'message' => $e->getMessage(),
+                'payload' => $payload,
+                'trace' => $e->getTraceAsString(),
             ]);
             return false;
         }
