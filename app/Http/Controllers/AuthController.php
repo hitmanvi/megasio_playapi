@@ -33,7 +33,6 @@ class AuthController extends Controller
             'email' => 'nullable|string|email|max:255',
             'password' => 'required|string|min:6',
             'invite_code' => 'nullable|string',
-            'promotion_code' => 'nullable|string|max:32',
         ]);
 
         try {
@@ -55,7 +54,6 @@ class AuthController extends Controller
                 'email' => $request->email,
                 'password' => $request->password,
                 'invite_code' => $request->invite_code,
-                'promotion_code' => $request->promotion_code,
                 'device_info' => $deviceInfo,
             ]);
 
@@ -196,7 +194,6 @@ class AuthController extends Controller
         $request->validate([
             'id_token' => 'required|string',
             'invite_code' => 'nullable|string',
-            'promotion_code' => 'nullable|string|max:32',
             'client' => 'nullable|string|in:ios,android,web',
         ]);
 
@@ -207,7 +204,6 @@ class AuthController extends Controller
             $result = $this->authService->loginWithGoogle(
                 $request->id_token,
                 $request->invite_code,
-                $request->promotion_code,
                 $request->ip(),
                 $request->userAgent(),
                 $deviceInfo,

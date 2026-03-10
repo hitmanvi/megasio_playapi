@@ -74,19 +74,19 @@ class AuthService
             $areaCode = substr($areaCode, 1);
         }
 
-        // 处理邀请关系
+        // invite_code：4位为 promotion_code（AgentLink），否则为 invite_code（邀请人）
         $inviter = null;
-        if (!empty($data['invite_code'])) {
-            $inviter = User::findByInviteCode($data['invite_code']);
-            if (!$inviter) {
-                throw new Exception(ErrorCode::INVALID_INVITE_CODE, 'Invalid invite code');
-            }
-        }
-
-        // 根据 promotion_code 查找 AgentLink（找不到时不报错）
         $agentLink = null;
-        if (!empty($data['promotion_code'])) {
-            $agentLink = AgentLink::findByPromotionCode($data['promotion_code']);
+        if (!empty($data['invite_code'])) {
+            $code = trim($data['invite_code']);
+            if (strlen($code) === 4) {
+                $agentLink = AgentLink::findByPromotionCode($code);
+            } else {
+                $inviter = User::findByInviteCode($code);
+                if (!$inviter) {
+                    throw new Exception(ErrorCode::INVALID_INVITE_CODE, 'Invalid invite code');
+                }
+            }
         }
 
         $deviceInfo = $data['device_info'] ?? [];
@@ -323,7 +323,7 @@ class AuthService
      * @return array 包含用户和 token 的数组
      * @throws Exception
      */
-    public function loginWithGoogle(string $idToken, ?string $inviteCode = null, ?string $promotionCode = null, ?string $ipAddress = null, ?string $userAgent = null, array $deviceInfo = [], ?string $client = null): array
+    public function loginWithGoogle(string $idToken, ?string $inviteCode = null, ?string $ipAddress = null, ?string $userAgent = null, array $deviceInfo = [], ?string $client = null): array
     {
         try {
             // 验证 Google ID Token（根据客户端选择对应 client_id）
@@ -338,16 +338,16 @@ class AuthService
             $name = $googleUser['name'] ?? $googleUser['email'] ?? 'Google User';
             $avatar = $googleUser['picture'] ?? null;
 
-            // 处理邀请关系
+            // invite_code：4位为 promotion_code（AgentLink），否则为 invite_code（邀请人）
             $inviter = null;
-            if (!empty($inviteCode)) {
-                $inviter = User::findByInviteCode($inviteCode);
-            }
-
-            // 根据 promotion_code 查找 AgentLink（找不到时不报错）
             $agentLink = null;
-            if (!empty($promotionCode)) {
-                $agentLink = AgentLink::findByPromotionCode($promotionCode);
+            if (!empty($inviteCode)) {
+                $code = trim($inviteCode);
+                if (strlen($code) === 4) {
+                    $agentLink = AgentLink::findByPromotionCode($code);
+                } else {
+                    $inviter = User::findByInviteCode($code);
+                }
             }
 
             if (empty($deviceInfo['origination_ip']) && $ipAddress) {
