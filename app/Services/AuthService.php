@@ -83,9 +83,6 @@ class AuthService
                 $agentLink = AgentLink::findByPromotionCode($code);
             } else {
                 $inviter = User::findByInviteCode($code);
-                if (!$inviter) {
-                    throw new Exception(ErrorCode::INVALID_INVITE_CODE, 'Invalid invite code');
-                }
             }
         }
 
