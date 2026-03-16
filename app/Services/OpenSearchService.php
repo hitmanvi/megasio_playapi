@@ -29,6 +29,13 @@ class OpenSearchService
         $this->indexPrefix = rtrim(config('opensearch.index_prefix', 'playapi'), '-');
     }
 
+    protected function debug(string $message, array $context = []): void
+    {
+        if (config('opensearch.debug', false)) {
+            Log::debug('[OpenSearch] ' . $message, $context);
+        }
+    }
+
     /**
      * 获取 OpenSearch 客户端（懒加载）
      */
@@ -75,7 +82,9 @@ class OpenSearchService
             $builder->setLogger($logger);
         }
 
-        return $builder->build();
+        $client = $builder->build();
+        $this->debug('Client built', ['hosts' => $params['hosts'], 'auth' => isset($params['basicAuthentication'])]);
+        return $client;
     }
 
     public function isEnabled(): bool
@@ -113,7 +122,9 @@ class OpenSearchService
         }
 
         try {
+            $this->debug('Ping start');
             $client->ping();
+            $this->debug('Ping ok');
             return true;
         } catch (Throwable $e) {
             Log::warning('OpenSearch ping failed', [
@@ -149,14 +160,18 @@ class OpenSearchService
         }
 
         try {
+            $this->debug('Index document', ['index' => $indexName, 'id' => $id, 'document_keys' => array_keys($document)]);
             $response = $client->index($params);
             $responseArray = is_array($response) ? $response : (array) $response;
+            $docId = $responseArray['_id'] ?? $id;
+            $this->debug('Index document ok', ['index' => $indexName, '_id' => $docId]);
 
             return [
                 'success' => true,
-                'id' => $responseArray['_id'] ?? $id,
+                'id' => $docId,
             ];
         } catch (Throwable $e) {
+            $this->debug('Index document failed', ['index' => $indexName, 'error' => $e->getMessage()]);
             Log::error('OpenSearch index failed', [
                 'index' => $indexName,
                 'message' => $e->getMessage(),
@@ -200,6 +215,7 @@ class OpenSearchService
         }
 
         try {
+            $this->debug('Bulk index', ['index' => $indexName, 'count' => count($documents)]);
             $response = $client->bulk(['body' => $body]);
             $responseArray = is_array($response) ? $response : (array) $response;
 
@@ -216,12 +232,14 @@ class OpenSearchService
                 }
             }
 
+            $this->debug('Bulk index ok', ['index' => $indexName, 'indexed' => $indexed, 'errors_count' => count($errors)]);
             return [
                 'success' => empty($errors),
                 'indexed' => $indexed,
                 'errors' => $errors,
             ];
         } catch (Throwable $e) {
+            $this->debug('Bulk index failed', ['index' => $indexName, 'error' => $e->getMessage()]);
             Log::error('OpenSearch bulk index failed', [
                 'index' => $indexName,
                 'message' => $e->getMessage(),
@@ -277,6 +295,7 @@ class OpenSearchService
         }
 
         try {
+            $this->debug('Search', ['indices' => $indexNames, 'query' => $params['body']]);
             $response = $client->search($params);
             $responseArray = is_array($response) ? $response : (array) $response;
 
@@ -285,6 +304,7 @@ class OpenSearchService
                 $total = $total['value'];
             }
 
+            $this->debug('Search ok', ['indices' => $indexNames, 'total' => (int) $total, 'hits_count' => count($responseArray['hits']['hits'] ?? [])]);
             return [
                 'success' => true,
                 'hits' => $responseArray['hits']['hits'] ?? [],
@@ -292,6 +312,7 @@ class OpenSearchService
                 'aggregations' => $responseArray['aggregations'] ?? [],
             ];
         } catch (Throwable $e) {
+            $this->debug('Search failed', ['indices' => $indexNames, 'error' => $e->getMessage()]);
             Log::error('OpenSearch search failed', [
                 'indices' => $indexNames,
                 'message' => $e->getMessage(),
@@ -423,6 +444,7 @@ class OpenSearchService
     public function indexEvent(string $eventType, array $payload): array
     {
         $index = $this->getIndexForEvent($eventType);
+        $this->debug('Index event', ['event_type' => $eventType, 'index' => $index, 'payload_keys' => array_keys($payload)]);
 
         $document = array_merge([
             'event_type' => $eventType,

@@ -11,7 +11,8 @@ class TestOpenSearchEvent extends Command
                             {--event=user_registered : 事件类型，如 user_registered}
                             {--user-id=1 : 用户 ID}
                             {--uid=TEST001 : 用户 UID}
-                            {--email=test@example.com : 邮箱}';
+                            {--email=test@example.com : 邮箱}
+                            {--debug : 输出调试日志}';
 
     protected $description = '测试 OpenSearch 事件上传（注册事件等）';
 
@@ -21,6 +22,12 @@ class TestOpenSearchEvent extends Command
         $userId = (int) $this->option('user-id');
         $uid = $this->option('uid');
         $email = $this->option('email');
+
+        if ($this->option('debug')) {
+            config(['opensearch.debug' => true]);
+            $this->line('Debug 模式已开启，日志输出到 ' . storage_path('logs/laravel.log'));
+            $this->newLine();
+        }
 
         $openSearch = new OpenSearchService();
 
