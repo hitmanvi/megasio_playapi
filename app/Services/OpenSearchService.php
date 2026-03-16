@@ -283,6 +283,53 @@ class OpenSearchService
     }
 
     /**
+     * 根据 ID 获取文档
+     *
+     * @return array{success: bool, document?: array, found?: bool, error?: string}
+     */
+    public function getDocument(string $index, string $id): array
+    {
+        $client = $this->getClient();
+        if (!$client) {
+            return ['success' => false, 'error' => 'OpenSearch disabled'];
+        }
+
+        $indexName = str_contains($index, '-') ? $index : $this->getIndexName($index);
+
+        try {
+            $this->debug('Get document', ['index' => $indexName, 'id' => $id]);
+            $response = $client->get([
+                'index' => $indexName,
+                'id' => $id,
+            ]);
+            $responseArray = is_array($response) ? $response : (array) $response;
+
+            return [
+                'success' => true,
+                'found' => ($responseArray['found'] ?? false),
+                'document' => $responseArray['_source'] ?? null,
+                '_id' => $responseArray['_id'] ?? $id,
+                '_index' => $responseArray['_index'] ?? $indexName,
+            ];
+        } catch (Throwable $e) {
+            $this->debug('Get document failed', ['index' => $indexName, 'id' => $id, 'error' => $e->getMessage()]);
+            $isNotFound = str_contains($e->getMessage(), '404') || str_contains($e->getMessage(), 'not_found');
+            if (!$isNotFound) {
+                Log::error('OpenSearch get document failed', [
+                    'index' => $indexName,
+                    'id' => $id,
+                    'message' => $e->getMessage(),
+                ]);
+            }
+            return [
+                'success' => $isNotFound,
+                'found' => false,
+                'error' => $e->getMessage(),
+            ];
+        }
+    }
+
+    /**
      * 搜索（支持单 index 或多 index 聚合）
      *
      * @param  string|array  $indices  index 名称或索引名数组，支持通配符如 'events-*'
