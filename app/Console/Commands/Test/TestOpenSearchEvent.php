@@ -12,7 +12,8 @@ class TestOpenSearchEvent extends Command
                             {--user-id=1 : 用户 ID}
                             {--uid=TEST001 : 用户 UID}
                             {--email=test@example.com : 邮箱}
-                            {--debug : 输出调试日志}';
+                            {--debug : 输出调试日志}
+                            {--config : 仅输出配置信息}';
 
     protected $description = '测试 OpenSearch 事件上传（注册事件等）';
 
@@ -23,9 +24,16 @@ class TestOpenSearchEvent extends Command
         $uid = $this->option('uid');
         $email = $this->option('email');
 
+        if ($this->option('config')) {
+            $this->outputConfig();
+            return 0;
+        }
+
         if ($this->option('debug')) {
             config(['opensearch.debug' => true]);
-            $this->line('Debug 模式已开启，日志输出到 ' . storage_path('logs/laravel.log'));
+            $this->outputConfig();
+            $this->newLine();
+            $this->line('Debug 模式已开启，详细日志输出到 ' . storage_path('logs/laravel.log'));
             $this->newLine();
         }
 
@@ -63,6 +71,35 @@ class TestOpenSearchEvent extends Command
         $this->error('✗ 事件上传失败');
         $this->line('错误: ' . ($result['error'] ?? 'unknown'));
         return 1;
+    }
+
+    protected function outputConfig(): void
+    {
+        $hosts = config('opensearch.hosts', []);
+        $username = config('opensearch.username');
+        $hasAuth = !empty($username) && !empty(config('opensearch.password'));
+
+        $this->info('OpenSearch 配置');
+        $this->table(
+            ['配置项', '值'],
+            [
+                ['enabled', config('opensearch.enabled') ? 'true' : 'false'],
+                ['hosts', is_array($hosts) ? implode(', ', $hosts) : $hosts],
+                ['username', $username ?: '(未设置)'],
+                ['password', $hasAuth ? '****' : '(未设置)'],
+                ['index_prefix', config('opensearch.index_prefix', 'playapi')],
+                ['debug', config('opensearch.debug') ? 'true' : 'false'],
+                ['connect_timeout', (string) config('opensearch.connect_timeout', 5)],
+                ['request_timeout', (string) config('opensearch.request_timeout', 30)],
+            ]
+        );
+
+        $this->newLine();
+        $this->line('事件 → Index 映射:');
+        foreach (config('opensearch.event_indices', []) as $event => $suffix) {
+            $fullIndex = config('opensearch.index_prefix', 'playapi') . '-' . $suffix;
+            $this->line("  {$event} → {$fullIndex}");
+        }
     }
 
     protected function buildPayload(string $eventType, int $userId, string $uid, string $email): array
