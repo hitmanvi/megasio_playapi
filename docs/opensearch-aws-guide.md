@@ -163,9 +163,18 @@ php artisan test:opensearch-event
 | 错误 | 可能原因 | 处理方式 |
 |------|----------|----------|
 | Connection refused / timeout | 网络不通或安全组限制 | 检查安全组、VPC、访问策略 |
+| Connection timed out (port 9200) | opensearch-php 对 https 无端口 URL 错误使用 9200 | 已在 OpenSearchService 中自动补 `:443`，确保使用最新代码 |
 | 401 Unauthorized | 用户名或密码错误 | 核对 OPENSEARCH_USERNAME / OPENSEARCH_PASSWORD |
 | 403 Forbidden | 访问策略不允许当前 IP | 在访问策略中加入当前 IP |
 | SSL certificate problem | 证书校验失败 | 确认使用 `https://` 且端点正确 |
+
+### 5.3 curl 通但 ping 不通
+
+若 `curl https://your-domain.es.amazonaws.com` 正常，但 `php artisan test:opensearch-event` 报连接失败，通常是 opensearch-php 对 HTTPS 端点错误使用了 9200 端口。OpenSearchService 已自动为 `https://` 且无端口的 URL 补上 `:443`。若仍有问题，可显式配置：
+
+```env
+OPENSEARCH_HOSTS=https://your-domain.es.amazonaws.com:443
+```
 
 ---
 

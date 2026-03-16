@@ -37,6 +37,30 @@ class OpenSearchService
     }
 
     /**
+     * 规范化 host：https 无端口时补 :443，避免 opensearch-php 错误使用 9200（AWS OpenSearch 兼容）
+     */
+    protected function normalizeHost(string $host): string
+    {
+        if (empty($host)) {
+            return $host;
+        }
+        $parsed = parse_url($host);
+        if (!is_array($parsed) || !isset($parsed['host'])) {
+            return $host;
+        }
+        if (isset($parsed['port'])) {
+            return $host;
+        }
+        $scheme = $parsed['scheme'] ?? 'http';
+        $path = $parsed['path'] ?? '';
+        $query = isset($parsed['query']) ? '?' . $parsed['query'] : '';
+        $fragment = isset($parsed['fragment']) ? '#' . $parsed['fragment'] : '';
+        $port = ($scheme === 'https') ? ':443' : ':9200';
+
+        return $scheme . '://' . $parsed['host'] . $port . $path . $query . $fragment;
+    }
+
+    /**
      * 获取 OpenSearch 客户端（懒加载）
      */
     public function getClient(): ?Client
@@ -59,9 +83,13 @@ class OpenSearchService
     {
         $hosts = config('opensearch.hosts', ['http://localhost:9200']);
         $hosts = array_filter(array_map('trim', $hosts));
+        $hosts = !empty($hosts) ? $hosts : ['http://localhost:9200'];
+
+        // AWS OpenSearch: https URL 无端口时 opensearch-php 会错误使用 9200，需显式加 :443
+        $hosts = array_map([$this, 'normalizeHost'], $hosts);
 
         $params = [
-            'hosts' => !empty($hosts) ? $hosts : ['http://localhost:9200'],
+            'hosts' => $hosts,
         ];
 
         if (($username = config('opensearch.username')) && ($password = config('opensearch.password'))) {
