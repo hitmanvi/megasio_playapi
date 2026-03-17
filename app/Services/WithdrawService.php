@@ -13,7 +13,7 @@ use Illuminate\Support\Facades\DB;
 use App\Exceptions\Exception;
 use App\Enums\ErrorCode;
 use Carbon\Carbon;
-use Illuminate\Support\Facades\Log;
+
 class WithdrawService
 {
     protected $balanceService;
@@ -315,20 +315,20 @@ class WithdrawService
 
     public function finishWithdraw($orderId, $outId, $amount)
     {
-        $withdraw = Withdraw::where('order_no', $orderId)->where('out_trade_no', $outId)->first();
+        $withdraw = Withdraw::where('order_no', $orderId)->first();
         if (!$withdraw) {
-            Log::error('WithdrawService finishWithdraw withdraw not found', ['orderId' => $orderId, 'outId' => $outId]);
             return false;
         }
 
         // 更新最后回调时间
         $withdraw->update(['last_callback_at' => Carbon::now()]);
 
-        return DB::transaction(function () use ($withdraw, $amount) {
+        return DB::transaction(function () use ($withdraw, $amount, $outId) {
             $withdraw->update([
                 'status' => Withdraw::STATUS_COMPLETED,
                 'pay_status' => Withdraw::PAY_STATUS_PAID,
                 'completed_at' => Carbon::now(),
+                'out_trade_no' => $outId,
             ]);
             $this->balanceService->finishWithdraw($withdraw->user_id, $withdraw->currency, $amount, 'Withdraw', $withdraw->id);
 
