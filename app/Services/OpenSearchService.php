@@ -533,9 +533,10 @@ class OpenSearchService
     /**
      * 应用配置中的 index 模版
      *
+     * @param  string|null  $onlyName  仅应用指定名称的模版，null 则应用全部
      * @return array{success: bool, applied: array, errors: array}
      */
-    public function applyIndexTemplates(): array
+    public function applyIndexTemplates(?string $onlyName = null): array
     {
         $client = $this->getClient();
         if (!$client) {
@@ -543,6 +544,9 @@ class OpenSearchService
         }
 
         $templates = config('opensearch.index_templates', []);
+        if ($onlyName !== null) {
+            $templates = isset($templates[$onlyName]) ? [$onlyName => $templates[$onlyName]] : [];
+        }
         $applied = [];
         $errors = [];
 

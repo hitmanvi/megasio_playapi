@@ -7,9 +7,10 @@ use Illuminate\Console\Command;
 
 class OpenSearchInitTemplates extends Command
 {
-    protected $signature = 'opensearch:init-templates';
+    protected $signature = 'opensearch:create-templates
+                            {--name= : 仅创建指定模版，不传则创建全部}';
 
-    protected $description = '应用 OpenSearch index 模版（建议首次使用或修改模版后执行）';
+    protected $description = '创建 OpenSearch index 模版（根据 config/opensearch.php 的 index_templates 配置）';
 
     public function handle(): int
     {
@@ -25,12 +26,17 @@ class OpenSearchInitTemplates extends Command
             return 1;
         }
 
-        $this->info('应用 index 模版...');
-        $result = $openSearch->applyIndexTemplates();
+        $onlyName = $this->option('name');
+        $this->info($onlyName ? "创建模版: {$onlyName}" : '创建 index 模版...');
+        $result = $openSearch->applyIndexTemplates($onlyName ?: null);
 
         if ($result['success']) {
-            $this->info('✓ 模版应用成功: ' . implode(', ', $result['applied']));
-            return 0;
+            if (empty($result['applied'])) {
+                $this->warn('未找到匹配的模版' . ($onlyName ? " (--name={$onlyName})" : ''));
+            } else {
+                $this->info('✓ 模版创建成功: ' . implode(', ', $result['applied']));
+            }
+            return empty($result['errors']) ? 0 : 1;
         }
 
         foreach ($result['errors'] as $err) {

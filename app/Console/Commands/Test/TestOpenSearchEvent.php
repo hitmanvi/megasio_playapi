@@ -17,7 +17,7 @@ class TestOpenSearchEvent extends Command
                             {--get= : 取回文档：指定文档 ID 时执行取回而非上传}
                             {--search : 搜索最近文档（取回测试）}
                             {--id= : 指定文档 ID（幂等写入，相同 ID 覆盖）}
-                            {--init-templates : 先应用 index 模版再执行}';
+                            {--create-templates : 先创建 index 模版再执行}';
 
     protected $description = '测试 OpenSearch 事件上传（注册事件等）';
 
@@ -42,12 +42,12 @@ class TestOpenSearchEvent extends Command
             return $this->searchDocuments($eventType);
         }
 
-        if ($this->option('init-templates')) {
+        if ($this->option('create-templates')) {
             $openSearch = new OpenSearchService();
             if ($openSearch->isEnabled() && $openSearch->ping()) {
                 $r = $openSearch->applyIndexTemplates();
                 if ($r['success']) {
-                    $this->info('✓ 模版已应用');
+                    $this->info('✓ 模版已创建');
                 } else {
                     foreach ($r['errors'] ?? [] as $e) {
                         $this->warn($e);

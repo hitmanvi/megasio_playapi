@@ -104,6 +104,8 @@ return [
                         'amount' => ['type' => 'float'],
                         'currency' => ['type' => 'keyword'],
                         'event_id' => ['type' => 'keyword'],
+                        'agent_id' => ['type' => 'long'],
+                        'agent_link_id' => ['type' => 'long'],
                     ],
                     'dynamic_templates' => [
                         ['strings_as_keyword' => [

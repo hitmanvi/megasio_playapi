@@ -222,12 +222,18 @@ Source: 应用实例的安全组 ID 或 CIDR
 
 ## 九、Index 模版与文档 ID
 
-### 9.1 应用模版
+### 9.1 创建模版
 
-首次使用或修改模版后，建议先应用 index 模版：
+首次使用或修改模版后，建议先创建 index 模版：
 
 ```bash
-php artisan opensearch:init-templates
+php artisan opensearch:create-templates
+```
+
+仅创建指定模版：
+
+```bash
+php artisan opensearch:create-templates --name=events
 ```
 
 模版定义在 `config/opensearch.php` 的 `index_templates`，包含 `@timestamp`、`event_type`、`user_id` 等字段的 mapping。
@@ -253,7 +259,7 @@ $openSearch->indexEvent('user_registered', $payload, $eventId);
 ## 十、快速检查清单
 
 - [ ] 已创建 OpenSearch 域并处于 Active 状态
-- [ ] 已执行 `php artisan opensearch:init-templates` 应用模版
+- [ ] 已执行 `php artisan opensearch:create-templates` 创建模版
 - [ ] 已启用 Fine-grained access control 并创建 Master 用户
 - [ ] 已获取正确的 Domain endpoint（HTTPS）
 - [ ] 访问策略允许当前 IP（公网访问时）
