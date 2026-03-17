@@ -531,6 +531,104 @@ class OpenSearchService
     }
 
     /**
+     * 获取用户充提金额汇总（从 OpenSearch 聚合）
+     * 每个用户一条数据：充值总额、提现总额、成功充值总额、成功提现总额
+     *
+     * @param  array  $options  size: 返回用户数上限（默认 10000），from/size 分页暂不支持
+     * @return array{success: bool, data?: array<int, array{user_id: int, deposit_total: float, withdraw_total: float, deposit_completed_total: float, withdraw_completed_total: float}>, error?: string}
+     */
+    public function getUserDepositWithdrawTotals(array $options = []): array
+    {
+        $client = $this->getClient();
+        if (!$client) {
+            return ['success' => false, 'error' => 'OpenSearch disabled'];
+        }
+
+        $size = (int) ($options['size'] ?? 10000);
+        $depositIndex = $this->getIndexForEvent('deposit_completed');
+        $withdrawIndex = $this->getIndexForEvent('withdraw_completed');
+
+        $depositAggs = [
+            'by_user' => [
+                'terms' => [
+                    'field' => 'user_id',
+                    'size' => $size,
+                ],
+                'aggs' => [
+                    'total' => ['sum' => ['field' => 'amount']],
+                    'completed' => [
+                        'filter' => ['term' => ['event_type' => 'deposit_completed']],
+                        'aggs' => ['sum_amount' => ['sum' => ['field' => 'amount']]],
+                    ],
+                ],
+            ],
+        ];
+
+        $withdrawAggs = [
+            'by_user' => [
+                'terms' => [
+                    'field' => 'user_id',
+                    'size' => $size,
+                ],
+                'aggs' => [
+                    'total' => ['sum' => ['field' => 'amount']],
+                    'completed' => [
+                        'filter' => ['term' => ['event_type' => 'withdraw_completed']],
+                        'aggs' => ['sum_amount' => ['sum' => ['field' => 'amount']]],
+                    ],
+                ],
+            ],
+        ];
+
+        $depositResult = $this->search($depositIndex, ['query' => ['match_all' => (object) []]], ['size' => 0, 'aggs' => $depositAggs]);
+        $withdrawResult = $this->search($withdrawIndex, ['query' => ['match_all' => (object) []]], ['size' => 0, 'aggs' => $withdrawAggs]);
+
+        if (!$depositResult['success']) {
+            return ['success' => false, 'error' => $depositResult['error'] ?? 'Deposit aggregation failed'];
+        }
+        if (!$withdrawResult['success']) {
+            return ['success' => false, 'error' => $withdrawResult['error'] ?? 'Withdraw aggregation failed'];
+        }
+
+        $depositBuckets = $depositResult['aggregations']['by_user']['buckets'] ?? [];
+        $withdrawBuckets = $withdrawResult['aggregations']['by_user']['buckets'] ?? [];
+
+        $users = [];
+        foreach ($depositBuckets as $b) {
+            $userId = (int) $b['key'];
+            $users[$userId] = [
+                'user_id' => $userId,
+                'deposit_total' => (float) ($b['total']['value'] ?? 0),
+                'deposit_completed_total' => (float) ($b['completed']['sum_amount']['value'] ?? 0),
+                'withdraw_total' => 0.0,
+                'withdraw_completed_total' => 0.0,
+            ];
+        }
+        foreach ($withdrawBuckets as $b) {
+            $userId = (int) $b['key'];
+            if (!isset($users[$userId])) {
+                $users[$userId] = [
+                    'user_id' => $userId,
+                    'deposit_total' => 0.0,
+                    'deposit_completed_total' => 0.0,
+                    'withdraw_total' => 0.0,
+                    'withdraw_completed_total' => 0.0,
+                ];
+            }
+            $users[$userId]['withdraw_total'] = (float) ($b['total']['value'] ?? 0);
+            $users[$userId]['withdraw_completed_total'] = (float) ($b['completed']['sum_amount']['value'] ?? 0);
+        }
+
+        $data = array_values($users);
+        usort($data, fn ($a, $b) => $a['user_id'] <=> $b['user_id']);
+
+        return [
+            'success' => true,
+            'data' => $data,
+        ];
+    }
+
+    /**
      * 应用配置中的 index 模版
      *
      * @param  string|null  $onlyName  仅应用指定名称的模版，null 则应用全部
