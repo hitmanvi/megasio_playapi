@@ -10,6 +10,7 @@ use App\Services\NotificationService;
 use Illuminate\Support\Str;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use App\Exceptions\Exception;
 use App\Enums\ErrorCode;
 use Carbon\Carbon;
@@ -315,10 +316,26 @@ class WithdrawService
 
     public function finishWithdraw($orderId, $outId, $amount)
     {
+        Log::debug('WithdrawService finishWithdraw start', [
+            'order_no' => $orderId,
+            'out_trade_no' => $outId,
+            'amount' => $amount,
+        ]);
+
         $withdraw = Withdraw::where('order_no', $orderId)->where('out_trade_no', $outId)->first();
-        if(!$withdraw) {
+        if (!$withdraw) {
+            Log::debug('WithdrawService finishWithdraw withdraw not found', [
+                'order_no' => $orderId,
+                'out_trade_no' => $outId,
+            ]);
             return false;
         }
+
+        Log::debug('WithdrawService finishWithdraw withdraw found', [
+            'withdraw_id' => $withdraw->id,
+            'user_id' => $withdraw->user_id,
+            'currency' => $withdraw->currency,
+        ]);
 
         // 更新最后回调时间
         $withdraw->update(['last_callback_at' => Carbon::now()]);
@@ -329,17 +346,25 @@ class WithdrawService
                 'pay_status' => Withdraw::PAY_STATUS_PAID,
                 'completed_at' => Carbon::now(),
             ]);
+            Log::debug('WithdrawService finishWithdraw status updated', ['withdraw_id' => $withdraw->id]);
+
             $this->balanceService->finishWithdraw($withdraw->user_id, $withdraw->currency, $amount, 'Withdraw', $withdraw->id);
-            
-            // 创建提现成功通知
+            Log::debug('WithdrawService finishWithdraw balance updated', [
+                'withdraw_id' => $withdraw->id,
+                'user_id' => $withdraw->user_id,
+            ]);
+
             $this->notificationService->createWithdrawSuccessNotification(
                 $withdraw->user_id,
                 $amount,
                 $withdraw->currency,
                 $withdraw->order_no
             );
-            
+            Log::debug('WithdrawService finishWithdraw notification created', ['withdraw_id' => $withdraw->id]);
+
             event(new WithdrawCompleted($withdraw));
+            Log::debug('WithdrawService finishWithdraw completed', ['withdraw_id' => $withdraw->id]);
+
             return true;
         });
     }
