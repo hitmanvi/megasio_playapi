@@ -10,6 +10,7 @@ use App\Models\Rollover;
 use App\Models\Transaction;
 use App\Enums\ErrorCode;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class BalanceService
 {
@@ -186,6 +187,7 @@ class BalanceService
 
     public function finishWithdraw(int $userId, string $currency, float $amount, string $notes, int $relatedEntityId): array
     {
+        Log::error('BalanceService finishWithdraw start', ['userId' => $userId, 'currency' => $currency, 'amount' => $amount, 'notes' => $notes, 'relatedEntityId' => $relatedEntityId]);
         return DB::transaction(function () use ($userId, $currency, $amount, $notes, $relatedEntityId) {
             $balance = $this->updateBalance($userId, $currency, $amount, 'subtract', 'frozen');
             $transaction = $this->transactionService->createTransaction($userId, $currency, -$amount, (float)$balance->available, Transaction::TYPE_WITHDRAWAL_UNFREEZE, $relatedEntityId, $notes);

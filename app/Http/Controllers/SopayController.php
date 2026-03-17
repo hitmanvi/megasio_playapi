@@ -81,6 +81,7 @@ class SopayController extends Controller
             if (isset($data['subject']) && $data['subject'] == 'deposit') {
                 $result = $this->handleDeposit($data);
             } elseif (isset($data['subject']) && $data['subject'] == 'withdraw') {
+                Log::error('Sopay Callback Withdraw', ['data' => $data]);
                 $result = $this->handleWithdraw($data);
             }
 
@@ -114,32 +115,22 @@ class SopayController extends Controller
         $outId = $data['order_id'];
         $amount = $data['amount'] ?? 0;
         $errorMessage = $data['error_message'] ?? null;
-
-        Log::debug('Sopay withdraw callback', [
-            'status' => $status,
-            'order_no' => $orderId,
-            'sopay_order_id' => $outId,
-            'amount' => $amount,
-            'error_message' => $errorMessage,
-        ]);
-
+        Log::error('Sopay Callback Withdraw', ['status' => $status, 'orderId' => $orderId, 'outId' => $outId, 'amount' => $amount, 'errorMessage' => $errorMessage]);
         if ($status == SopayService::SOPAY_STATUS_SUCCEED) {
+            Log::error('Sopay Callback Withdraw succeed', ['orderId' => $orderId, 'outId' => $outId, 'amount' => $amount]);
             $result = $this->withdrawService->finishWithdraw($orderId, $outId, $amount);
-            Log::debug('Sopay withdraw finishWithdraw result', ['order_no' => $orderId, 'result' => $result]);
             if (!$result) {
                 return '';
             }
             return 'ok';
         } elseif ($status == SopayService::SOPAY_STATUS_FAILED || $status == SopayService::SOPAY_STATUS_REJECT) {
             $result = $this->withdrawService->failWithdraw($orderId, $outId, $errorMessage, $status);
-            Log::debug('Sopay withdraw failWithdraw result', ['order_no' => $orderId, 'result' => $result]);
             if (!$result) {
                 return '';
             }
             return 'ok';
         }
 
-        Log::debug('Sopay withdraw callback unhandled status', ['status' => $status, 'order_no' => $orderId]);
         return '';
     }
 }
