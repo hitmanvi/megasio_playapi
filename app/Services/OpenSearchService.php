@@ -514,19 +514,62 @@ class OpenSearchService
      *
      * @param  string  $eventType  事件类型，对应 config.event_indices
      * @param  array  $payload  事件数据
+     * @param  string|null  $id  文档 ID，指定时用于幂等（相同 ID 覆盖），不传则自动生成
      * @return array{success: bool, id?: string, error?: string}
      */
-    public function indexEvent(string $eventType, array $payload): array
+    public function indexEvent(string $eventType, array $payload, ?string $id = null): array
     {
         $index = $this->getIndexForEvent($eventType);
-        $this->debug('Index event', ['event_type' => $eventType, 'index' => $index, 'payload_keys' => array_keys($payload)]);
+        $this->debug('Index event', ['event_type' => $eventType, 'index' => $index, 'id' => $id, 'payload_keys' => array_keys($payload)]);
 
         $document = array_merge([
             'event_type' => $eventType,
             '@timestamp' => now()->toIso8601String(),
         ], $payload);
 
-        return $this->indexDocument($index, $document);
+        return $this->indexDocument($index, $document, $id);
+    }
+
+    /**
+     * 应用配置中的 index 模版
+     *
+     * @return array{success: bool, applied: array, errors: array}
+     */
+    public function applyIndexTemplates(): array
+    {
+        $client = $this->getClient();
+        if (!$client) {
+            return ['success' => false, 'applied' => [], 'errors' => ['OpenSearch disabled']];
+        }
+
+        $templates = config('opensearch.index_templates', []);
+        $applied = [];
+        $errors = [];
+
+        foreach ($templates as $name => $config) {
+            $patterns = $config['index_patterns'] ?? [];
+            $template = $config['template'] ?? [];
+
+            if (empty($patterns) || empty($template)) {
+                $errors[] = "Template {$name}: missing index_patterns or template";
+                continue;
+            }
+
+            $fullPatterns = array_map(fn ($p) => $this->getIndexName($p), $patterns);
+            $result = $this->putIndexTemplate($name, $fullPatterns, $template);
+
+            if ($result['success']) {
+                $applied[] = $name;
+            } else {
+                $errors[] = "Template {$name}: " . ($result['error'] ?? 'unknown');
+            }
+        }
+
+        return [
+            'success' => empty($errors),
+            'applied' => $applied,
+            'errors' => $errors,
+        ];
     }
 
 }

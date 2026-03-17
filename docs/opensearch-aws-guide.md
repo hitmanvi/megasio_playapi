@@ -220,9 +220,40 @@ Source: 应用实例的安全组 ID 或 CIDR
 
 ---
 
-## 九、快速检查清单
+## 九、Index 模版与文档 ID
+
+### 9.1 应用模版
+
+首次使用或修改模版后，建议先应用 index 模版：
+
+```bash
+php artisan opensearch:init-templates
+```
+
+模版定义在 `config/opensearch.php` 的 `index_templates`，包含 `@timestamp`、`event_type`、`user_id` 等字段的 mapping。
+
+### 9.2 指定文档 ID（幂等）
+
+上传时指定 `--id` 可实现幂等：相同 ID 会覆盖，避免重复事件：
+
+```bash
+php artisan test:opensearch-event --id=user_registered_123_20250316
+```
+
+代码中调用：
+
+```php
+$openSearch->indexEvent('user_registered', $payload, $eventId);
+```
+
+建议 ID 格式：`{event_type}_{entity_id}_{timestamp}` 或业务唯一标识。
+
+---
+
+## 十、快速检查清单
 
 - [ ] 已创建 OpenSearch 域并处于 Active 状态
+- [ ] 已执行 `php artisan opensearch:init-templates` 应用模版
 - [ ] 已启用 Fine-grained access control 并创建 Master 用户
 - [ ] 已获取正确的 Domain endpoint（HTTPS）
 - [ ] 访问策略允许当前 IP（公网访问时）

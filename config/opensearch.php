@@ -75,4 +75,45 @@ return [
 
     'debug' => env('OPENSEARCH_DEBUG', false),
 
+    /*
+    |--------------------------------------------------------------------------
+    | Index Templates
+    |--------------------------------------------------------------------------
+    |
+    | 事件 index 模版，新建 index 时自动应用。建议先执行模版再写入数据。
+    |
+    */
+
+    'index_templates' => [
+        'events' => [
+            'index_patterns' => ['events-*'],
+            'template' => [
+                'settings' => [
+                    'number_of_shards' => 1,
+                    'number_of_replicas' => 0,
+                ],
+                'mappings' => [
+                    'properties' => [
+                        '@timestamp' => ['type' => 'date'],
+                        'event_type' => ['type' => 'keyword'],
+                        'user_id' => ['type' => 'long'],
+                        'uid' => ['type' => 'keyword'],
+                        'email' => ['type' => 'keyword', 'ignore_above' => 256],
+                        'source' => ['type' => 'keyword'],
+                        'order_no' => ['type' => 'keyword'],
+                        'amount' => ['type' => 'float'],
+                        'currency' => ['type' => 'keyword'],
+                        'event_id' => ['type' => 'keyword'],
+                    ],
+                    'dynamic_templates' => [
+                        ['strings_as_keyword' => [
+                            'match_mapping_type' => 'string',
+                            'mapping' => ['type' => 'keyword', 'ignore_above' => 256],
+                        ]],
+                    ],
+                ],
+            ],
+        ],
+    ],
+
 ];

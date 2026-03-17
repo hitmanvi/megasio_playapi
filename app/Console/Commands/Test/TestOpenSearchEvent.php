@@ -15,7 +15,9 @@ class TestOpenSearchEvent extends Command
                             {--debug : 输出调试日志}
                             {--config : 仅输出配置信息}
                             {--get= : 取回文档：指定文档 ID 时执行取回而非上传}
-                            {--search : 搜索最近文档（取回测试）}';
+                            {--search : 搜索最近文档（取回测试）}
+                            {--id= : 指定文档 ID（幂等写入，相同 ID 覆盖）}
+                            {--init-templates : 先应用 index 模版再执行}';
 
     protected $description = '测试 OpenSearch 事件上传（注册事件等）';
 
@@ -38,6 +40,21 @@ class TestOpenSearchEvent extends Command
 
         if ($this->option('search')) {
             return $this->searchDocuments($eventType);
+        }
+
+        if ($this->option('init-templates')) {
+            $openSearch = new OpenSearchService();
+            if ($openSearch->isEnabled() && $openSearch->ping()) {
+                $r = $openSearch->applyIndexTemplates();
+                if ($r['success']) {
+                    $this->info('✓ 模版已应用');
+                } else {
+                    foreach ($r['errors'] ?? [] as $e) {
+                        $this->warn($e);
+                    }
+                }
+                $this->newLine();
+            }
         }
 
         if ($this->option('debug')) {
@@ -68,10 +85,14 @@ class TestOpenSearchEvent extends Command
         $this->newLine();
 
         $payload = $this->buildPayload($eventType, $userId, $uid, $email);
+        $docId = $this->option('id');
+        if ($docId) {
+            $this->line('文档 ID（幂等）: ' . $docId);
+        }
         $this->line('上传数据: ' . json_encode($payload, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT));
         $this->newLine();
 
-        $result = $openSearch->indexEvent($eventType, $payload);
+        $result = $openSearch->indexEvent($eventType, $payload, $docId ?: null);
 
         if ($result['success']) {
             $this->info('✓ 事件上传成功');

@@ -145,16 +145,16 @@ class BalanceService
     /**
      * Unfreeze amount from frozen balance.
      */
-    public function unfreezeAmount(int $userId, string $currency, float $amount): bool
+    public function unfreezeAmount(int $userId, string $currency, float $amount): Balance
     {
         $balance = $this->getBalance($userId, $currency);
         
         if (!$balance || $balance->frozen < $amount) {
             throw new InsufficientBalanceException();
         }
-
-        return $this->updateBalance($userId, $currency, $amount, 'subtract', 'frozen') &&
-               $this->updateBalance($userId, $currency, $amount, 'add', 'available');
+        $this->updateBalance($userId, $currency, $amount, 'subtract', 'frozen');
+        $balance = $this->updateBalance($userId, $currency, $amount, 'add', 'available')->fresh();
+        return $balance;
     }
 
     /**
@@ -189,6 +189,19 @@ class BalanceService
         return DB::transaction(function () use ($userId, $currency, $amount, $notes, $relatedEntityId) {
             $balance = $this->updateBalance($userId, $currency, $amount, 'subtract', 'frozen');
             $transaction = $this->transactionService->createTransaction($userId, $currency, -$amount, (float)$balance->available, Transaction::TYPE_WITHDRAWAL_UNFREEZE, $relatedEntityId, $notes);
+            return [
+                'balance' => $balance,
+                'transaction' => $transaction,
+            ];
+        });
+    }
+
+    public function refundWithdraw(int $userId, string $currency, float $amount, string $notes, int $withdrawId): array
+    {
+        return DB::transaction(function () use ($userId, $currency, $amount, $notes, $withdrawId) {
+            $balance = $this->unfreezeAmount($userId, $currency, $amount);
+            $transaction = $this->transactionService->createTransaction($userId, $currency, $amount, 
+            (float)$balance->available, Transaction::TYPE_WITHDRAWAL_UNFREEZE, $withdrawId, $notes);
             return [
                 'balance' => $balance,
                 'transaction' => $transaction,

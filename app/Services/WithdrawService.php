@@ -379,7 +379,7 @@ class WithdrawService
                 'pay_error' => $errorMessage,
             ]);
             // 解冻用户余额（提现请求时已冻结）
-            $this->balanceService->unfreezeAmount($withdraw->user_id, $withdraw->currency, $withdraw->amount);
+            $this->balanceService->refundWithdraw($withdraw->user_id, $withdraw->currency, $withdraw->amount, 'Withdraw failed', $withdraw->id);
             return true;
         });
     }
