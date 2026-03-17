@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use Carbon\Carbon;
 use OpenSearch\Client;
 use OpenSearch\ClientBuilder;
 use Illuminate\Support\Facades\Log;
@@ -531,10 +532,73 @@ class OpenSearchService
     }
 
     /**
+     * 规范化时区：支持 UTC+4、UTC-4、UTC+8 等格式，转为 Carbon 可用的时区
+     */
+    protected function normalizeTimezone(string $timezone): string
+    {
+        $timezone = trim($timezone);
+        if (strtoupper($timezone) === 'UTC') {
+            return 'UTC';
+        }
+        if (preg_match('/^UTC([+-])(\d+)(?::(\d+))?$/i', $timezone, $m)) {
+            $sign = $m[1];
+            $h = str_pad((int) $m[2], 2, '0', STR_PAD_LEFT);
+            $min = isset($m[3]) ? str_pad((int) $m[3], 2, '0', STR_PAD_LEFT) : '00';
+            return $sign . $h . ':' . $min;
+        }
+        return $timezone;
+    }
+
+    /**
+     * 构建用户充提汇总的过滤条件
+     *
+     * @param  array  $options  uid, date_from, date_to, agent_id, agent_link_id, timezone
+     * @return array  OpenSearch bool query
+     */
+    protected function buildUserDepositWithdrawFilters(array $options): array
+    {
+        $must = [];
+        $timezone = $this->normalizeTimezone($options['timezone'] ?? 'UTC');
+
+        if (!empty($options['uid'])) {
+            $must[] = ['term' => ['uid' => (string) $options['uid']]];
+        }
+        if (array_key_exists('agent_id', $options) && $options['agent_id'] !== '' && $options['agent_id'] !== null) {
+            $must[] = ['term' => ['agent_id' => (int) $options['agent_id']]];
+        }
+        if (array_key_exists('agent_link_id', $options) && $options['agent_link_id'] !== '' && $options['agent_link_id'] !== null) {
+            $must[] = ['term' => ['agent_link_id' => (int) $options['agent_link_id']]];
+        }
+
+        $dateFrom = $options['date_from'] ?? null;
+        $dateTo = $options['date_to'] ?? null;
+        if ($dateFrom || $dateTo) {
+            $range = [];
+            if ($dateFrom) {
+                $start = Carbon::parse($dateFrom . ' 00:00:00', $timezone)->utc()->format('c');
+                $range['gte'] = $start;
+            }
+            if ($dateTo) {
+                $end = Carbon::parse($dateTo . ' 23:59:59', $timezone)->utc()->format('c');
+                $range['lte'] = $end;
+            }
+            if (!empty($range)) {
+                $must[] = ['range' => ['@timestamp' => $range]];
+            }
+        }
+
+        if (empty($must)) {
+            return ['query' => ['match_all' => (object) []]];
+        }
+
+        return ['query' => ['bool' => ['must' => $must]]];
+    }
+
+    /**
      * 获取用户充提金额汇总（从 OpenSearch 聚合）
      * 每个用户一条数据：充值总额、提现总额、成功充值总额、成功提现总额
      *
-     * @param  array  $options  size: 返回用户数上限（默认 10000），from/size 分页暂不支持
+     * @param  array  $options  size, uid, date_from, date_to, agent_id, agent_link_id, timezone
      * @return array{success: bool, data?: array<int, array{user_id: int, deposit_total: float, withdraw_total: float, deposit_completed_total: float, withdraw_completed_total: float}>, error?: string}
      */
     public function getUserDepositWithdrawTotals(array $options = []): array
@@ -547,6 +611,8 @@ class OpenSearchService
         $size = (int) ($options['size'] ?? 10000);
         $depositIndex = $this->getIndexForEvent('deposit_completed');
         $withdrawIndex = $this->getIndexForEvent('withdraw_completed');
+
+        $query = $this->buildUserDepositWithdrawFilters($options);
 
         $depositAggs = [
             'by_user' => [
@@ -580,8 +646,8 @@ class OpenSearchService
             ],
         ];
 
-        $depositResult = $this->search($depositIndex, ['query' => ['match_all' => (object) []]], ['size' => 0, 'aggs' => $depositAggs]);
-        $withdrawResult = $this->search($withdrawIndex, ['query' => ['match_all' => (object) []]], ['size' => 0, 'aggs' => $withdrawAggs]);
+        $depositResult = $this->search($depositIndex, $query, ['size' => 0, 'aggs' => $depositAggs]);
+        $withdrawResult = $this->search($withdrawIndex, $query, ['size' => 0, 'aggs' => $withdrawAggs]);
 
         if (!$depositResult['success']) {
             return ['success' => false, 'error' => $depositResult['error'] ?? 'Deposit aggregation failed'];

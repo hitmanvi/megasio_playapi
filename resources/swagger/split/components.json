@@ -5,6 +5,12 @@
             "scheme": "bearer",
             "bearerFormat": "JWT",
             "description": "使用Bearer Token进行认证"
+        },
+        "apiKeyAuth": {
+            "type": "apiKey",
+            "in": "header",
+            "name": "X-API-Key",
+            "description": "Admin API Key，用于后台管理接口认证"
         }
     },
     "schemas": {
@@ -950,6 +956,64 @@
                     "type": "object",
                     "nullable": true,
                     "description": "错误详情"
+                }
+            }
+        },
+        "UserDepositWithdrawStatsResponse": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "integer",
+                    "description": "响应码，0表示成功"
+                },
+                "errmsg": {
+                    "type": "string",
+                    "description": "响应消息"
+                },
+                "data": {
+                    "type": "object",
+                    "properties": {
+                        "data": {
+                            "type": "array",
+                            "description": "用户充提汇总列表",
+                            "items": {
+                                "$ref": "#\/components\/schemas\/UserDepositWithdrawStatsItem"
+                            }
+                        },
+                        "total": {
+                            "type": "integer",
+                            "description": "用户数量"
+                        }
+                    }
+                }
+            }
+        },
+        "UserDepositWithdrawStatsItem": {
+            "type": "object",
+            "properties": {
+                "user_id": {
+                    "type": "integer",
+                    "description": "用户ID"
+                },
+                "deposit_total": {
+                    "type": "number",
+                    "format": "float",
+                    "description": "充值总额"
+                },
+                "withdraw_total": {
+                    "type": "number",
+                    "format": "float",
+                    "description": "提现总额"
+                },
+                "deposit_completed_total": {
+                    "type": "number",
+                    "format": "float",
+                    "description": "成功充值总额"
+                },
+                "withdraw_completed_total": {
+                    "type": "number",
+                    "format": "float",
+                    "description": "成功提现总额"
                 }
             }
         },

@@ -8,7 +8,13 @@ use Illuminate\Console\Command;
 class TestOpenSearchUserStats extends Command
 {
     protected $signature = 'test:opensearch-user-stats
-                            {--size=100 : 返回用户数上限}';
+                            {--size=100 : 返回用户数上限}
+                            {--uid= : 按用户 uid 过滤}
+                            {--date-from= : 充提日期起（Y-m-d）}
+                            {--date-to= : 充提日期止（Y-m-d）}
+                            {--agent-id= : 按 agent_id 过滤}
+                            {--agent-link-id= : 按 agent_link_id 过滤}
+                            {--timezone=UTC : 时区，如 UTC+8、UTC-4}';
 
     protected $description = '测试从 OpenSearch 获取用户充提金额汇总';
 
@@ -27,9 +33,43 @@ class TestOpenSearchUserStats extends Command
         }
 
         $size = (int) $this->option('size');
-        $this->info("获取用户充提汇总（size={$size}）...");
+        $options = ['size' => $size, 'timezone' => $this->option('timezone')];
 
-        $result = $openSearch->getUserDepositWithdrawTotals(['size' => $size]);
+        if ($this->option('uid')) {
+            $options['uid'] = $this->option('uid');
+        }
+        if ($this->option('date-from')) {
+            $options['date_from'] = $this->option('date-from');
+        }
+        if ($this->option('date-to')) {
+            $options['date_to'] = $this->option('date-to');
+        }
+        if ($this->option('agent-id') !== null && $this->option('agent-id') !== '') {
+            $options['agent_id'] = (int) $this->option('agent-id');
+        }
+        if ($this->option('agent-link-id') !== null && $this->option('agent-link-id') !== '') {
+            $options['agent_link_id'] = (int) $this->option('agent-link-id');
+        }
+
+        $filterDesc = $options['timezone'] !== 'UTC' ? " 时区={$options['timezone']}" : '';
+        if (!empty($options['uid'])) {
+            $filterDesc .= " uid={$options['uid']}";
+        }
+        if (!empty($options['date_from'])) {
+            $filterDesc .= " 日期 {$options['date_from']}";
+        }
+        if (!empty($options['date_to'])) {
+            $filterDesc .= "~{$options['date_to']}";
+        }
+        if (isset($options['agent_id'])) {
+            $filterDesc .= " agent_id={$options['agent_id']}";
+        }
+        if (isset($options['agent_link_id'])) {
+            $filterDesc .= " agent_link_id={$options['agent_link_id']}";
+        }
+        $this->info("获取用户充提汇总（size={$size}{$filterDesc}）...");
+
+        $result = $openSearch->getUserDepositWithdrawTotals($options);
 
         if (!$result['success']) {
             $this->error('获取失败: ' . ($result['error'] ?? 'unknown'));

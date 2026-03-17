@@ -37,7 +37,30 @@ class OpenSearchStatsController extends Controller
         }
 
         $size = (int) $request->input('size', 10000);
-        $result = $service->getUserDepositWithdrawTotals(['size' => $size]);
+        $timezone = $request->input('timezone', 'UTC'); // 支持 UTC+8、UTC-4 等格式
+
+        $options = [
+            'size' => $size,
+            'timezone' => $timezone,
+        ];
+
+        if ($request->filled('uid')) {
+            $options['uid'] = $request->input('uid');
+        }
+        if ($request->filled('date_from')) {
+            $options['date_from'] = $request->input('date_from');
+        }
+        if ($request->filled('date_to')) {
+            $options['date_to'] = $request->input('date_to');
+        }
+        if ($request->has('agent_id')) {
+            $options['agent_id'] = $request->input('agent_id');
+        }
+        if ($request->has('agent_link_id')) {
+            $options['agent_link_id'] = $request->input('agent_link_id');
+        }
+
+        $result = $service->getUserDepositWithdrawTotals($options);
 
         if (!$result['success']) {
             return $this->error(ErrorCode::INTERNAL_ERROR, [

@@ -256,7 +256,92 @@ $openSearch->indexEvent('user_registered', $payload, $eventId);
 
 ---
 
-## 十、快速检查清单
+## 十、回填与统计
+
+### 10.1 数据回填
+
+将已有 users、deposits、withdraws 数据上传到 OpenSearch：
+
+```bash
+# 回填全部
+php artisan test:opensearch-backfill
+
+# 仅回填指定类型
+php artisan test:opensearch-backfill --users
+php artisan test:opensearch-backfill --deposits
+php artisan test:opensearch-backfill --withdraws
+
+# 指定每批数量，先创建模版
+php artisan test:opensearch-backfill --chunk=200 --create-templates
+```
+
+### 10.2 用户充提汇总 API
+
+**接口**：`GET /api/x7k9m2p4/stats/user-deposit-withdraw`
+
+**认证**：需在 Header 中携带 `X-API-Key: <ADMIN_API_KEY>`
+
+**参数**：
+
+| 参数 | 类型 | 说明 |
+|------|------|------|
+| `uid` | string | 按用户 uid 过滤 |
+| `date_from` | string | 充提日期起（Y-m-d） |
+| `date_to` | string | 充提日期止（Y-m-d） |
+| `agent_id` | int | 按 agent_id 过滤 |
+| `agent_link_id` | int | 按 agent_link_id 过滤 |
+| `timezone` | string | 时区，默认 UTC。支持 `UTC+8`、`UTC-4` 等格式 |
+| `size` | int | 返回用户数上限，默认 10000 |
+
+**响应示例**：
+
+```json
+{
+  "code": 0,
+  "data": {
+    "data": [
+      {
+        "user_id": 1,
+        "deposit_total": 1000.5,
+        "withdraw_total": 200.0,
+        "deposit_completed_total": 800.0,
+        "withdraw_completed_total": 200.0
+      }
+    ],
+    "total": 1
+  }
+}
+```
+
+**调用示例**：
+
+```bash
+# 按 uid 过滤
+curl -H "X-API-Key: xxx" "https://api.example.com/api/x7k9m2p4/stats/user-deposit-withdraw?uid=USER001"
+
+# 按日期范围（东八区）
+curl -H "X-API-Key: xxx" "https://api.example.com/api/x7k9m2p4/stats/user-deposit-withdraw?date_from=2025-03-01&date_to=2025-03-15&timezone=UTC+8"
+
+# 按 agent_id 过滤
+curl -H "X-API-Key: xxx" "https://api.example.com/api/x7k9m2p4/stats/user-deposit-withdraw?agent_id=123"
+```
+
+### 10.3 用户充提汇总测试命令
+
+```bash
+# 默认
+php artisan test:opensearch-user-stats
+
+# 带过滤条件
+php artisan test:opensearch-user-stats --uid=USER001
+php artisan test:opensearch-user-stats --date-from=2025-03-01 --date-to=2025-03-15 --timezone=UTC+8
+php artisan test:opensearch-user-stats --agent-id=123 --agent-link-id=456
+php artisan test:opensearch-user-stats --size=500
+```
+
+---
+
+## 十一、快速检查清单
 
 - [ ] 已创建 OpenSearch 域并处于 Active 状态
 - [ ] 已执行 `php artisan opensearch:create-templates` 创建模版
@@ -266,3 +351,4 @@ $openSearch->indexEvent('user_registered', $payload, $eventId);
 - [ ] 安全组允许 443 入站（VPC 访问时）
 - [ ] `.env` 中已配置 OPENSEARCH_* 变量
 - [ ] `php artisan test:opensearch-event` 执行成功
+- [ ] 需历史统计时，执行 `php artisan test:opensearch-backfill` 回填数据
