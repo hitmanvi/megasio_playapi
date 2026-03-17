@@ -223,13 +223,15 @@ class WithdrawService
         return DB::transaction(function () use ($userId, $paymentMethod, $currency, $amount, $withdrawInfo, $extraInfo, $userIp) {
             // Generate unique order number
             $orderNo = 'WTD' . strtoupper(Str::ulid()->toString());
-
+            $actualAmount = $amount;
+            
             // Create withdraw order first (with PENDING status)
             $withdraw = Withdraw::create([
                 'user_id' => $userId,
                 'order_no' => $orderNo,
                 'currency' => $currency,
                 'amount' => $amount,
+                'actual_amount' => $actualAmount,
                 'payment_method_id' => $paymentMethod->id,
                 'withdraw_info' => $withdrawInfo,
                 'extra_info' => $extraInfo,

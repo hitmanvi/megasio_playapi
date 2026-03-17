@@ -23,7 +23,7 @@ class TestEventServices extends Command
 
     public function handle(): int
     {
-        $event = $this->option('event');
+        $event = $this->option('event');  
         $service = $this->option('service');
         $userId = (int) $this->option('user-id');
         $uid = $this->option('uid');
