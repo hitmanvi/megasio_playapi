@@ -112,7 +112,7 @@ class SopayController extends Controller
         $status = $data['status'];
         $orderId = $data['out_trade_no'];
         $outId = $data['order_id'];
-        $amount = $data['amount'] ?? 0;
+        $amount = $data['pay_amount'] ?? 0;
         $errorMessage = $data['error_message'] ?? null;
 
         if ($status == SopayService::SOPAY_STATUS_SUCCEED) {
