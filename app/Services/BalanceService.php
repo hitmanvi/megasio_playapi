@@ -187,7 +187,6 @@ class BalanceService
 
     public function finishWithdraw(int $userId, string $currency, float $amount, string $notes, int $relatedEntityId): array
     {
-        Log::error('BalanceService finishWithdraw start', ['userId' => $userId, 'currency' => $currency, 'amount' => $amount, 'notes' => $notes, 'relatedEntityId' => $relatedEntityId]);
         return DB::transaction(function () use ($userId, $currency, $amount, $notes, $relatedEntityId) {
             $balance = $this->updateBalance($userId, $currency, $amount, 'subtract', 'frozen');
             return [
