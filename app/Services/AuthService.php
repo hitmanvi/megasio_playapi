@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Models\Agent;
 use App\Models\AgentLink;
 use App\Models\User;
 use App\Models\UserMeta;
@@ -27,6 +28,32 @@ class AuthService
     {
         $this->balanceService = new BalanceService();
         $this->notificationService = new NotificationService();
+    }
+
+    /**
+     * 从邀请人链往上找，返回第一个有 agent_link 的用户的 AgentLink（需 agent 与 link 均为 active）
+     */
+    protected function resolveAgentLinkFromInviterChain(User $inviter): ?AgentLink
+    {
+        $current = $inviter;
+        $visited = [];
+
+        while ($current !== null && !isset($visited[$current->id])) {
+            $visited[$current->id] = true;
+            if ($current->agent_link_id) {
+                $link = AgentLink::where('id', $current->agent_link_id)
+                    ->where('status', AgentLink::STATUS_ACTIVE)
+                    ->whereHas('agent', fn ($q) => $q->where('status', Agent::STATUS_ACTIVE))
+                    ->first();
+                if ($link) {
+                    return $link;
+                }
+            }
+            $invitation = Invitation::where('invitee_id', $current->id)->first();
+            $current = $invitation?->inviter;
+        }
+
+        return null;
     }
 
     /**
@@ -83,6 +110,11 @@ class AuthService
             } else {
                 $inviter = User::findByInviteCode($code);
             }
+        }
+
+        // 若无 promotion code 的 agent，则从 invite_code 邀请人往上找，若有 agent 关系则绑定
+        if ($agentLink === null && $inviter !== null) {
+            $agentLink = $this->resolveAgentLinkFromInviterChain($inviter);
         }
 
         $deviceInfo = $data['device_info'] ?? [];
@@ -351,6 +383,11 @@ class AuthService
                 } else {
                     $inviter = User::findByInviteCode($code);
                 }
+            }
+
+            // 若无 promotion code 的 agent，则从 invite_code 邀请人往上找，若有 agent 关系则绑定
+            if ($agentLink === null && $inviter !== null) {
+                $agentLink = $this->resolveAgentLinkFromInviterChain($inviter);
             }
 
             if (empty($deviceInfo['origination_ip']) && $ipAddress) {
