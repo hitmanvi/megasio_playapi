@@ -13,6 +13,7 @@ class InitAll extends Command
     protected array $initCommands = [
         'init:setting',
         'init:agent',
+        'init:opensearch',
     ];
 
     public function handle(): int

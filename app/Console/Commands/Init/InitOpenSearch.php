@@ -1,13 +1,13 @@
 <?php
 
-namespace App\Console\Commands;
+namespace App\Console\Commands\Init;
 
 use App\Services\OpenSearchService;
 use Illuminate\Console\Command;
 
-class OpenSearchInitTemplates extends Command
+class InitOpenSearch extends Command
 {
-    protected $signature = 'opensearch:create-templates
+    protected $signature = 'init:opensearch
                             {--name= : 仅创建指定模版，不传则创建全部}';
 
     protected $description = '创建 OpenSearch index 模版（根据 config/opensearch.php 的 index_templates 配置）';
@@ -47,5 +47,4 @@ class OpenSearchInitTemplates extends Command
         }
         return 1;
     }
-
 }

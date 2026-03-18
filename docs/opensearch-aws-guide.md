@@ -227,13 +227,13 @@ Source: 应用实例的安全组 ID 或 CIDR
 首次使用或修改模版后，建议先创建 index 模版：
 
 ```bash
-php artisan opensearch:create-templates
+php artisan init:opensearch
 ```
 
 仅创建指定模版：
 
 ```bash
-php artisan opensearch:create-templates --name=events
+php artisan init:opensearch --name=events
 ```
 
 模版定义在 `config/opensearch.php` 的 `index_templates`，包含 `@timestamp`、`event_type`、`user_id` 等字段的 mapping。
@@ -282,7 +282,7 @@ php artisan test:opensearch-backfill --chunk=200 --create-templates
 ## 十一、快速检查清单
 
 - [ ] 已创建 OpenSearch 域并处于 Active 状态
-- [ ] 已执行 `php artisan opensearch:create-templates` 创建模版
+- [ ] 已执行 `php artisan init:opensearch` 创建模版
 - [ ] 已启用 Fine-grained access control 并创建 Master 用户
 - [ ] 已获取正确的 Domain endpoint（HTTPS）
 - [ ] 访问策略允许当前 IP（公网访问时）

@@ -283,6 +283,41 @@ class OpenSearchService
     }
 
     /**
+     * 按条件删除文档（delete_by_query）
+     *
+     * @param  string  $index  index 名称
+     * @param  array  $query  OpenSearch 查询 DSL，如 ['term' => ['source' => 'backfill']]
+     * @return array{success: bool, deleted?: int, error?: string}
+     */
+    public function deleteByQuery(string $index, array $query): array
+    {
+        $client = $this->getClient();
+        if (!$client) {
+            return ['success' => false, 'error' => 'OpenSearch disabled'];
+        }
+
+        $indexName = str_contains($index, '-') ? $index : $this->getIndexName($index);
+
+        try {
+            $response = $client->deleteByQuery([
+                'index' => $indexName,
+                'body' => ['query' => $query],
+            ]);
+            $responseArray = is_array($response) ? $response : (array) $response;
+            $deleted = $responseArray['deleted'] ?? 0;
+            $this->debug('Delete by query ok', ['index' => $indexName, 'deleted' => $deleted]);
+            return ['success' => true, 'deleted' => $deleted];
+        } catch (Throwable $e) {
+            $this->debug('Delete by query failed', ['index' => $indexName, 'error' => $e->getMessage()]);
+            Log::error('OpenSearch deleteByQuery failed', [
+                'index' => $indexName,
+                'message' => $e->getMessage(),
+            ]);
+            return ['success' => false, 'error' => $e->getMessage()];
+        }
+    }
+
+    /**
      * 根据 ID 获取文档
      *
      * @return array{success: bool, document?: array, found?: bool, error?: string}

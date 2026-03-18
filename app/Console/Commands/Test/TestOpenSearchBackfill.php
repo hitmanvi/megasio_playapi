@@ -53,6 +53,10 @@ class TestOpenSearchBackfill extends Command
             $this->newLine();
         }
 
+        // 先删除已有数据
+        $this->info('删除已有数据...');
+        $this->deleteBackfillData($openSearch, $onlyUsers, $onlyDeposits, $onlyWithdraws);
+
         $chunkSize = (int) $this->option('chunk');
         $totalIndexed = 0;
 
@@ -74,6 +78,48 @@ class TestOpenSearchBackfill extends Command
         $this->newLine();
         $this->info("✓ 回填完成，共上传 {$totalIndexed} 条");
         return 0;
+    }
+
+    protected function deleteBackfillData(OpenSearchService $openSearch, bool $users, bool $deposits, bool $withdraws): void
+    {
+        $query = ['match_all' => (object) []];
+        $totalDeleted = 0;
+
+        if ($users) {
+            $index = $openSearch->getIndexForEvent('user_registered');
+            $r = $openSearch->deleteByQuery($index, $query);
+            if ($r['success'] && ($r['deleted'] ?? 0) > 0) {
+                $totalDeleted += $r['deleted'];
+                $this->line("  已删除 user_registered: {$r['deleted']} 条");
+            }
+        }
+
+        if ($deposits) {
+            foreach (['deposit_created', 'deposit_completed', 'deposit_failed'] as $eventType) {
+                $index = $openSearch->getIndexForEvent($eventType);
+                $r = $openSearch->deleteByQuery($index, $query);
+                if ($r['success'] && ($r['deleted'] ?? 0) > 0) {
+                    $totalDeleted += $r['deleted'];
+                    $this->line("  已删除 {$eventType}: {$r['deleted']} 条");
+                }
+            }
+        }
+
+        if ($withdraws) {
+            foreach (['withdraw_created', 'withdraw_completed'] as $eventType) {
+                $index = $openSearch->getIndexForEvent($eventType);
+                $r = $openSearch->deleteByQuery($index, $query);
+                if ($r['success'] && ($r['deleted'] ?? 0) > 0) {
+                    $totalDeleted += $r['deleted'];
+                    $this->line("  已删除 {$eventType}: {$r['deleted']} 条");
+                }
+            }
+        }
+
+        if ($totalDeleted > 0) {
+            $this->info("✓ 已删除 {$totalDeleted} 条");
+            $this->newLine();
+        }
     }
 
     protected function backfillUsers(OpenSearchService $openSearch, int $chunkSize): int
