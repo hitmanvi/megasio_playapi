@@ -117,6 +117,11 @@ class AuthService
             $agentLink = $this->resolveAgentLinkFromInviterChain($inviter);
         }
 
+        // 若无 agent，绑定默认 noagent
+        if ($agentLink === null) {
+            $agentLink = AgentLink::getNoAgentLink();
+        }
+
         $deviceInfo = $data['device_info'] ?? [];
 
         // 创建用户和邀请关系
@@ -388,6 +393,11 @@ class AuthService
             // 若无 promotion code 的 agent，则从 invite_code 邀请人往上找，若有 agent 关系则绑定
             if ($agentLink === null && $inviter !== null) {
                 $agentLink = $this->resolveAgentLinkFromInviterChain($inviter);
+            }
+
+            // 若无 agent，绑定默认 noagent
+            if ($agentLink === null) {
+                $agentLink = AgentLink::getNoAgentLink();
             }
 
             if (empty($deviceInfo['origination_ip']) && $ipAddress) {

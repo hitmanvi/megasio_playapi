@@ -10,6 +10,17 @@ class AgentLink extends Model
     const STATUS_ACTIVE = 'active';
     const STATUS_INACTIVE = 'inactive';
 
+    /** 默认 noagent 的 promotion_code，用于无推广来源的用户 */
+    public const NOAGENT_PROMOTION_CODE = 'NONE';
+
+    /**
+     * 获取默认 noagent 的 AgentLink（需先执行 php artisan init:agent）
+     */
+    public static function getNoAgentLink(): ?self
+    {
+        return static::findByPromotionCode(self::NOAGENT_PROMOTION_CODE);
+    }
+
     protected $fillable = [
         'agent_id',
         'name',
