@@ -119,10 +119,6 @@
         {
             "name": "VIP",
             "description": "VIP等级相关接口"
-        },
-        {
-            "name": "Admin",
-            "description": "后台管理接口（需 X-API-Key 认证）"
         }
     ]
 }

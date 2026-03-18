@@ -33,7 +33,6 @@ use App\Http\Controllers\ArticleController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\GameFavoriteController;
 use App\Http\Controllers\AdminController;
-use App\Http\Controllers\OpenSearchStatsController;
 use App\Http\Controllers\WeeklyCashbackController;
 use App\Http\Controllers\TempDataController;
 use Illuminate\Http\Request;
@@ -251,7 +250,6 @@ Route::post('/sopay/callback', [SopayController::class, 'callback']);
 // 需要 API Key 验证
 Route::prefix('x7k9m2p4')->middleware(['admin.api'])->group(function () {
     Route::post('/kyc/completed', [AdminController::class, 'notifyKycCompleted']);
-    Route::get('/stats/user-deposit-withdraw', [OpenSearchStatsController::class, 'userDepositWithdrawTotals']);
 });
 
     

@@ -113,20 +113,23 @@ class TestOpenSearchBackfill extends Command
 
     protected function backfillDeposits(OpenSearchService $openSearch, int $chunkSize): int
     {
-        $index = $openSearch->getIndexForEvent('deposit_completed');
         $total = 0;
-
-        $this->info('上传 deposits → ' . $index);
 
         Deposit::query()
             ->with('user.agentLink')
-            ->chunk($chunkSize, function ($deposits) use ($openSearch, $index, &$total) {
-                $docs = [];
+            ->chunk($chunkSize, function ($deposits) use ($openSearch, &$total) {
+                $byEventType = [];
                 foreach ($deposits as $deposit) {
                     $user = $deposit->user;
                     $agentId = $user?->agentLink?->agent_id ?? null;
-                    $eventType = $deposit->status === Deposit::STATUS_COMPLETED ? 'deposit_completed' : 'deposit_created';
-                    $docs[] = [
+                    $eventType = $deposit->status === Deposit::STATUS_COMPLETED
+                        ? 'deposit_completed'
+                        : ($deposit->status === Deposit::STATUS_FAILED ? 'deposit_failed' : 'deposit_created');
+                    $index = $openSearch->getIndexForEvent($eventType);
+                    if (!isset($byEventType[$index])) {
+                        $byEventType[$index] = [];
+                    }
+                    $byEventType[$index][] = [
                         'id' => 'deposit_' . $deposit->id,
                         'body' => [
                             'event_type' => $eventType,
@@ -143,9 +146,11 @@ class TestOpenSearchBackfill extends Command
                         ],
                     ];
                 }
-                $result = $openSearch->bulkIndex($index, $docs);
-                $total += $result['indexed'];
-                $this->line("  deposits: +{$result['indexed']} (累计 {$total})");
+                foreach ($byEventType as $index => $docs) {
+                    $result = $openSearch->bulkIndex($index, $docs);
+                    $total += $result['indexed'];
+                    $this->line("  deposits → {$index}: +{$result['indexed']} (累计 {$total})");
+                }
             });
 
         return $total;
@@ -153,20 +158,21 @@ class TestOpenSearchBackfill extends Command
 
     protected function backfillWithdraws(OpenSearchService $openSearch, int $chunkSize): int
     {
-        $index = $openSearch->getIndexForEvent('withdraw_completed');
         $total = 0;
-
-        $this->info('上传 withdraws → ' . $index);
 
         Withdraw::query()
             ->with('user.agentLink')
-            ->chunk($chunkSize, function ($withdraws) use ($openSearch, $index, &$total) {
-                $docs = [];
+            ->chunk($chunkSize, function ($withdraws) use ($openSearch, &$total) {
+                $byEventType = [];
                 foreach ($withdraws as $withdraw) {
                     $user = $withdraw->user;
                     $agentId = $user?->agentLink?->agent_id ?? null;
                     $eventType = $withdraw->status === Withdraw::STATUS_COMPLETED ? 'withdraw_completed' : 'withdraw_created';
-                    $docs[] = [
+                    $index = $openSearch->getIndexForEvent($eventType);
+                    if (!isset($byEventType[$index])) {
+                        $byEventType[$index] = [];
+                    }
+                    $byEventType[$index][] = [
                         'id' => 'withdraw_' . $withdraw->id,
                         'body' => [
                             'event_type' => $eventType,
@@ -183,9 +189,11 @@ class TestOpenSearchBackfill extends Command
                         ],
                     ];
                 }
-                $result = $openSearch->bulkIndex($index, $docs);
-                $total += $result['indexed'];
-                $this->line("  withdraws: +{$result['indexed']} (累计 {$total})");
+                foreach ($byEventType as $index => $docs) {
+                    $result = $openSearch->bulkIndex($index, $docs);
+                    $total += $result['indexed'];
+                    $this->line("  withdraws → {$index}: +{$result['indexed']} (累计 {$total})");
+                }
             });
 
         return $total;

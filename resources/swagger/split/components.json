@@ -959,64 +959,6 @@
                 }
             }
         },
-        "UserDepositWithdrawStatsResponse": {
-            "type": "object",
-            "properties": {
-                "code": {
-                    "type": "integer",
-                    "description": "响应码，0表示成功"
-                },
-                "errmsg": {
-                    "type": "string",
-                    "description": "响应消息"
-                },
-                "data": {
-                    "type": "object",
-                    "properties": {
-                        "data": {
-                            "type": "array",
-                            "description": "用户充提汇总列表",
-                            "items": {
-                                "$ref": "#\/components\/schemas\/UserDepositWithdrawStatsItem"
-                            }
-                        },
-                        "total": {
-                            "type": "integer",
-                            "description": "用户数量"
-                        }
-                    }
-                }
-            }
-        },
-        "UserDepositWithdrawStatsItem": {
-            "type": "object",
-            "properties": {
-                "user_id": {
-                    "type": "integer",
-                    "description": "用户ID"
-                },
-                "deposit_total": {
-                    "type": "number",
-                    "format": "float",
-                    "description": "充值总额"
-                },
-                "withdraw_total": {
-                    "type": "number",
-                    "format": "float",
-                    "description": "提现总额"
-                },
-                "deposit_completed_total": {
-                    "type": "number",
-                    "format": "float",
-                    "description": "成功充值总额"
-                },
-                "withdraw_completed_total": {
-                    "type": "number",
-                    "format": "float",
-                    "description": "成功提现总额"
-                }
-            }
-        },
         "BannerListResponse": {
             "type": "object",
             "properties": {
