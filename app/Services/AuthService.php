@@ -7,7 +7,6 @@ use App\Models\User;
 use App\Models\UserMeta;
 use App\Models\Invitation;
 use App\Models\UserVip;
-use App\Models\VipLevel;
 use App\Services\BalanceService;
 use App\Services\NotificationService;
 use App\Enums\ErrorCode;
@@ -140,6 +139,13 @@ class AuthService
             $token = $user->createToken('auth_token')->plainTextToken;
 
             event(new UserRegistered($user, $deviceInfo));
+
+            // 注册成功即视为登录，触发 signin 事件
+            event(new UserLoggedIn(
+                $user,
+                $deviceInfo['origination_ip'] ?? null,
+                $deviceInfo['device_ua'] ?? null
+            ));
 
             return [
                 'user' => $user,
