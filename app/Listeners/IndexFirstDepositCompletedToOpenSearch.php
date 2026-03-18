@@ -4,10 +4,13 @@ namespace App\Listeners;
 
 use App\Events\FirstDepositCompleted;
 use App\Services\OpenSearchService;
+use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Support\Facades\Log;
 
-class IndexFirstDepositCompletedToOpenSearch
+class IndexFirstDepositCompletedToOpenSearch implements ShouldQueue
 {
+    use InteractsWithQueue;
     public function handle(FirstDepositCompleted $event): void
     {
         $service = new OpenSearchService();

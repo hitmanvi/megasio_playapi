@@ -4,10 +4,13 @@ namespace App\Listeners;
 
 use App\Events\UserRegistered;
 use App\Services\OpenSearchService;
+use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Support\Facades\Log;
 
-class IndexUserRegisteredToOpenSearch
+class IndexUserRegisteredToOpenSearch implements ShouldQueue
 {
+    use InteractsWithQueue;
     public function handle(UserRegistered $event): void
     {
         $service = new OpenSearchService();

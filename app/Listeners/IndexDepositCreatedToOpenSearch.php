@@ -4,10 +4,13 @@ namespace App\Listeners;
 
 use App\Events\DepositCreated;
 use App\Services\OpenSearchService;
+use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Support\Facades\Log;
 
-class IndexDepositCreatedToOpenSearch
+class IndexDepositCreatedToOpenSearch implements ShouldQueue
 {
+    use InteractsWithQueue;
     public function handle(DepositCreated $event): void
     {
         $service = new OpenSearchService();
