@@ -129,6 +129,9 @@ class AuthService
             // 获取默认币种
             $defaultCurrency = config('app.currency', 'USD');
 
+            // 注册方式：优先 phone，其次 email
+            $registerMethod = !empty($data['phone']) ? 'phone' : 'email';
+
             // 创建用户
             $user = User::create([
                 'uid' => User::generateUid(),
@@ -139,6 +142,7 @@ class AuthService
                 'password' => Hash::make($data['password']),
                 'status' => 'active',
                 'agent_link_id' => $agentLink?->id,
+                'register_method' => $registerMethod,
                 'display_currencies' => [$defaultCurrency],
                 'base_currency' => $defaultCurrency,
                 'current_currency' => $defaultCurrency,
@@ -435,6 +439,7 @@ class AuthService
                         'password' => null,
                         'status' => 'active',
                         'agent_link_id' => $agentLink?->id,
+                        'register_method' => 'google',
                         'display_currencies' => [$defaultCurrency],
                         'base_currency' => $defaultCurrency,
                         'current_currency' => $defaultCurrency,

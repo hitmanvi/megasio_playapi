@@ -29,6 +29,8 @@ class RecordUserLoginActivity implements ShouldQueue
     public function handle(UserLoggedIn $event): void
     {
         try {
+            $event->user->update(['last_login_at' => now()]);
+
             $this->userActivityService->createActivity(
                 $event->user->id,
                 UserActivity::TYPE_LOGIN,

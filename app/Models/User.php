@@ -33,6 +33,9 @@ class User extends Authenticatable
         'google_id',
         'status',
         'ban_reason',
+        'remark',
+        'register_method',
+        'last_login_at',
         'invite_code',
         'agent_link_id',
         'display_currencies',
@@ -65,6 +68,7 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'display_currencies' => 'array',
+            'last_login_at' => 'datetime',
         ];
     }
 
