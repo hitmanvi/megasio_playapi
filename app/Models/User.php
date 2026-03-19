@@ -36,6 +36,7 @@ class User extends Authenticatable
         'remark',
         'register_method',
         'last_login_at',
+        'last_active_at',
         'invite_code',
         'agent_link_id',
         'display_currencies',
@@ -55,6 +56,8 @@ class User extends Authenticatable
         'updated_at',
         'created_at',
         'status',
+        'remark',
+        'last_active_at',
     ];
 
     /**
@@ -69,6 +72,7 @@ class User extends Authenticatable
             'password' => 'hashed',
             'display_currencies' => 'array',
             'last_login_at' => 'datetime',
+            'last_active_at' => 'datetime',
         ];
     }
 

@@ -24,7 +24,8 @@ class UserController extends Controller
     public function show(Request $request): JsonResponse
     {
         $user = $request->user();
-        
+        $user->update(['last_active_at' => now()]);
+
         return $this->responseItem([
             'uid' => $user->uid,
             'name' => $user->name,
@@ -131,7 +132,8 @@ class UserController extends Controller
     public function update(Request $request): JsonResponse
     {
         $user = $request->user();
-        
+        $user->update(['last_active_at' => now()]);
+
         $rules = [];
         $updated = false;
 
