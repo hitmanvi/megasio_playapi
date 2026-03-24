@@ -4,19 +4,11 @@ namespace App\Models;
 
 use App\Events\VipLevelUpgraded;
 use App\Services\BalanceService;
-use App\Services\VipService;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class UserVip extends Model
 {
-    /**
-     * 获取 VipService 实例
-     */
-    protected function getVipService(): VipService
-    {
-        return new VipService();
-    }
     /**
      * The attributes that are mass assignable.
      *
@@ -43,8 +35,7 @@ class UserVip extends Model
      */
     public static function getLevels(): array
     {
-        $service = new VipService();
-        return $service->getLevelKeys();
+        return VipLevel::levelKeys();
     }
 
     /**
@@ -52,8 +43,7 @@ class UserVip extends Model
      */
     public static function getRequiredExp(int $level): float
     {
-        $service = new VipService();
-        return (float) $service->getRequiredExp($level);
+        return (float) VipLevel::requiredExpFor($level);
     }
 
     /**
@@ -99,8 +89,7 @@ class UserVip extends Model
      */
     private function checkLevelUp(): void
     {
-        $vipService = $this->getVipService();
-        $newLevel = $vipService->calculateLevelFromExp((float) $this->exp);
+        $newLevel = VipLevel::calculateLevelFromExp((float) $this->exp);
         
         if ($newLevel !== $this->level) {
             $oldLevel = $this->level;
@@ -135,8 +124,7 @@ class UserVip extends Model
             return;
         }
 
-        $vipService = $this->getVipService();
-        $levelInfo = $vipService->getLevelInfo($level);
+        $levelInfo = VipLevel::infoForLevel($level);
         
         if (!$levelInfo || !isset($levelInfo['benefits']) || !is_array($levelInfo['benefits'])) {
             return;
@@ -220,8 +208,7 @@ class UserVip extends Model
      */
     public function getCurrentLevelInfo(): ?array
     {
-        $vipService = $this->getVipService();
-        return $vipService->getLevel($this->level);
+        return VipLevel::infoForLevel($this->level);
     }
 
     /**
@@ -238,16 +225,15 @@ class UserVip extends Model
      */
     public function getNextLevelInfo(): ?array
     {
-        $vipService = $this->getVipService();
-        $nextLevel = $vipService->getNextLevel($this->level);
-        
+        $nextLevel = VipLevel::infoForLevel($this->level + 1);
+
         if (!$nextLevel) {
             return null; // Already at max level
         }
-        
+
         $requiredExp = (float) $nextLevel['required_exp'];
         $expNeeded = max(0, $requiredExp - (float) $this->exp);
-        $currentLevelExp = (float) $vipService->getRequiredExp($this->level);
+        $currentLevelExp = (float) VipLevel::requiredExpFor($this->level);
         $expRange = $requiredExp - $currentLevelExp;
         $currentProgress = (float) $this->exp - $currentLevelExp;
         

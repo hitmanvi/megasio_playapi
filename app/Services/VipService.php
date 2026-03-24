@@ -12,7 +12,7 @@ class VipService
     /**
      * 默认 VIP 等级
      */
-    const DEFAULT_LEVEL = 1;
+    const DEFAULT_LEVEL = VipLevel::DEFAULT_LEVEL;
 
     /**
      * 获取用户VIP信息，不存在则创建
@@ -65,14 +65,7 @@ class VipService
      */
     public function getAllLevels(): array
     {
-        return VipLevel::enabled()
-            ->with('group')
-            ->orderBy('level')
-            ->get()
-            ->map(fn($level) => $level->toApiArray())
-            ->keyBy('level')
-            ->values()
-            ->toArray();
+        return VipLevel::allEnabledApiArrays();
     }
 
     /**
@@ -80,16 +73,7 @@ class VipService
      */
     public function getLevelInfo(int $level): ?array
     {
-        $levelModel = VipLevel::enabled()
-            ->where('level', $level)
-            ->with('group')
-            ->first();
-        
-        if (!$levelModel) {
-            return null;
-        }
-
-        return $levelModel->toApiArray();
+        return VipLevel::infoForLevel($level);
     }
 
     /**
@@ -97,7 +81,7 @@ class VipService
      */
     public function getLevel(int $level): ?array
     {
-        return $this->getLevelInfo($level);
+        return VipLevel::infoForLevel($level);
     }
 
     /**
@@ -105,11 +89,7 @@ class VipService
      */
     public function getLevelKeys(): array
     {
-        return VipLevel::enabled()
-            ->orderBy('level')
-            ->pluck('level')
-            ->map(fn($level) => (int) $level)
-            ->toArray();
+        return VipLevel::levelKeys();
     }
 
     /**
@@ -117,8 +97,7 @@ class VipService
      */
     public function getRequiredExp(int $level): int
     {
-        $levelInfo = $this->getLevelInfo($level);
-        return $levelInfo['required_exp'] ?? 0;
+        return VipLevel::requiredExpFor($level);
     }
 
     /**
@@ -127,23 +106,7 @@ class VipService
      */
     public function calculateLevelFromExp(float $exp): int
     {
-        $levels = $this->getAllLevels();
-        
-        if (empty($levels)) {
-            return self::DEFAULT_LEVEL;
-        }
-        
-        // 按经验值倒序排列，找到第一个满足条件的等级
-        uasort($levels, fn($a, $b) => $b['required_exp'] <=> $a['required_exp']);
-        
-        foreach ($levels as $level) {
-            if ($exp >= $level['required_exp']) {
-                return $level['level'];
-            }
-        }
-        
-        // 如果没有满足条件的等级，返回默认等级
-        return self::DEFAULT_LEVEL;
+        return VipLevel::calculateLevelFromExp($exp);
     }
 
     /**
