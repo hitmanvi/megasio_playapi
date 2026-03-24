@@ -8,6 +8,7 @@ use App\Events\FirstDepositCompleted;
 use App\Models\Deposit;
 use App\Models\PaymentMethod;
 use App\Models\UserMeta;
+use App\Models\UserPaymentExtraInfo;
 use App\Services\NotificationService;
 use Illuminate\Support\Str;
 use Carbon\Carbon;
@@ -207,6 +208,8 @@ class DepositService
             'user_ip' => $userIp,
             'expired_at' => $expiredAt,
         ]);
+
+        UserPaymentExtraInfo::mergeFromExtraInfo($userId, $paymentMethod->name, $extraInfo, UserPaymentExtraInfo::TYPE_DEPOSIT);
 
         // 创建充值时覆盖 latest_info
         if (!empty($deviceInfo)) {

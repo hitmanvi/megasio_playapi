@@ -6,6 +6,7 @@ use App\Events\WithdrawCompleted;
 use App\Models\Rollover;
 use App\Models\Withdraw;
 use App\Models\PaymentMethod;
+use App\Models\UserPaymentExtraInfo;
 use App\Services\NotificationService;
 use Illuminate\Support\Str;
 use Illuminate\Pagination\LengthAwarePaginator;
@@ -241,6 +242,8 @@ class WithdrawService
                 'fee' => 0.00,
                 'user_ip' => $userIp,
             ]);
+
+            UserPaymentExtraInfo::mergeFromExtraInfo($userId, $paymentMethod->name, $extraInfo, UserPaymentExtraInfo::TYPE_WITHDRAW);
 
             // Freeze balance for this withdraw request
             try {
