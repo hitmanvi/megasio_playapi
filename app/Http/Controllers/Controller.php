@@ -85,7 +85,7 @@ class Controller
         $info['current_ip'] = $currentIp;
 
         if ($user) {
-            $registerInfo = UserMeta::getLatest($user->id, 'register_info');
+            $registerInfo = UserMeta::getLatest($user->id, UserMeta::KEY_REGISTER_INFO);
             if ($registerInfo) {
                 $decoded = json_decode($registerInfo, true);
                 if (!empty($decoded['origination_ip'])) {

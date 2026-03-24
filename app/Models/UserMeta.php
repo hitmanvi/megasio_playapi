@@ -8,6 +8,12 @@ use Illuminate\Support\Collection;
 
 class UserMeta extends Model
 {
+    /** 注册时设备/环境信息（JSON，可多条历史） */
+    public const KEY_REGISTER_INFO = 'register_info';
+
+    /** 最近一次上报的设备/环境信息（JSON，覆盖更新） */
+    public const KEY_LATEST_INFO = 'latest_info';
+
     /**
      * The attributes that are mass assignable.
      *

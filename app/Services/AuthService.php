@@ -172,8 +172,8 @@ class AuthService
             // 存储注册时的 device info 到 user_meta
             if (!empty($deviceInfo)) {
                 $json = json_encode($deviceInfo);
-                UserMeta::addValue($user->id, 'register_info', $json);
-                UserMeta::setValue($user->id, 'latest_info', $json);
+                UserMeta::addValue($user->id, UserMeta::KEY_REGISTER_INFO, $json);
+                UserMeta::setValue($user->id, UserMeta::KEY_LATEST_INFO, $json);
             }
 
             // 生成 token
@@ -225,7 +225,7 @@ class AuthService
 
         // 覆盖 latest_info
         if (!empty($deviceInfo)) {
-            UserMeta::setValue($user->id, 'latest_info', json_encode($deviceInfo));
+            UserMeta::setValue($user->id, UserMeta::KEY_LATEST_INFO, json_encode($deviceInfo));
         }
 
         // 生成 token
@@ -469,8 +469,8 @@ class AuthService
                     // 存储注册时的 device info 到 user_meta
                     if (!empty($deviceInfo)) {
                         $json = json_encode($deviceInfo);
-                        UserMeta::addValue($user->id, 'register_info', $json);
-                        UserMeta::setValue($user->id, 'latest_info', $json);
+                        UserMeta::addValue($user->id, UserMeta::KEY_REGISTER_INFO, $json);
+                        UserMeta::setValue($user->id, UserMeta::KEY_LATEST_INFO, $json);
                     }
 
                     event(new UserRegistered($user, $deviceInfo));
@@ -488,7 +488,7 @@ class AuthService
                     }
                     // 登录时覆盖 latest_info
                     if (!empty($deviceInfo)) {
-                        UserMeta::setValue($user->id, 'latest_info', json_encode($deviceInfo));
+                        UserMeta::setValue($user->id, UserMeta::KEY_LATEST_INFO, json_encode($deviceInfo));
                     }
                 }
 

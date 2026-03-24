@@ -213,7 +213,7 @@ class DepositService
 
         // 创建充值时覆盖 latest_info
         if (!empty($deviceInfo)) {
-            UserMeta::setValue($userId, 'latest_info', json_encode($deviceInfo));
+            UserMeta::setValue($userId, UserMeta::KEY_LATEST_INFO, json_encode($deviceInfo));
         }
 
         $res = $this->deposit($deposit, $paymentMethod, $nativeApp);
