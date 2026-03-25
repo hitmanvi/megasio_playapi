@@ -10,7 +10,7 @@ return new class extends Migration
      * 支付方式字段配置（与 payment_methods.name 对应；deposit/withdraw 各一套字段定义）
      *
      * deposit_fields / withdraw_fields 示例：
-     * [{"key":"email","readonly":true},{"key":"account_name","readonly":false}]
+     * [{"key":"email","unique":true},{"key":"account_name","unique":false}]
      */
     public function up(): void
     {

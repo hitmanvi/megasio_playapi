@@ -18,10 +18,11 @@ class PaymentMethodFieldConfig extends Model
     ];
 
     /**
-     * 规范化字段列表：只保留含非空 key 的项，并统一 readonly 为 bool
+     * 规范化字段列表：只保留含非空 key 的项，并统一为 unique（bool）
+     * 兼容历史数据中的 readonly，与 unique 同义
      *
      * @param  array<int, mixed>  $fields
-     * @return list<array{key: string, readonly: bool}>
+     * @return list<array{key: string, unique: bool}>
      */
     public static function normalizeFieldsArray(array $fields): array
     {
@@ -34,9 +35,10 @@ class PaymentMethodFieldConfig extends Model
             if (!is_string($key) || $key === '') {
                 continue;
             }
+            $flag = $item['unique'] ?? $item['readonly'] ?? false;
             $out[] = [
                 'key' => $key,
-                'readonly' => filter_var($item['readonly'] ?? false, FILTER_VALIDATE_BOOLEAN),
+                'unique' => filter_var($flag, FILTER_VALIDATE_BOOLEAN),
             ];
         }
 
@@ -44,7 +46,7 @@ class PaymentMethodFieldConfig extends Model
     }
 
     /**
-     * extra_info 里出现、但当前配置里还没有声明的 key，追加到 deposit_fields / withdraw_fields（readonly 默认 false）
+     * extra_info 里出现、但当前配置里还没有声明的 key，追加到 deposit_fields / withdraw_fields（unique 默认 false）
      *
      * @param  \App\Models\UserPaymentExtraInfo::TYPE_*  $paymentType  deposit|withdraw
      */
@@ -73,7 +75,7 @@ class PaymentMethodFieldConfig extends Model
             if (isset($existingKeys[$key])) {
                 continue;
             }
-            $fields[] = ['key' => $key, 'readonly' => false];
+            $fields[] = ['key' => $key, 'unique' => false];
             $existingKeys[$key] = true;
             $changed = true;
         }
@@ -83,7 +85,7 @@ class PaymentMethodFieldConfig extends Model
         }
 
         $config->name = $name;
-        $config->{$column} = $fields;
+        $config->{$column} = static::normalizeFieldsArray($fields);
         $config->save();
     }
 
