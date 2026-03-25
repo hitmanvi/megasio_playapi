@@ -94,9 +94,14 @@
                                     "status": "inactive",
                                     "reward_stats": [
                                         {
-                                            "source_type": "deposit",
-                                            "count": 5,
-                                            "total_amount": 500
+                                            "source_type": "deposit_starter",
+                                            "count": 2,
+                                            "total_amount": 40
+                                        },
+                                        {
+                                            "source_type": "deposit_advanced",
+                                            "count": 1,
+                                            "total_amount": 80
                                         },
                                         {
                                             "source_type": "bet",

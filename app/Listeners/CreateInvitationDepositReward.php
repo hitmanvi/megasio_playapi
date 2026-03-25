@@ -45,6 +45,7 @@ class CreateInvitationDepositReward implements ShouldQueue
         // 计算用户的总充值金额（所有已完成的充值）
         $totalDepositAmount = Deposit::where('user_id', $deposit->user_id)
             ->where('status', Deposit::STATUS_COMPLETED)
+            ->where('currency', config('app.currency', 'USD'))
             ->sum('amount');
 
         $totalDepositAmount = (float) $totalDepositAmount;
@@ -66,9 +67,11 @@ class CreateInvitationDepositReward implements ShouldQueue
      */
     protected function checkAndCreateReward(Invitation $invitation, float $totalDepositAmount, string $rewardTypeKey): void
     {
+        $sourceType = InvitationReward::sourceTypeForDepositBonusKey($rewardTypeKey);
+
         // 检查是否已经给过该类型的奖励
         $existingReward = InvitationReward::where('invitation_id', $invitation->id)
-            ->where('source_type', InvitationReward::SOURCE_TYPE_DEPOSIT)
+            ->where('source_type', $sourceType)
             ->where('related_id', $rewardTypeKey)
             ->first();
 
@@ -106,7 +109,7 @@ class CreateInvitationDepositReward implements ShouldQueue
         $this->rewardService->createRewardWithKycCheck($invitation, [
             'user_id' => $invitation->inviter_id, // 奖励给邀请人
             'invitation_id' => $invitation->id,
-            'source_type' => InvitationReward::SOURCE_TYPE_DEPOSIT,
+            'source_type' => $sourceType,
             'reward_type' => $currency,
             'reward_amount' => $rewardAmount,
             'wager' => 0, // 充值奖励没有 wager

@@ -9,9 +9,24 @@ class InvitationReward extends Model
 {
 
     // 奖励来源类型
-    const SOURCE_TYPE_DEPOSIT = 'deposit';    // 被邀请人充值奖励
+    const SOURCE_TYPE_DEPOSIT_STARTER = 'deposit_starter';      // 被邀请人充值奖励（新手档，对应 deposit_bonus_starter）
+    const SOURCE_TYPE_DEPOSIT_ADVANCED = 'deposit_advanced';   // 被邀请人充值奖励（进阶档，对应 deposit_bonus_advanced）
     const SOURCE_TYPE_BET = 'bet';
     const SOURCE_TYPE_VIP = 'vip';
+
+    /**
+     * 邀请充值奖励配置 key（settings）与 source_type 对应
+     *
+     * @param  string  $rewardTypeKey  deposit_bonus_starter 或 deposit_bonus_advanced
+     */
+    public static function sourceTypeForDepositBonusKey(string $rewardTypeKey): string
+    {
+        return match ($rewardTypeKey) {
+            'deposit_bonus_starter' => self::SOURCE_TYPE_DEPOSIT_STARTER,
+            'deposit_bonus_advanced' => self::SOURCE_TYPE_DEPOSIT_ADVANCED,
+            default => throw new \InvalidArgumentException('Unknown deposit bonus key: '.$rewardTypeKey),
+        };
+    }
 
     // 发放状态
     const STATUS_PENDING = 'pending';  // 未发放

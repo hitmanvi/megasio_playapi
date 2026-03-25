@@ -75,7 +75,8 @@ class GenerateInvitationRewards extends Command
 
         $totalGenerated = 0;
         $sourceTypes = [
-            InvitationReward::SOURCE_TYPE_DEPOSIT,
+            InvitationReward::SOURCE_TYPE_DEPOSIT_STARTER,
+            InvitationReward::SOURCE_TYPE_DEPOSIT_ADVANCED,
             InvitationReward::SOURCE_TYPE_BET,
             InvitationReward::SOURCE_TYPE_VIP,
         ];

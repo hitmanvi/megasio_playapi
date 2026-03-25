@@ -5365,9 +5365,14 @@
                                         "status": "inactive",
                                         "reward_stats": [
                                             {
-                                                "source_type": "deposit",
-                                                "count": 5,
-                                                "total_amount": 500
+                                                "source_type": "deposit_starter",
+                                                "count": 2,
+                                                "total_amount": 40
+                                            },
+                                            {
+                                                "source_type": "deposit_advanced",
+                                                "count": 1,
+                                                "total_amount": 80
                                             },
                                             {
                                                 "source_type": "bet",
@@ -12771,7 +12776,7 @@
                                     "properties": {
                                         "source_type": {
                                             "type": "string",
-                                            "description": "奖励来源类型：deposit（充值）、bet（下注）、vip（VIP）"
+                                            "description": "奖励来源类型：deposit_starter（充值-新手档）、deposit_advanced（充值-进阶档）、bet（下注）、vip（VIP）；历史数据可能仍为 deposit"
                                         },
                                         "count": {
                                             "type": "integer",
