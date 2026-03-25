@@ -72,6 +72,59 @@ class UserPaymentExtraInfo extends Model
     }
 
     /**
+     * 下单时合并：请求 extra_info 与用户已存的 payment extra info；
+     * 某 key 在已存 data 中为 read_only 时，订单使用该已存值（忽略请求中的同 key）。
+     *
+     * @param  self::TYPE_*  $type
+     * @param  array<string, mixed>  $requestExtraInfo
+     * @return array<string, string>  key => 字符串值，供订单 extra_info / 网关
+     */
+    public static function mergeRequestWithSavedForOrder(int $userId, string $paymentMethodName, string $type, array $requestExtraInfo): array
+    {
+        $record = static::where('user_id', $userId)
+            ->where('name', $paymentMethodName)
+            ->where('type', $type)
+            ->first();
+
+        $saved = is_array($record?->data) ? $record->data : [];
+        $saved = array_filter(
+            $saved,
+            static fn ($_, $k) => !self::isSensitivePaymentFieldKey((string) $k),
+            ARRAY_FILTER_USE_BOTH
+        );
+
+        $requestNorm = self::normalizeExtraInfoPayload($requestExtraInfo);
+
+        $allKeys = array_unique(array_merge(array_keys($saved), array_keys($requestNorm)));
+
+        $flat = [];
+        foreach ($allKeys as $key) {
+            if (!is_string($key) || $key === '' || self::isSensitivePaymentFieldKey($key)) {
+                continue;
+            }
+
+            $savedEntry = $saved[$key] ?? null;
+            $savedVal = is_array($savedEntry) ? (string) ($savedEntry['value'] ?? '') : '';
+            $savedRo = is_array($savedEntry) && filter_var($savedEntry['read_only'] ?? false, FILTER_VALIDATE_BOOLEAN);
+
+            $reqEntry = $requestNorm[$key] ?? null;
+            $reqVal = is_array($reqEntry) ? (string) ($reqEntry['value'] ?? '') : '';
+
+            if ($savedRo) {
+                $val = $savedVal;
+            } else {
+                $val = $reqVal !== '' ? $reqVal : $savedVal;
+            }
+
+            if ($val !== '') {
+                $flat[$key] = $val;
+            }
+        }
+
+        return $flat;
+    }
+
+    /**
      * 回调成功等场景：将该用户该支付方式下对应类型的 data 中全部字段标为 read_only
      *
      * @param  self::TYPE_*  $type

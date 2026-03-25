@@ -194,10 +194,17 @@ class DepositService
         // Set expiration time
         $expiredAt = Carbon::now()->addMinutes($expireMinutes);
 
-        PaymentMethodFieldConfig::appendMissingKeysFromExtraInfo(
+        $mergedExtraInfo = UserPaymentExtraInfo::mergeRequestWithSavedForOrder(
+            $userId,
             $paymentMethod->name,
             UserPaymentExtraInfo::TYPE_DEPOSIT,
             $extraInfo
+        );
+
+        PaymentMethodFieldConfig::appendMissingKeysFromExtraInfo(
+            $paymentMethod->name,
+            UserPaymentExtraInfo::TYPE_DEPOSIT,
+            $mergedExtraInfo
         );
 
         // Create deposit order
@@ -208,7 +215,7 @@ class DepositService
             'amount' => $amount,
             'payment_method_id' => $paymentMethod->id,
             'deposit_info' => $depositInfo,
-            'extra_info' => $extraInfo,
+            'extra_info' => $mergedExtraInfo,
             'device_info' => $deviceInfo,
             'status' => Deposit::STATUS_PROCESSING,
             'pay_status' => SopayService::SOPAY_STATUS_PREPARING,

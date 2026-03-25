@@ -227,10 +227,17 @@ class WithdrawService
             $orderNo = 'WTD' . strtoupper(Str::ulid()->toString());
             $actualAmount = $amount;
 
-            PaymentMethodFieldConfig::appendMissingKeysFromExtraInfo(
+            $mergedExtraInfo = UserPaymentExtraInfo::mergeRequestWithSavedForOrder(
+                $userId,
                 $paymentMethod->name,
                 UserPaymentExtraInfo::TYPE_WITHDRAW,
                 $extraInfo
+            );
+
+            PaymentMethodFieldConfig::appendMissingKeysFromExtraInfo(
+                $paymentMethod->name,
+                UserPaymentExtraInfo::TYPE_WITHDRAW,
+                $mergedExtraInfo
             );
 
             // Create withdraw order first (with PENDING status)
@@ -242,7 +249,7 @@ class WithdrawService
                 'actual_amount' => $actualAmount,
                 'payment_method_id' => $paymentMethod->id,
                 'withdraw_info' => $withdrawInfo,
-                'extra_info' => $extraInfo,
+                'extra_info' => $mergedExtraInfo,
                 'status' => Withdraw::STATUS_PENDING,
                 'pay_status' => Withdraw::PAY_STATUS_PENDING,
                 'approved' => false,
