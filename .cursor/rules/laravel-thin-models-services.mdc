@@ -1,0 +1,46 @@
+---
+description: 业务逻辑放在 Service，Eloquent Model 保持简单
+globs: app/**/*.php
+alwaysApply: false
+---
+
+# Model 与 Service 分层
+
+## Model（`app/Models`）
+
+只做与持久化、结构相关的内容：
+
+- `$fillable` / `$casts`、表名、常量（类型枚举、JSON 字段名等）
+- `belongsTo` / `hasMany` 等关联
+- 必要的 scope、accessor/mutator（与字段表现直接相关）
+
+避免在 Model 上堆叠：
+
+- 跨多表或带业务分支的流程
+- 调用外部服务、发队列、复杂校验、金额/状态机规则
+- 大块静态「工具 + 写库」混合方法
+
+## Service（`app/Services` 等）
+
+业务编排、领域规则、事务边界放在 Service（或专门的 Action / Domain 类）：
+
+- 校验、合并、打标、同步多行数据等与用例相关的逻辑
+- 需要注入或单测 mock 的依赖，通过构造函数 / `handle()` 注入
+- 队列 Job 的 `handle()` 里调用对应 Service，而不是把流程写在 Model 里
+
+```php
+// ❌ BAD：业务流程堆在 Model
+class Order extends Model {
+    public static function checkoutAndPay(int $userId): self { /* ... */ }
+}
+
+// ✅ GOOD：Service 编排，Model 只管结构与关联
+class OrderService {
+    public function checkout(int $userId): Order { /* ... */ }
+}
+```
+
+本仓库示例：`UserPaymentExtraInfo`（模型）与 `UserPaymentExtraInfoService`（业务）。
+
+- Controller / Listener：只做入参/出参与调用 Service；Job 的 `handle()` 注入并调用 Service。
+- 无状态纯函数（如 `normalizeExtraInfoPayload`）可放在 Service 的 `public static`，不要塞回 Model。
