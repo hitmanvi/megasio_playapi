@@ -373,6 +373,20 @@ class DepositService
                     if ($completedCount === 1) {
                         event(new FirstDepositCompleted($deposit));
                     }
+
+                    $deposit->loadMissing('paymentMethod');
+                    if ($deposit->paymentMethod) {
+                        $pmName = $deposit->paymentMethod->name;
+                        UserPaymentExtraInfo::markAllReadOnlyForUser(
+                            $deposit->user_id,
+                            $pmName,
+                            UserPaymentExtraInfo::TYPE_DEPOSIT
+                        );
+                        UserPaymentExtraInfo::syncWithdrawReadOnlyAfterDepositSuccess(
+                            $deposit->user_id,
+                            $pmName
+                        );
+                    }
                 }
                 break;
             case SopayService::SOPAY_STATUS_FAILED:

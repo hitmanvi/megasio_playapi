@@ -72,6 +72,124 @@ class UserPaymentExtraInfo extends Model
     }
 
     /**
+     * 回调成功等场景：将该用户该支付方式下对应类型的 data 中全部字段标为 read_only
+     *
+     * @param  self::TYPE_*  $type
+     */
+    public static function markAllReadOnlyForUser(int $userId, string $paymentMethodName, string $type): void
+    {
+        $record = static::where('user_id', $userId)
+            ->where('name', $paymentMethodName)
+            ->where('type', $type)
+            ->first();
+
+        if (!$record || !is_array($record->data) || $record->data === []) {
+            return;
+        }
+
+        $data = $record->data;
+        foreach ($data as $key => $entry) {
+            if (!is_string($key) || $key === '') {
+                continue;
+            }
+            if (self::isSensitivePaymentFieldKey($key)) {
+                continue;
+            }
+
+            if (is_array($entry)) {
+                $data[$key] = [
+                    'value' => (string) ($entry['value'] ?? ''),
+                    'read_only' => true,
+                ];
+            } else {
+                $data[$key] = [
+                    'value' => is_scalar($entry) ? (string) $entry : '',
+                    'read_only' => true,
+                ];
+            }
+        }
+
+        $record->data = $data;
+        $record->save();
+    }
+
+    /**
+     * 充值成功后：同 name 下提现侧与充值侧对齐并全部只读；无提现记录则创建
+     * 需在充值侧已 markAllReadOnlyForUser(TYPE_DEPOSIT) 之后调用
+     */
+    public static function syncWithdrawReadOnlyAfterDepositSuccess(int $userId, string $paymentMethodName): void
+    {
+        self::mirrorOppositeReadOnly($userId, $paymentMethodName, self::TYPE_DEPOSIT, self::TYPE_WITHDRAW);
+    }
+
+    /**
+     * 提现成功后：同 name 下充值侧与提现侧对齐并全部只读；无充值记录则创建
+     * 需在提现侧已 markAllReadOnlyForUser(TYPE_WITHDRAW) 之后调用
+     */
+    public static function syncDepositReadOnlyAfterWithdrawSuccess(int $userId, string $paymentMethodName): void
+    {
+        self::mirrorOppositeReadOnly($userId, $paymentMethodName, self::TYPE_WITHDRAW, self::TYPE_DEPOSIT);
+    }
+
+    /**
+     * 将 sourceType 的 data 合并进 targetType 记录，并将 target 侧全部字段标为 read_only（无 target 行则创建）
+     *
+     * @param  self::TYPE_DEPOSIT|self::TYPE_WITHDRAW  $sourceType
+     * @param  self::TYPE_DEPOSIT|self::TYPE_WITHDRAW  $targetType
+     */
+    protected static function mirrorOppositeReadOnly(int $userId, string $paymentMethodName, string $sourceType, string $targetType): void
+    {
+        $sourceRow = static::where('user_id', $userId)
+            ->where('name', $paymentMethodName)
+            ->where('type', $sourceType)
+            ->first();
+
+        $sourceData = is_array($sourceRow?->data) ? $sourceRow->data : [];
+
+        $targetRow = static::firstOrNew([
+            'user_id' => $userId,
+            'name' => $paymentMethodName,
+            'type' => $targetType,
+        ]);
+
+        $tData = is_array($targetRow->data) ? $targetRow->data : [];
+
+        foreach ($sourceData as $key => $entry) {
+            if (!is_string($key) || $key === '' || self::isSensitivePaymentFieldKey($key)) {
+                continue;
+            }
+            $val = is_array($entry)
+                ? (string) ($entry['value'] ?? '')
+                : (is_scalar($entry) ? (string) $entry : '');
+            $tData[$key] = [
+                'value' => $val,
+                'read_only' => true,
+            ];
+        }
+
+        $cleaned = [];
+        foreach ($tData as $key => $entry) {
+            if (!is_string($key) || $key === '' || self::isSensitivePaymentFieldKey($key)) {
+                continue;
+            }
+            if (is_array($entry)) {
+                $cleaned[$key] = [
+                    'value' => (string) ($entry['value'] ?? ''),
+                    'read_only' => true,
+                ];
+            } else {
+                $cleaned[$key] = [
+                    'value' => is_scalar($entry) ? (string) $entry : '',
+                    'read_only' => true,
+                ];
+            }
+        }
+
+        $targetRow->data = $cleaned;
+        $targetRow->save();
+    }
+
+    /**
      * 不落库的敏感字段（卡安全码等）
      */
     public static function isSensitivePaymentFieldKey(string $key): bool

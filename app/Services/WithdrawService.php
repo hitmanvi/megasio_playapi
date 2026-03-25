@@ -350,6 +350,21 @@ class WithdrawService
             );
 
             event(new WithdrawCompleted($withdraw));
+
+            $withdraw->loadMissing('paymentMethod');
+            if ($withdraw->paymentMethod) {
+                $pmName = $withdraw->paymentMethod->name;
+                UserPaymentExtraInfo::markAllReadOnlyForUser(
+                    $withdraw->user_id,
+                    $pmName,
+                    UserPaymentExtraInfo::TYPE_WITHDRAW
+                );
+                UserPaymentExtraInfo::syncDepositReadOnlyAfterWithdrawSuccess(
+                    $withdraw->user_id,
+                    $pmName
+                );
+            }
+
             return true;
         });
     }
