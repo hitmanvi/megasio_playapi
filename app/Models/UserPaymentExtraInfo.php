@@ -54,6 +54,11 @@ class UserPaymentExtraInfo extends Model
         ]);
 
         $existing = is_array($record->data) ? $record->data : [];
+        $existing = array_filter(
+            $existing,
+            static fn ($_, $k) => !self::isSensitivePaymentFieldKey((string) $k),
+            ARRAY_FILTER_USE_BOTH
+        );
 
         foreach ($incoming as $key => $entry) {
             if (isset($existing[$key]['read_only']) && $existing[$key]['read_only'] === true) {
@@ -67,6 +72,34 @@ class UserPaymentExtraInfo extends Model
     }
 
     /**
+     * 不落库的敏感字段（卡安全码等）
+     */
+    public static function isSensitivePaymentFieldKey(string $key): bool
+    {
+        $k = strtolower(trim($key));
+        if ($k === '') {
+            return false;
+        }
+
+        $exact = [
+            'cvv', 'cvc', 'cvv2', 'cvc2', 'cid', 'cav',
+            'card_cvv', 'card_cvc', 'card_cvv2', 'card_cvc2',
+            'security_code', 'card_security_code',
+            'verification_value', 'card_verification_value',
+        ];
+        if (in_array($k, $exact, true)) {
+            return true;
+        }
+
+        if (str_ends_with($k, '_cvv') || str_ends_with($k, '_cvc')
+            || str_ends_with($k, '_cvv2') || str_ends_with($k, '_cvc2')) {
+            return true;
+        }
+
+        return (bool) preg_match('/(^|_)(cvv|cvc)(2)?(_|$)/', $k);
+    }
+
+    /**
      * @param  array<string, mixed>  $extraInfo
      * @return array<string, array{value: string, read_only: bool}>
      */
@@ -76,6 +109,10 @@ class UserPaymentExtraInfo extends Model
 
         foreach ($extraInfo as $key => $value) {
             if (!is_string($key) || $key === '') {
+                continue;
+            }
+
+            if (self::isSensitivePaymentFieldKey($key)) {
                 continue;
             }
 
