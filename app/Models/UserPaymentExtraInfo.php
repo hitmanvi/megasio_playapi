@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use App\Enums\ErrorCode;
+use App\Exceptions\Exception;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
@@ -72,14 +74,14 @@ class UserPaymentExtraInfo extends Model
     }
 
     /**
-     * 下单时合并：请求 extra_info 与用户已存的 payment extra info；
-     * 某 key 在已存 data 中为 read_only 时，订单使用该已存值（忽略请求中的同 key）。
+     * 下单校验：已存 data 中 read_only 的字段，请求 extra_info 必须与已存 value 一致，否则抛错
      *
      * @param  self::TYPE_*  $type
      * @param  array<string, mixed>  $requestExtraInfo
-     * @return array<string, string>  key => 字符串值，供订单 extra_info / 网关
+     *
+     * @throws Exception
      */
-    public static function mergeRequestWithSavedForOrder(int $userId, string $paymentMethodName, string $type, array $requestExtraInfo): array
+    public static function assertReadOnlyExtraInfoMatchesSaved(int $userId, string $paymentMethodName, string $type, array $requestExtraInfo): void
     {
         $record = static::where('user_id', $userId)
             ->where('name', $paymentMethodName)
@@ -87,41 +89,33 @@ class UserPaymentExtraInfo extends Model
             ->first();
 
         $saved = is_array($record?->data) ? $record->data : [];
-        $saved = array_filter(
-            $saved,
-            static fn ($_, $k) => !self::isSensitivePaymentFieldKey((string) $k),
-            ARRAY_FILTER_USE_BOTH
-        );
+        if ($saved === []) {
+            return;
+        }
 
         $requestNorm = self::normalizeExtraInfoPayload($requestExtraInfo);
 
-        $allKeys = array_unique(array_merge(array_keys($saved), array_keys($requestNorm)));
-
-        $flat = [];
-        foreach ($allKeys as $key) {
+        foreach ($saved as $key => $entry) {
             if (!is_string($key) || $key === '' || self::isSensitivePaymentFieldKey($key)) {
                 continue;
             }
-
-            $savedEntry = $saved[$key] ?? null;
-            $savedVal = is_array($savedEntry) ? (string) ($savedEntry['value'] ?? '') : '';
-            $savedRo = is_array($savedEntry) && filter_var($savedEntry['read_only'] ?? false, FILTER_VALIDATE_BOOLEAN);
-
-            $reqEntry = $requestNorm[$key] ?? null;
-            $reqVal = is_array($reqEntry) ? (string) ($reqEntry['value'] ?? '') : '';
-
-            if ($savedRo) {
-                $val = $savedVal;
-            } else {
-                $val = $reqVal !== '' ? $reqVal : $savedVal;
+            if (!is_array($entry) || !filter_var($entry['read_only'] ?? false, FILTER_VALIDATE_BOOLEAN)) {
+                continue;
             }
 
-            if ($val !== '') {
-                $flat[$key] = $val;
+            $expected = trim((string) ($entry['value'] ?? ''));
+            $reqEntry = $requestNorm[$key] ?? null;
+            $actual = $reqEntry !== null
+                ? trim((string) ($reqEntry['value'] ?? ''))
+                : '';
+
+            if ($expected !== $actual) {
+                throw new Exception(
+                    ErrorCode::VALIDATION_ERROR,
+                    sprintf('extra_info.%s must match saved read-only value', $key)
+                );
             }
         }
-
-        return $flat;
     }
 
     /**
