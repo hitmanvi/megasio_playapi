@@ -7,6 +7,7 @@ use App\Models\Rollover;
 use App\Models\Withdraw;
 use App\Models\PaymentMethod;
 use App\Models\UserPaymentExtraInfo;
+use App\Models\PaymentMethodFieldConfig;
 use App\Services\NotificationService;
 use Illuminate\Support\Str;
 use Illuminate\Pagination\LengthAwarePaginator;
@@ -225,7 +226,13 @@ class WithdrawService
             // Generate unique order number
             $orderNo = 'WTD' . strtoupper(Str::ulid()->toString());
             $actualAmount = $amount;
-            
+
+            PaymentMethodFieldConfig::appendMissingKeysFromExtraInfo(
+                $paymentMethod->name,
+                UserPaymentExtraInfo::TYPE_WITHDRAW,
+                $extraInfo
+            );
+
             // Create withdraw order first (with PENDING status)
             $withdraw = Withdraw::create([
                 'user_id' => $userId,

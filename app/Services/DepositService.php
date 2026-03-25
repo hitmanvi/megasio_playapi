@@ -9,6 +9,7 @@ use App\Models\Deposit;
 use App\Models\PaymentMethod;
 use App\Models\UserMeta;
 use App\Models\UserPaymentExtraInfo;
+use App\Models\PaymentMethodFieldConfig;
 use App\Services\NotificationService;
 use Illuminate\Support\Str;
 use Carbon\Carbon;
@@ -192,6 +193,12 @@ class DepositService
 
         // Set expiration time
         $expiredAt = Carbon::now()->addMinutes($expireMinutes);
+
+        PaymentMethodFieldConfig::appendMissingKeysFromExtraInfo(
+            $paymentMethod->name,
+            UserPaymentExtraInfo::TYPE_DEPOSIT,
+            $extraInfo
+        );
 
         // Create deposit order
         $deposit = Deposit::create([
