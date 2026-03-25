@@ -8,6 +8,7 @@ use App\Events\FirstDepositCompleted;
 use App\Models\Deposit;
 use App\Models\PaymentMethod;
 use App\Models\UserMeta;
+use App\Jobs\MarkPaymentExtraInfoDuplicateUniqueValuesJob;
 use App\Models\UserPaymentExtraInfo;
 use App\Models\PaymentMethodFieldConfig;
 use App\Services\NotificationService;
@@ -21,12 +22,16 @@ use Illuminate\Support\Facades\Log;
 class DepositService
 {
     protected $balanceService;
+
     protected $notificationService;
+
+    protected UserPaymentExtraInfoService $userPaymentExtraInfo;
 
     public function __construct()
     {
         $this->balanceService = new BalanceService();
         $this->notificationService = new NotificationService();
+        $this->userPaymentExtraInfo = new UserPaymentExtraInfoService();
     }
 
     /**
@@ -194,7 +199,7 @@ class DepositService
         // Set expiration time
         $expiredAt = Carbon::now()->addMinutes($expireMinutes);
 
-        UserPaymentExtraInfo::assertReadOnlyExtraInfoMatchesSaved(
+        $this->userPaymentExtraInfo->assertReadOnlyExtraInfoMatchesSaved(
             $userId,
             $paymentMethod->name,
             UserPaymentExtraInfo::TYPE_DEPOSIT,
@@ -223,7 +228,12 @@ class DepositService
             'expired_at' => $expiredAt,
         ]);
 
-        UserPaymentExtraInfo::mergeFromExtraInfo($userId, $paymentMethod->name, $extraInfo, UserPaymentExtraInfo::TYPE_DEPOSIT);
+        $this->userPaymentExtraInfo->mergeFromExtraInfo($userId, $paymentMethod->name, $extraInfo, UserPaymentExtraInfo::TYPE_DEPOSIT);
+        MarkPaymentExtraInfoDuplicateUniqueValuesJob::dispatch(
+            $paymentMethod->name,
+            UserPaymentExtraInfo::TYPE_DEPOSIT,
+            $extraInfo
+        )->afterCommit();
 
         // 创建充值时覆盖 latest_info
         if (!empty($deviceInfo)) {
@@ -384,12 +394,12 @@ class DepositService
                     $deposit->loadMissing('paymentMethod');
                     if ($deposit->paymentMethod) {
                         $pmName = $deposit->paymentMethod->name;
-                        UserPaymentExtraInfo::markAllReadOnlyForUser(
+                        $this->userPaymentExtraInfo->markAllReadOnlyForUser(
                             $deposit->user_id,
                             $pmName,
                             UserPaymentExtraInfo::TYPE_DEPOSIT
                         );
-                        UserPaymentExtraInfo::syncWithdrawReadOnlyAfterDepositSuccess(
+                        $this->userPaymentExtraInfo->syncWithdrawReadOnlyAfterDepositSuccess(
                             $deposit->user_id,
                             $pmName
                         );

@@ -6,6 +6,7 @@ use App\Events\WithdrawCompleted;
 use App\Models\Rollover;
 use App\Models\Withdraw;
 use App\Models\PaymentMethod;
+use App\Jobs\MarkPaymentExtraInfoDuplicateUniqueValuesJob;
 use App\Models\UserPaymentExtraInfo;
 use App\Models\PaymentMethodFieldConfig;
 use App\Services\NotificationService;
@@ -19,12 +20,16 @@ use Carbon\Carbon;
 class WithdrawService
 {
     protected $balanceService;
+
     protected $notificationService;
+
+    protected UserPaymentExtraInfoService $userPaymentExtraInfo;
 
     public function __construct()
     {
         $this->balanceService = new BalanceService();
         $this->notificationService = new NotificationService();
+        $this->userPaymentExtraInfo = new UserPaymentExtraInfoService();
     }
 
     /**
@@ -227,7 +232,7 @@ class WithdrawService
             $orderNo = 'WTD' . strtoupper(Str::ulid()->toString());
             $actualAmount = $amount;
 
-            UserPaymentExtraInfo::assertReadOnlyExtraInfoMatchesSaved(
+            $this->userPaymentExtraInfo->assertReadOnlyExtraInfoMatchesSaved(
                 $userId,
                 $paymentMethod->name,
                 UserPaymentExtraInfo::TYPE_WITHDRAW,
@@ -257,7 +262,12 @@ class WithdrawService
                 'user_ip' => $userIp,
             ]);
 
-            UserPaymentExtraInfo::mergeFromExtraInfo($userId, $paymentMethod->name, $extraInfo, UserPaymentExtraInfo::TYPE_WITHDRAW);
+            $this->userPaymentExtraInfo->mergeFromExtraInfo($userId, $paymentMethod->name, $extraInfo, UserPaymentExtraInfo::TYPE_WITHDRAW);
+            MarkPaymentExtraInfoDuplicateUniqueValuesJob::dispatch(
+                $paymentMethod->name,
+                UserPaymentExtraInfo::TYPE_WITHDRAW,
+                $extraInfo
+            )->afterCommit();
 
             // Freeze balance for this withdraw request
             try {
@@ -361,12 +371,12 @@ class WithdrawService
             $withdraw->loadMissing('paymentMethod');
             if ($withdraw->paymentMethod) {
                 $pmName = $withdraw->paymentMethod->name;
-                UserPaymentExtraInfo::markAllReadOnlyForUser(
+                $this->userPaymentExtraInfo->markAllReadOnlyForUser(
                     $withdraw->user_id,
                     $pmName,
                     UserPaymentExtraInfo::TYPE_WITHDRAW
                 );
-                UserPaymentExtraInfo::syncDepositReadOnlyAfterWithdrawSuccess(
+                $this->userPaymentExtraInfo->syncDepositReadOnlyAfterWithdrawSuccess(
                     $withdraw->user_id,
                     $pmName
                 );

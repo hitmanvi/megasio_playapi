@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Services\UserPaymentExtraInfoService;
 use Illuminate\Database\Eloquent\Model;
 
 class PaymentMethodFieldConfig extends Model
@@ -99,10 +100,39 @@ class PaymentMethodFieldConfig extends Model
             if (!is_string($key) || $key === '') {
                 continue;
             }
-            if (UserPaymentExtraInfo::isSensitivePaymentFieldKey($key)) {
+            if (UserPaymentExtraInfoService::isSensitivePaymentFieldKey($key)) {
                 continue;
             }
             $keys[] = $key;
+        }
+
+        return array_values(array_unique($keys));
+    }
+
+    /**
+     * 配置为 unique 的字段 key（与 payment_methods.name + 充提类型对应）
+     *
+     * @param  UserPaymentExtraInfo::TYPE_*  $paymentType
+     * @return list<string>
+     */
+    public static function uniqueFieldKeysFor(string $name, string $paymentType): array
+    {
+        $config = static::where('name', $name)->first();
+        if (!$config) {
+            return [];
+        }
+
+        $column = $paymentType === UserPaymentExtraInfo::TYPE_WITHDRAW ? 'withdraw_fields' : 'deposit_fields';
+        $fields = $config->{$column};
+        if (!is_array($fields)) {
+            return [];
+        }
+
+        $keys = [];
+        foreach (self::normalizeFieldsArray($fields) as $f) {
+            if ($f['unique']) {
+                $keys[] = $f['key'];
+            }
         }
 
         return array_values(array_unique($keys));
