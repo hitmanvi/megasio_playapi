@@ -5,6 +5,9 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
+/**
+ * @property bool $duplicate_across_user 行级：至少一档 unique 字段值与其他用户重复
+ */
 class UserPaymentExtraInfo extends Model
 {
     public const TYPE_DEPOSIT = 'deposit';
@@ -21,10 +24,12 @@ class UserPaymentExtraInfo extends Model
         'name',
         'type',
         'data',
+        'duplicate_across_user',
     ];
 
     protected $casts = [
         'data' => 'array',
+        'duplicate_across_user' => 'boolean',
     ];
 
     public function user(): BelongsTo

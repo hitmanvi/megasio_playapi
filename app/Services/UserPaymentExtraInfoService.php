@@ -53,7 +53,8 @@ class UserPaymentExtraInfoService
 
     /**
      * 根据 PaymentMethodFieldConfig 中的 unique 字段，检查本次 extra_info 的值是否与其他用户已存值相同；
-     * 若至少两名用户该字段值相同，则为相关行的该字段标记 {@see UserPaymentExtraInfo::DATA_KEY_VALUE_DUPLICATE_ACROSS_USERS}
+     * 若至少两名用户该字段值相同，则为相关行的该字段标记 {@see UserPaymentExtraInfo::DATA_KEY_VALUE_DUPLICATE_ACROSS_USERS}，
+     * 并将行级 duplicate_across_user 置为 true
      *
      * 应在 mergeFromExtraInfo 之后调用（通常由 {@see \App\Jobs\MarkPaymentExtraInfoDuplicateUniqueValuesJob} 异步执行）
      *
@@ -133,6 +134,7 @@ class UserPaymentExtraInfoService
             }
 
             $row->data = $data;
+            $row->duplicate_across_user = true;
             $row->save();
         }
     }
@@ -388,6 +390,8 @@ class UserPaymentExtraInfoService
         }
 
         $targetRow->data = $cleaned;
+        $targetRow->duplicate_across_user = (bool) ($targetRow->duplicate_across_user ?? false)
+            || (bool) ($sourceRow?->duplicate_across_user ?? false);
         $targetRow->save();
     }
 
