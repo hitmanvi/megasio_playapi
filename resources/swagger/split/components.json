@@ -3316,6 +3316,12 @@
                     "nullable": true,
                     "description": "领取时间"
                 },
+                "settled_at": {
+                    "type": "string",
+                    "format": "date-time",
+                    "nullable": true,
+                    "description": "周期结算时间（计算返现并变为待领取或零额已领取的时刻）"
+                },
                 "created_at": {
                     "type": "string",
                     "format": "date-time",

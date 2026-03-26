@@ -41,6 +41,7 @@ class WeeklyCashback extends Model
         'rate',
         'amount',
         'claimed_at',
+        'settled_at',
     ];
 
     protected $casts = [
@@ -50,6 +51,7 @@ class WeeklyCashback extends Model
         'rate' => 'decimal:4',
         'amount' => 'decimal:8',
         'claimed_at' => 'datetime',
+        'settled_at' => 'datetime',
     ];
 
     public function user(): BelongsTo

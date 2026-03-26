@@ -229,6 +229,7 @@ class WeeklyCashbackService
             $cashback->rate = $rate; // 统一存储为百分数分子
             $cashback->amount = $amount;
             $cashback->status = $amount > 0 ? WeeklyCashback::STATUS_CLAIMABLE : WeeklyCashback::STATUS_CLAIMED;
+            $cashback->settled_at = now();
             if ($amount <= 0) {
                 $cashback->claimed_at = now();
             }

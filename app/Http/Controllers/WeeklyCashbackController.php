@@ -74,6 +74,7 @@ class WeeklyCashbackController extends Controller
             'rate' => (float) $cashback->rate,
             'amount' => (float) $cashback->amount,
             'claimed_at' => $cashback->claimed_at?->format('Y-m-d H:i:s'),
+            'settled_at' => $cashback->settled_at?->format('Y-m-d H:i:s'),
             'created_at' => $cashback->created_at->format('Y-m-d H:i:s'),
             'updated_at' => $cashback->updated_at->format('Y-m-d H:i:s'),
         ];

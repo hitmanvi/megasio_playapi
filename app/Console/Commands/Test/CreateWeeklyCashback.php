@@ -55,6 +55,9 @@ class CreateWeeklyCashback extends Command
             $period = $service->dateToPeriod($p['date']);
             $payout = $wager * 0.9; // 示例派彩
             $amount = max(0, ($wager - $payout) * $rate / 100);
+            $settledAt = $p['status'] === WeeklyCashback::STATUS_ACTIVE
+                ? null
+                : $p['date']->copy()->startOfWeek()->addDays(7)->setTime(2, 0);
 
             $cashback = WeeklyCashback::updateOrCreate(
                 [
@@ -68,6 +71,7 @@ class CreateWeeklyCashback extends Command
                     'status' => $p['status'],
                     'rate' => $rate,
                     'amount' => $amount,
+                    'settled_at' => $settledAt,
                 ]
             );
 
