@@ -42,6 +42,8 @@ class User extends Authenticatable
         'display_currencies',
         'base_currency',
         'current_currency',
+        'deposit_enabled',
+        'withdraw_enabled',
     ];
 
     /**
@@ -73,6 +75,8 @@ class User extends Authenticatable
             'display_currencies' => 'array',
             'last_login_at' => 'datetime',
             'last_active_at' => 'datetime',
+            'deposit_enabled' => 'boolean',
+            'withdraw_enabled' => 'boolean',
         ];
     }
 

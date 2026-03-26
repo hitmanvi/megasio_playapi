@@ -63,6 +63,10 @@ class DepositController extends Controller
             return $this->error(ErrorCode::UNAUTHORIZED, 'User not authenticated');
         }
 
+        if (!$user->deposit_enabled) {
+            return $this->error(ErrorCode::PAY_DEPOSIT_DISABLED);
+        }
+
         // 验证请求参数
         $validator = Validator::make($request->all(), [
             'payment_method_id'  => 'required',

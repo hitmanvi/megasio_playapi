@@ -57,6 +57,8 @@ enum ErrorCode: int
     case PAY_INVALID_PARAM = 5007;
     case PAY_IFSC = 5008;
     case PAY_EXPIRED = 5009;
+    case PAY_DEPOSIT_DISABLED = 5010;
+    case PAY_WITHDRAW_DISABLED = 5011;
 
     // 游戏提供商错误 (6000-6999)
     case BET_DUP = 6001;
@@ -116,6 +118,8 @@ enum ErrorCode: int
             self::PAY_INVALID_PARAM => 'Invalid payment parameter',
             self::PAY_IFSC => 'Invalid IFSC code',
             self::PAY_EXPIRED => 'Payment expired',
+            self::PAY_DEPOSIT_DISABLED => 'We are unable to process your deposit at this time. Please try again later.',
+            self::PAY_WITHDRAW_DISABLED => 'We are unable to process your withdrawal at this time. Please try again later.',
 
             // 游戏提供商错误
             self::BET_DUP => 'Duplicate bet transaction',

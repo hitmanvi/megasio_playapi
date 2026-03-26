@@ -65,6 +65,10 @@ class WithdrawController extends Controller
             return $this->error(ErrorCode::UNAUTHORIZED, 'User not authenticated');
         }
 
+        if (!$user->withdraw_enabled) {
+            return $this->error(ErrorCode::PAY_WITHDRAW_DISABLED);
+        }
+
         // 检查 KYC 认证状态
         $kyc = Kyc::where('user_id', $user->id)->first();
         if (!$kyc || !$kyc->isVerified()) {
