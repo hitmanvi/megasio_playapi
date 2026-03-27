@@ -414,7 +414,7 @@ class UserPaymentExtraInfoService
     }
 
     /**
-     * 当前用户在某支付方式、某类型下已保存且 read_only 的 extra 数据（按 payment_methods.name + type 关联）
+     * 当前用户在某支付方式、某类型下已保存的 extra 数据（按 payment_methods.name + type 关联）
      *
      * @param  UserPaymentExtraInfo::TYPE_DEPOSIT|UserPaymentExtraInfo::TYPE_WITHDRAW  $type
      * @return array{
@@ -438,18 +438,22 @@ class UserPaymentExtraInfoService
             ->where('type', $type)
             ->first();
 
+        $data = null;
+        if ($row) {
+            $filtered = $this->filterSensitiveFromStoredData(is_array($row->data) ? $row->data : []);
+            $data = $filtered === [] ? null : $filtered;
+        }
+
         return [
             'payment_method_id' => $paymentMethod->id,
             'name' => $name,
             'type' => $type,
-            'data' => $row
-                ? $this->filterSensitiveFromStoredData(is_array($row->data) ? $row->data : [])
-                : null,
+            'data' => $data,
         ];
     }
 
     /**
-     * 用户扩展信息接口：去掉敏感 key、去掉 value_duplicate_across_users，且仅保留 read_only 为 true 的字段
+     * 用户扩展信息接口：去掉敏感 key、去掉各字段内的 value_duplicate_across_users
      *
      * @param  array<string, mixed>  $data
      * @return array<string, mixed>
@@ -463,9 +467,6 @@ class UserPaymentExtraInfoService
                 continue;
             }
             if (!is_array($entry)) {
-                continue;
-            }
-            if (!filter_var($entry['read_only'] ?? false, FILTER_VALIDATE_BOOLEAN)) {
                 continue;
             }
 

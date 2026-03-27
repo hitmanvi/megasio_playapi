@@ -876,7 +876,7 @@
         },
         "ReadonlyPaymentExtraInfoFieldValue": {
             "type": "object",
-            "description": "单个扩展字段（接口仅返回 read_only 为 true 的项）",
+            "description": "单个扩展字段条目（不含 value_duplicate_across_users）；可含其它存库键",
             "properties": {
                 "value": {
                     "type": "string",
@@ -884,9 +884,10 @@
                 },
                 "read_only": {
                     "type": "boolean",
-                    "description": "恒为 true"
+                    "description": "是否只读"
                 }
-            }
+            },
+            "additionalProperties": true
         },
         "ReadonlyPaymentExtraInfoPayload": {
             "type": "object",
@@ -913,7 +914,7 @@
                     "additionalProperties": {
                         "$ref": "#\/components\/schemas\/ReadonlyPaymentExtraInfoFieldValue"
                     },
-                    "description": "仅 read_only 字段；无 user_payment_extra_infos 行时为 null；有行但无只读字段时为 {}"
+                    "description": "全部非敏感字段；无行、存库为空或过滤后无字段时为 null"
                 }
             }
         },

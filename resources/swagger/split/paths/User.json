@@ -256,8 +256,8 @@
             "tags": [
                 "User"
             ],
-            "summary": "获取只读支付扩展字段",
-            "description": "按支付方式 ID 与类型（deposit\/withdraw）返回当前用户已保存且 read_only 为 true 的扩展信息（与 payment_methods.name 关联）。无对应记录时 data 为 null；无只读字段时 data 为空对象。不返回 duplicate_across_user、updated_at 及字段内的 value_duplicate_across_users",
+            "summary": "获取已保存支付扩展字段",
+            "description": "按支付方式 ID 与类型（deposit\/withdraw）返回当前用户已保存的扩展信息（与 payment_methods.name 关联），包含全部非敏感字段，不限 read_only。无 user_payment_extra_infos 行、或存库 data 为空、或过滤后无任何字段时，payload 内 data 均为 null。不返回 duplicate_across_user、updated_at 及字段内的 value_duplicate_across_users",
             "security": [
                 {
                     "bearerAuth": []
@@ -307,6 +307,10 @@
                                         "account_number": {
                                             "value": "****1234",
                                             "read_only": true
+                                        },
+                                        "nickname": {
+                                            "value": "alias",
+                                            "read_only": false
                                         }
                                     }
                                 }

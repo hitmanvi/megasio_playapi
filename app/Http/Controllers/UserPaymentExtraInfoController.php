@@ -15,7 +15,7 @@ class UserPaymentExtraInfoController extends Controller
 {
     /**
      * GET /users/mine/readonly-payment-extra-info
-     * 获取当前用户对指定支付方式、指定类型下已锁定（read_only）的扩展字段
+     * 获取当前用户对指定支付方式、指定类型下已保存的扩展字段（不过滤 read_only；无行或过滤后无字段时 data 为 null）
      *
      * Query: payment_method_id (required), type = deposit|withdraw (required)
      */
