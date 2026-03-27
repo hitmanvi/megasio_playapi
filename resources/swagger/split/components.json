@@ -874,6 +874,65 @@
                 }
             }
         },
+        "ReadonlyPaymentExtraInfoFieldValue": {
+            "type": "object",
+            "description": "单个扩展字段（接口仅返回 read_only 为 true 的项）",
+            "properties": {
+                "value": {
+                    "type": "string",
+                    "description": "字段值"
+                },
+                "read_only": {
+                    "type": "boolean",
+                    "description": "恒为 true"
+                }
+            }
+        },
+        "ReadonlyPaymentExtraInfoPayload": {
+            "type": "object",
+            "properties": {
+                "payment_method_id": {
+                    "type": "integer",
+                    "description": "支付方式 ID"
+                },
+                "name": {
+                    "type": "string",
+                    "description": "payment_methods.name，与存库关联键一致"
+                },
+                "type": {
+                    "type": "string",
+                    "enum": [
+                        "deposit",
+                        "withdraw"
+                    ],
+                    "description": "充提类型"
+                },
+                "data": {
+                    "type": "object",
+                    "nullable": true,
+                    "additionalProperties": {
+                        "$ref": "#\/components\/schemas\/ReadonlyPaymentExtraInfoFieldValue"
+                    },
+                    "description": "仅 read_only 字段；无 user_payment_extra_infos 行时为 null；有行但无只读字段时为 {}"
+                }
+            }
+        },
+        "ReadonlyPaymentExtraInfoResponse": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "integer",
+                    "description": "响应码，0表示成功"
+                },
+                "errmsg": {
+                    "type": "string",
+                    "description": "响应消息"
+                },
+                "data": {
+                    "$ref": "#\/components\/schemas\/ReadonlyPaymentExtraInfoPayload"
+                }
+            }
+        },
         "TokenResponse": {
             "type": "object",
             "properties": {

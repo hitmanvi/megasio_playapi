@@ -7681,6 +7681,102 @@
                 }
             }
         },
+        "\/users\/mine\/readonly-payment-extra-info": {
+            "get": {
+                "tags": [
+                    "User"
+                ],
+                "summary": "获取只读支付扩展字段",
+                "description": "按支付方式 ID 与类型（deposit\/withdraw）返回当前用户已保存且 read_only 为 true 的扩展信息（与 payment_methods.name 关联）。无对应记录时 data 为 null；无只读字段时 data 为空对象。不返回 duplicate_across_user、updated_at 及字段内的 value_duplicate_across_users",
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "payment_method_id",
+                        "in": "query",
+                        "required": true,
+                        "description": "支付方式 ID（payment_methods.id）",
+                        "schema": {
+                            "type": "integer",
+                            "minimum": 1
+                        }
+                    },
+                    {
+                        "name": "type",
+                        "in": "query",
+                        "required": true,
+                        "description": "充提类型",
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "deposit",
+                                "withdraw"
+                            ]
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "成功",
+                        "content": {
+                            "application\/json": {
+                                "schema": {
+                                    "$ref": "#\/components\/schemas\/ReadonlyPaymentExtraInfoResponse"
+                                },
+                                "example": {
+                                    "code": 0,
+                                    "errmsg": "Success",
+                                    "data": {
+                                        "payment_method_id": 1,
+                                        "name": "bank_transfer_usd",
+                                        "type": "deposit",
+                                        "data": {
+                                            "account_number": {
+                                                "value": "****1234",
+                                                "read_only": true
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "未授权",
+                        "content": {
+                            "application\/json": {
+                                "schema": {
+                                    "$ref": "#\/components\/schemas\/ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "支付方式不存在",
+                        "content": {
+                            "application\/json": {
+                                "schema": {
+                                    "$ref": "#\/components\/schemas\/ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "参数验证失败",
+                        "content": {
+                            "application\/json": {
+                                "schema": {
+                                    "$ref": "#\/components\/schemas\/ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "\/users\/mine": {
             "get": {
                 "tags": [
@@ -9663,6 +9759,65 @@
                                 "description": "用户当前使用的币种代码"
                             }
                         }
+                    }
+                }
+            },
+            "ReadonlyPaymentExtraInfoFieldValue": {
+                "type": "object",
+                "description": "单个扩展字段（接口仅返回 read_only 为 true 的项）",
+                "properties": {
+                    "value": {
+                        "type": "string",
+                        "description": "字段值"
+                    },
+                    "read_only": {
+                        "type": "boolean",
+                        "description": "恒为 true"
+                    }
+                }
+            },
+            "ReadonlyPaymentExtraInfoPayload": {
+                "type": "object",
+                "properties": {
+                    "payment_method_id": {
+                        "type": "integer",
+                        "description": "支付方式 ID"
+                    },
+                    "name": {
+                        "type": "string",
+                        "description": "payment_methods.name，与存库关联键一致"
+                    },
+                    "type": {
+                        "type": "string",
+                        "enum": [
+                            "deposit",
+                            "withdraw"
+                        ],
+                        "description": "充提类型"
+                    },
+                    "data": {
+                        "type": "object",
+                        "nullable": true,
+                        "additionalProperties": {
+                            "$ref": "#\/components\/schemas\/ReadonlyPaymentExtraInfoFieldValue"
+                        },
+                        "description": "仅 read_only 字段；无 user_payment_extra_infos 行时为 null；有行但无只读字段时为 {}"
+                    }
+                }
+            },
+            "ReadonlyPaymentExtraInfoResponse": {
+                "type": "object",
+                "properties": {
+                    "code": {
+                        "type": "integer",
+                        "description": "响应码，0表示成功"
+                    },
+                    "errmsg": {
+                        "type": "string",
+                        "description": "响应消息"
+                    },
+                    "data": {
+                        "$ref": "#\/components\/schemas\/ReadonlyPaymentExtraInfoPayload"
                     }
                 }
             },

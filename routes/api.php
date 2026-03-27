@@ -34,6 +34,7 @@ use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\GameFavoriteController;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\WeeklyCashbackController;
+use App\Http\Controllers\UserPaymentExtraInfoController;
 use App\Http\Controllers\TempDataController;
 use Illuminate\Http\Request;
 
@@ -60,6 +61,7 @@ Route::middleware('auth:sanctum')->prefix('users')->group(function () {
     Route::get('/mine', [UserController::class, 'show']);
     Route::patch('/mine', [UserController::class, 'update']);
     Route::patch('/currency-preferences', [UserController::class, 'updateCurrencyPreferences']);
+    Route::get('/mine/readonly-payment-extra-info', [UserPaymentExtraInfoController::class, 'readonlyPaymentExtraInfo']);
 });
 
 // Banner相关路由（只读）

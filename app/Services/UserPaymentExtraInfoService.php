@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Enums\ErrorCode;
 use App\Exceptions\Exception;
+use App\Models\PaymentMethod;
 use App\Models\PaymentMethodFieldConfig;
 use App\Models\UserPaymentExtraInfo;
 
@@ -410,5 +411,69 @@ class UserPaymentExtraInfoService
         }
 
         return is_scalar($entry) ? trim((string) $entry) : '';
+    }
+
+    /**
+     * 当前用户在某支付方式、某类型下已保存且 read_only 的 extra 数据（按 payment_methods.name + type 关联）
+     *
+     * @param  UserPaymentExtraInfo::TYPE_DEPOSIT|UserPaymentExtraInfo::TYPE_WITHDRAW  $type
+     * @return array{
+     *     payment_method_id: int,
+     *     name: string,
+     *     type: string,
+     *     data: array<string, mixed>|null
+     * }
+     */
+    public function getReadonlySavedExtraInfoForPaymentMethod(int $userId, PaymentMethod $paymentMethod, string $type): array
+    {
+        if ($type !== UserPaymentExtraInfo::TYPE_DEPOSIT && $type !== UserPaymentExtraInfo::TYPE_WITHDRAW) {
+            throw new \InvalidArgumentException('type must be deposit or withdraw');
+        }
+
+        $name = $paymentMethod->name;
+
+        $row = UserPaymentExtraInfo::query()
+            ->where('user_id', $userId)
+            ->where('name', $name)
+            ->where('type', $type)
+            ->first();
+
+        return [
+            'payment_method_id' => $paymentMethod->id,
+            'name' => $name,
+            'type' => $type,
+            'data' => $row
+                ? $this->filterSensitiveFromStoredData(is_array($row->data) ? $row->data : [])
+                : null,
+        ];
+    }
+
+    /**
+     * 用户扩展信息接口：去掉敏感 key、去掉 value_duplicate_across_users，且仅保留 read_only 为 true 的字段
+     *
+     * @param  array<string, mixed>  $data
+     * @return array<string, mixed>
+     */
+    private function filterSensitiveFromStoredData(array $data): array
+    {
+        $dupKey = UserPaymentExtraInfo::DATA_KEY_VALUE_DUPLICATE_ACROSS_USERS;
+        $out = [];
+        foreach ($data as $key => $entry) {
+            if (!is_string($key) || $key === '' || self::isSensitivePaymentFieldKey($key)) {
+                continue;
+            }
+            if (!is_array($entry)) {
+                continue;
+            }
+            if (!filter_var($entry['read_only'] ?? false, FILTER_VALIDATE_BOOLEAN)) {
+                continue;
+            }
+
+            $clean = $entry;
+            unset($clean[$dupKey]);
+            $out[$key] = $clean;
+        }
+
+        return $out;
     }
 }
