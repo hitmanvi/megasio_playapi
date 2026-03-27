@@ -30,14 +30,15 @@ class VipService
      */
     public function formatVipForResponse(UserVip $vip): array
     {
-        $currentLevelInfo = $vip->getCurrentLevelInfo();
-        
+        $userVipService = new UserVipService();
+        $currentLevelInfo = $userVipService->getCurrentLevelInfo($vip);
+
         return [
             'level' => $vip->level,
             'group' => $currentLevelInfo['group'] ?? null,
             'exp' => $vip->exp,
-            'benefits' => $vip->getBenefits(),
-            'next_level' => $vip->getNextLevelInfo(),
+            'benefits' => $userVipService->getBenefits($vip),
+            'next_level' => $userVipService->getNextLevelInfo($vip),
         ];
     }
 
@@ -56,7 +57,8 @@ class VipService
     public function addExp(User $user, float $exp): UserVip
     {
         $vip = $this->getOrCreateVip($user);
-        $vip->addExp($exp);
+        (new UserVipService())->addExp($vip, $exp);
+
         return $vip;
     }
 

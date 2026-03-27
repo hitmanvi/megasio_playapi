@@ -4,8 +4,8 @@ namespace App\Listeners;
 
 use App\Events\OrderCompleted;
 use App\Models\Order;
-use App\Models\UserVip;
-use App\Services\SettingService;
+use App\Models\User;
+use App\Services\UserVipService;
 use App\Services\VipService;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Queue\InteractsWithQueue;
@@ -21,34 +21,26 @@ class AddVipExpOnOrderCompleted implements ShouldQueue
     {
         $order = $event->order;
 
-        // 只处理已完成的订单
         if ($order->status !== Order::STATUS_COMPLETED) {
             return;
         }
 
-        // 获取或创建用户VIP记录
-        $userVip = UserVip::firstOrCreate(
-            ['user_id' => $order->user_id],
-            [
-                'level' => VipService::DEFAULT_LEVEL,
-                'exp' => 0,
-            ]
-        );
+        $user = User::query()->find($order->user_id);
+        if (!$user) {
+            return;
+        }
 
-        // 计算应获得的经验值
-        $expToAdd = UserVip::calculateExpFromOrder((float) $order->amount, $order->currency);
+        $expToAdd = UserVipService::calculateExpFromOrder((float) $order->amount, $order->currency);
 
         if ($expToAdd > 0) {
-            // 增加经验值（会自动检查等级升级）
-            $userVip->addExp($expToAdd);
+            (new VipService())->addExp($user, $expToAdd);
         }
     }
 
     /**
      * 检查游戏分类是否在支持列表中
      *
-     * @param \App\Models\Game $game
-     * @return bool
+     * @param  \App\Models\Game  $game
      */
     protected function isSupportedGameCategory($game): bool
     {
