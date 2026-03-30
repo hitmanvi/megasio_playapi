@@ -225,7 +225,7 @@
                     "Authentication"
                 ],
                 "summary": "Google 登录\/注册",
-                "description": "使用 Google ID Token 进行登录或注册。不同客户端（ios\/android\/web）使用不同的 client_id 验证。若传 client 参数或 X-Platform header，则使用对应 client_id；否则默认使用 web。如果用户已存在（通过 google_id 或 email 匹配），则直接登录；如果不存在，则创建新用户。invite_code：4位为推广码（绑定 AgentLink），非4位为邀请码（绑定邀请人），无效时不报错。",
+                "description": "使用 Google ID Token 进行登录或注册。不同客户端（ios\/android\/web）使用不同的 client_id 验证。若传 client 参数或 X-Platform header，则使用对应 client_id；否则默认使用 web。如果用户已存在（通过 google_id 或 email 匹配），则直接登录；如果不存在，则创建新用户。invite_code：4位为推广码（绑定 AgentLink），非4位为邀请码（绑定邀请人），无效时不报错。可选 receive_promotion_email：仅在新用户首次创建时生效；为 true 时同步至营销系统；已存在用户登录时忽略；不传默认 false",
                 "requestBody": {
                     "required": true,
                     "content": {
@@ -235,7 +235,8 @@
                             },
                             "example": {
                                 "id_token": "eyJhbGciOiJSUzI1NiIsImtpZCI6IjEyMzQ1Njc4OTAifQ.eyJpc3MiOiJodHRwczovL2FjY291bnRzLmdvb2dsZS5jb20iLCJhenAiOiIxMjM0NTY3ODkwLmFwcHMuZ29vZ2xldXNlcmNvbnRlbnQuY29tIiwiYXVkIjoiMTIzNDU2Nzg5MC5hcHBzLmdvb2dsZXVzZXJjb250ZW50LmNvbSIsInN1YiI6IjEyMzQ1Njc4OTAxMjM0NTY3ODkwMTIzNDU2Nzg5MCIsImVtYWlsIjoiZXhhbXBsZUBnb29nbGUuY29tIiwiZW1haWxfdmVyaWZpZWQiOnRydWUsIm5hbWUiOiJKb2huIERvZSIsInBpY3R1cmUiOiJodHRwczovL2xoMy5nb29nbGV1c2VyY29udGVudC5jb20vYS9leGFtcGxlIiwiaWF0IjoxNzEwMDAwMDAwLCJleHAiOjE3MTAwODY0MDB9.example_signature",
-                                "invite_code": "ABC12345"
+                                "invite_code": "ABC12345",
+                                "receive_promotion_email": true
                             }
                         }
                     }
@@ -532,7 +533,7 @@
                     "Authentication"
                 ],
                 "summary": "用户注册",
-                "description": "创建新用户账户。invite_code：4位为推广码（绑定 AgentLink），非4位为邀请码（绑定邀请人）",
+                "description": "创建新用户账户。invite_code：4位为推广码（绑定 AgentLink），非4位为邀请码（绑定邀请人）。可选 receive_promotion_email：是否接受推广邮件；为 true 时注册成功后会同步至营销系统（如 Customer.io）；不传默认 false，且该字段不会出现在返回的 user 对象中",
                 "requestBody": {
                     "required": true,
                     "content": {
@@ -546,7 +547,8 @@
                                 "area_code": "86",
                                 "email": "zhangsan@example.com",
                                 "password": "password123",
-                                "password_confirmation": "password123"
+                                "password_confirmation": "password123",
+                                "receive_promotion_email": true
                             }
                         }
                     }
