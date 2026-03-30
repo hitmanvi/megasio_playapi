@@ -54,8 +54,8 @@ class UserPaymentExtraInfoService
 
     /**
      * 根据 PaymentMethodFieldConfig 中的 unique 字段，检查本次 extra_info 的值是否与其他用户已存值相同；
-     * 若至少两名用户该字段值相同，则为相关行的该字段标记 {@see UserPaymentExtraInfo::DATA_KEY_VALUE_DUPLICATE_ACROSS_USERS}，
-     * 并将行级 duplicate_across_user 置为 true
+     * 若至少两名用户该字段值相同，则仅为当前用户对应行的该字段标记 {@see UserPaymentExtraInfo::DATA_KEY_VALUE_DUPLICATE_ACROSS_USERS}，
+     * 并将该行 duplicate_across_user 置为 true（其它用户行不修改）
      *
      * 应在 mergeFromExtraInfo 之后调用（通常由 {@see \App\Jobs\MarkPaymentExtraInfoDuplicateUniqueValuesJob} 异步执行）
      *
@@ -63,6 +63,7 @@ class UserPaymentExtraInfoService
      * @param  array<string, mixed>  $extraInfo
      */
     public function markDuplicateUniqueValuesAcrossUsers(
+        int $userId,
         string $paymentMethodName,
         string $type,
         array $extraInfo
@@ -72,13 +73,22 @@ class UserPaymentExtraInfoService
             return;
         }
 
+        $currentRow = UserPaymentExtraInfo::query()
+            ->where('user_id', $userId)
+            ->where('name', $paymentMethodName)
+            ->where('type', $type)
+            ->first();
+        if (!$currentRow) {
+            return;
+        }
+
         $norm = self::normalizeExtraInfoPayload($extraInfo);
         $allRows = UserPaymentExtraInfo::where('name', $paymentMethodName)
             ->where('type', $type)
             ->get();
 
-        /** @var array<int, array<string, true>> */
-        $rowIdToKeys = [];
+        /** @var array<string, true> */
+        $keysToMark = [];
 
         foreach ($uniqueKeys as $key) {
             if (self::isSensitivePaymentFieldKey($key)) {
@@ -106,38 +116,39 @@ class UserPaymentExtraInfoService
                 continue;
             }
 
-            foreach ($matchingRowIds as $rid) {
-                if (!isset($rowIdToKeys[$rid])) {
-                    $rowIdToKeys[$rid] = [];
-                }
-                $rowIdToKeys[$rid][$key] = true;
-            }
-        }
-
-        foreach ($rowIdToKeys as $rowId => $keyMap) {
-            $row = UserPaymentExtraInfo::find($rowId);
-            if (!$row) {
+            if (!in_array($currentRow->id, $matchingRowIds, true)) {
                 continue;
             }
 
-            $data = is_array($row->data) ? $row->data : [];
-            foreach (array_keys($keyMap) as $key) {
-                if (!isset($data[$key])) {
-                    continue;
-                }
-                if (!is_array($data[$key])) {
-                    $data[$key] = [
-                        'value' => is_scalar($data[$key]) ? (string) $data[$key] : '',
-                        'read_only' => false,
-                    ];
-                }
-                $data[$key][UserPaymentExtraInfo::DATA_KEY_VALUE_DUPLICATE_ACROSS_USERS] = true;
-            }
-
-            $row->data = $data;
-            $row->duplicate_across_user = true;
-            $row->save();
+            $keysToMark[$key] = true;
         }
+
+        if ($keysToMark === []) {
+            return;
+        }
+
+        $row = UserPaymentExtraInfo::find($currentRow->id);
+        if (!$row) {
+            return;
+        }
+
+        $data = is_array($row->data) ? $row->data : [];
+        foreach (array_keys($keysToMark) as $key) {
+            if (!isset($data[$key])) {
+                continue;
+            }
+            if (!is_array($data[$key])) {
+                $data[$key] = [
+                    'value' => is_scalar($data[$key]) ? (string) $data[$key] : '',
+                    'read_only' => false,
+                ];
+            }
+            $data[$key][UserPaymentExtraInfo::DATA_KEY_VALUE_DUPLICATE_ACROSS_USERS] = true;
+        }
+
+        $row->data = $data;
+        $row->duplicate_across_user = true;
+        $row->save();
     }
 
     /**

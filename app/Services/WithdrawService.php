@@ -264,6 +264,7 @@ class WithdrawService
 
             $this->userPaymentExtraInfo->mergeFromExtraInfo($userId, $paymentMethod->name, $extraInfo, UserPaymentExtraInfo::TYPE_WITHDRAW);
             MarkPaymentExtraInfoDuplicateUniqueValuesJob::dispatch(
+                $userId,
                 $paymentMethod->name,
                 UserPaymentExtraInfo::TYPE_WITHDRAW,
                 $extraInfo

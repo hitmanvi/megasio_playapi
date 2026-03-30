@@ -22,6 +22,7 @@ class MarkPaymentExtraInfoDuplicateUniqueValuesJob implements ShouldQueue
      * @param  array<string, mixed>  $extraInfo
      */
     public function __construct(
+        public int $userId,
         public string $paymentMethodName,
         public string $type,
         public array $extraInfo
@@ -30,6 +31,7 @@ class MarkPaymentExtraInfoDuplicateUniqueValuesJob implements ShouldQueue
     public function handle(UserPaymentExtraInfoService $service): void
     {
         $service->markDuplicateUniqueValuesAcrossUsers(
+            $this->userId,
             $this->paymentMethodName,
             $this->type,
             $this->extraInfo

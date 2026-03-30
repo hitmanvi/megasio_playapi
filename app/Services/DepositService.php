@@ -230,6 +230,7 @@ class DepositService
 
         $this->userPaymentExtraInfo->mergeFromExtraInfo($userId, $paymentMethod->name, $extraInfo, UserPaymentExtraInfo::TYPE_DEPOSIT);
         MarkPaymentExtraInfoDuplicateUniqueValuesJob::dispatch(
+            $userId,
             $paymentMethod->name,
             UserPaymentExtraInfo::TYPE_DEPOSIT,
             $extraInfo
