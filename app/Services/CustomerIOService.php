@@ -4,7 +4,7 @@ namespace App\Services;
 
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
-
+use App\Services\UserVipService;
 class CustomerIOService
 {
     private $siteId;
@@ -23,8 +23,8 @@ class CustomerIOService
         }
         dispatch(function() use ($user){
             Http::withBasicAuth($this->siteId, $this->apiKey)
-                ->put("https://track.customer.io/api/v1/customers/{$user->user_id}",
-                    ['email' => $user->email, 'created_at' => $user->created_at->unix(), 'vip' => $user->vip_info->current_level ?? 1],
+                ->put("https://track.customer.io/api/v1/customers/{$user->uid}",
+                    ['email' => $user->email, 'created_at' => $user->created_at->unix(), 'vip' => (new UserVipService())->getLevel($user->user_id) ?? 1],
                 );
             $this->sendEvent($user, 'sign_up', $user->created_at->unix());
         });
@@ -37,7 +37,7 @@ class CustomerIOService
         }
         dispatch(function() use ($user, $data){
             Http::withBasicAuth($this->siteId, $this->apiKey)
-                ->put("https://track.customer.io/api/v1/customers/{$user->user_id}",
+                ->put("https://track.customer.io/api/v1/customers/{$user->uid}",
                     $data,
                 );
         });
@@ -50,7 +50,7 @@ class CustomerIOService
         }
         try{
             Http::withBasicAuth($this->siteId, $this->apiKey)
-                ->delete("https://track.customer.io/api/v1/customers/{$user->user_id}");
+                ->delete("https://track.customer.io/api/v1/customers/{$user->uid}");
         } catch (\Exception $e) {
             Log::error($e->getMessage());
         }
@@ -66,10 +66,9 @@ class CustomerIOService
         if(!$timestamp) {
             $timestamp = time();
         }
-        dispatch(function()use ($user, $event, $timestamp) {
-            sleep(1);
+        dispatch(function () use ($user, $event, $timestamp) {
             Http::withBasicAuth($this->siteId, $this->apiKey)
-                ->post("https://track.customer.io/api/v1/customers/{$user->user_id}/events",
+                ->post("https://track.customer.io/api/v1/customers/{$user->uid}/events",
                     ['name' => $event, 'timestamp' => $timestamp],
                 );
         })->onQueue('low');
@@ -88,7 +87,7 @@ class CustomerIOService
         }
         try{
             Http::withBasicAuth($this->siteId, $this->apiKey)
-                ->put("https://track.customer.io/api/v1/customers/{$user->user_id}", $data);
+                ->put("https://track.customer.io/api/v1/customers/{$user->uid}", $data);
         } catch (\Exception $e) {
             Log::error($e->getMessage());
         }

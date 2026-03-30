@@ -9,6 +9,17 @@ use App\Models\VipLevel;
 class UserVipService
 {
     /**
+     * 获取用户当前VIP等级
+     *
+     * @param int $userId
+     * @return int|null
+     */
+    public function getLevel(int $userId): ?int
+    {
+        $vip = UserVip::where('user_id', $userId)->first();
+        return $vip?->level;
+    }
+    /**
      * @return list<int>
      */
     public static function getLevels(): array
