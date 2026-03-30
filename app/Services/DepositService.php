@@ -354,67 +354,65 @@ class DepositService
             'completed_at' => Carbon::now(),
         ];
 
-        switch ($status) {
-            case SopayService::SOPAY_STATUS_SUCCEED:
-            case (SopayService::SOPAY_STATUS_DELAYED && $deposit->amount <= $amount):
-                $updateData['status'] = Deposit::STATUS_COMPLETED;
-                $updateData['amount'] = $amount;
-                $deposit->update($updateData);
-                
-                // 重新加载 deposit 以确保状态已更新
-                $deposit->refresh();
-                
-                // 只有在状态确实是 COMPLETED 时才触发事件和添加余额
-                if ($deposit->status === Deposit::STATUS_COMPLETED) {
-                    $this->balanceService->deposit(
-                        $deposit->user_id,
-                        $deposit->currency,
-                        $amount,
-                        'Deposit',
-                        $deposit->id
-                    );
-                    
-                    // 创建充值成功通知
-                    $this->notificationService->createDepositSuccessNotification(
-                        $deposit->user_id,
-                        $amount,
-                        $deposit->currency,
-                        $deposit->order_no
-                    );
-                    
-                    event(new DepositCompleted($deposit));
+        // case (bool) 与 switch 宽松比较时，非零 status 会匹配 true（如 4 == true），误完成
+        $shouldComplete = $status == SopayService::SOPAY_STATUS_SUCCEED
+            || (
+                $status == SopayService::SOPAY_STATUS_DELAYED
+                && (float) $deposit->amount <= (float) $amount
+            );
 
-                    // 首次充值成功
-                    $completedCount = Deposit::where('user_id', $deposit->user_id)
-                        ->where('status', Deposit::STATUS_COMPLETED)
-                        ->count();
-                    if ($completedCount === 1) {
-                        event(new FirstDepositCompleted($deposit));
-                    }
+        if ($shouldComplete) {
+            $updateData['status'] = Deposit::STATUS_COMPLETED;
+            $updateData['amount'] = $amount;
+            $deposit->update($updateData);
 
-                    $deposit->loadMissing('paymentMethod');
-                    if ($deposit->paymentMethod) {
-                        $pmName = $deposit->paymentMethod->name;
-                        $this->userPaymentExtraInfo->markAllReadOnlyForUser(
-                            $deposit->user_id,
-                            $pmName,
-                            UserPaymentExtraInfo::TYPE_DEPOSIT
-                        );
-                        $this->userPaymentExtraInfo->syncWithdrawReadOnlyAfterDepositSuccess(
-                            $deposit->user_id,
-                            $pmName
-                        );
-                    }
+            $deposit->refresh();
+
+            if ($deposit->status === Deposit::STATUS_COMPLETED) {
+                $this->balanceService->deposit(
+                    $deposit->user_id,
+                    $deposit->currency,
+                    $amount,
+                    'Deposit',
+                    $deposit->id
+                );
+
+                $this->notificationService->createDepositSuccessNotification(
+                    $deposit->user_id,
+                    $amount,
+                    $deposit->currency,
+                    $deposit->order_no
+                );
+
+                event(new DepositCompleted($deposit));
+
+                $completedCount = Deposit::where('user_id', $deposit->user_id)
+                    ->where('status', Deposit::STATUS_COMPLETED)
+                    ->count();
+                if ($completedCount === 1) {
+                    event(new FirstDepositCompleted($deposit));
                 }
-                break;
-            case SopayService::SOPAY_STATUS_FAILED:
-                $updateData['status'] = Deposit::STATUS_FAILED;
-                $deposit->update($updateData);
-                break;
-            case SopayService::SOPAY_STATUS_EXPIRED:
-                $updateData['status'] = Deposit::STATUS_EXPIRED;
-                $deposit->update($updateData);
-                break;
+
+                $deposit->loadMissing('paymentMethod');
+                if ($deposit->paymentMethod) {
+                    $pmName = $deposit->paymentMethod->name;
+                    $this->userPaymentExtraInfo->markAllReadOnlyForUser(
+                        $deposit->user_id,
+                        $pmName,
+                        UserPaymentExtraInfo::TYPE_DEPOSIT
+                    );
+                    $this->userPaymentExtraInfo->syncWithdrawReadOnlyAfterDepositSuccess(
+                        $deposit->user_id,
+                        $pmName
+                    );
+                }
+            }
+        } elseif ($status == SopayService::SOPAY_STATUS_FAILED) {
+            $updateData['status'] = Deposit::STATUS_FAILED;
+            $deposit->update($updateData);
+        } elseif ($status == SopayService::SOPAY_STATUS_EXPIRED) {
+            $updateData['status'] = Deposit::STATUS_EXPIRED;
+            $deposit->update($updateData);
         }
 
         return true;
