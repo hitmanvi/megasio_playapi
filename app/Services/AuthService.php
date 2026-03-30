@@ -146,6 +146,7 @@ class AuthService
                 'display_currencies' => [$defaultCurrency],
                 'base_currency' => $defaultCurrency,
                 'current_currency' => $defaultCurrency,
+                'receive_promotion_email' => !empty($data['receive_promotion_email']),
             ]);
 
             // 如果有邀请人，创建邀请关系（默认状态为 inactive）
@@ -364,10 +365,11 @@ class AuthService
      * @param string|null $userAgent User Agent
      * @param array $deviceInfo Kochava device info for new user registration
      * @param string|null $client 客户端标识：ios|android|web，用于选择对应的 client_id
+     * @param  bool  $receivePromotionEmail 新用户注册时是否接受推广邮件（已存在用户忽略）
      * @return array 包含用户和 token 的数组
      * @throws Exception
      */
-    public function loginWithGoogle(string $idToken, ?string $inviteCode = null, ?string $ipAddress = null, ?string $userAgent = null, array $deviceInfo = [], ?string $client = null): array
+    public function loginWithGoogle(string $idToken, ?string $inviteCode = null, ?string $ipAddress = null, ?string $userAgent = null, array $deviceInfo = [], ?string $client = null, bool $receivePromotionEmail = false): array
     {
         try {
             // 验证 Google ID Token（根据客户端选择对应 client_id）
@@ -412,7 +414,7 @@ class AuthService
             }
 
             // 查找或创建用户
-            return DB::transaction(function () use ($googleId, $email, $name, $inviter, $agentLink, $deviceInfo, $ipAddress, $userAgent) {
+            return DB::transaction(function () use ($googleId, $email, $name, $inviter, $agentLink, $deviceInfo, $ipAddress, $userAgent, $receivePromotionEmail) {
                 // 先通过 google_id 查找
                 $user = User::where('google_id', $googleId)->first();
                 
@@ -443,6 +445,7 @@ class AuthService
                         'display_currencies' => [$defaultCurrency],
                         'base_currency' => $defaultCurrency,
                         'current_currency' => $defaultCurrency,
+                        'receive_promotion_email' => $receivePromotionEmail,
                     ]);
 
                     // 如果有邀请人，创建邀请关系（默认状态为 inactive）

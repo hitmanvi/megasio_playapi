@@ -33,6 +33,7 @@ class AuthController extends Controller
             'email' => 'nullable|string|email|max:255',
             'password' => 'required|string|min:6',
             'invite_code' => 'nullable|string',
+            'receive_promotion_email' => 'sometimes|boolean',
         ]);
 
         try {
@@ -54,6 +55,7 @@ class AuthController extends Controller
                 'email' => $request->email,
                 'password' => $request->password,
                 'invite_code' => $request->invite_code,
+                'receive_promotion_email' => $request->boolean('receive_promotion_email'),
                 'device_info' => $deviceInfo,
             ]);
 
@@ -195,6 +197,7 @@ class AuthController extends Controller
             'id_token' => 'required|string',
             'invite_code' => 'nullable|string',
             'client' => 'nullable|string|in:ios,android,web',
+            'receive_promotion_email' => 'sometimes|boolean',
         ]);
 
         $client = $request->input('client') ?: $request->header('X-Platform');
@@ -207,7 +210,8 @@ class AuthController extends Controller
                 $request->ip(),
                 $request->userAgent(),
                 $deviceInfo,
-                $client
+                $client,
+                $request->boolean('receive_promotion_email')
             );
 
             return $this->responseItem($result);

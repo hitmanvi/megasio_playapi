@@ -44,6 +44,7 @@ class User extends Authenticatable
         'current_currency',
         'deposit_enabled',
         'withdraw_enabled',
+        'receive_promotion_email',
     ];
 
     /**

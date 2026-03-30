@@ -9401,6 +9401,11 @@
                         "type": "string",
                         "nullable": true,
                         "description": "4位为推广码（promotion_code，绑定 AgentLink）；非4位为邀请码（绑定邀请人，无效时注册接口报错）"
+                    },
+                    "receive_promotion_email": {
+                        "type": "boolean",
+                        "nullable": true,
+                        "description": "是否接受推广邮件；不传默认为 false"
                     }
                 }
             },
@@ -9445,6 +9450,11 @@
                         ],
                         "nullable": true,
                         "description": "客户端标识，用于选择对应的 Google client_id 验证。不传时默认使用 web，也可通过 X-Platform header 传递"
+                    },
+                    "receive_promotion_email": {
+                        "type": "boolean",
+                        "nullable": true,
+                        "description": "新用户注册时是否接受推广邮件；已存在用户忽略；不传默认为 false"
                     }
                 }
             },
