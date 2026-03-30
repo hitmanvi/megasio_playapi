@@ -4,6 +4,7 @@ namespace App\Listeners;
 
 use App\Events\DepositCreated;
 use App\Services\AgentService;
+use App\Services\CustomerIOService;
 use App\Services\FacebookConversionsService;
 use App\Services\KochavaService;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -42,5 +43,11 @@ class SendDepositCreateEvent implements ShouldQueue
                 'begin_checkout_' . $deposit->order_no
             );
         }
+
+        $cioTs = time();
+        app(CustomerIOService::class)->sendEvent(
+            $deposit->user,
+            'initiate_purchase'
+        );
     }
 }

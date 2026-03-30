@@ -4,6 +4,7 @@ namespace App\Listeners;
 
 use App\Events\DepositCompleted;
 use App\Services\AgentService;
+use App\Services\CustomerIOService;
 use App\Services\FacebookConversionsService;
 use App\Services\KochavaService;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -44,5 +45,10 @@ class SendDepositCompleteEvent implements ShouldQueue
                 'purchase_' . $deposit->order_no
             );
         }
+
+        app(CustomerIOService::class)->sendEvent(
+            $deposit->user,
+            'purchase',
+        );
     }
 }

@@ -4,14 +4,16 @@ namespace App\Listeners;
 
 use App\Events\UserRegistered;
 use App\Services\AgentService;
+use App\Services\CustomerIOService;
 use App\Services\FacebookConversionsService;
-use App\Services\KochavaService;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Queue\InteractsWithQueue;
 
 class SendRegistrationEvent implements ShouldQueue
 {
     use InteractsWithQueue;
+
+    public bool $afterCommit = true;
 
     public function handle(UserRegistered $event): void
     {
@@ -35,5 +37,8 @@ class SendRegistrationEvent implements ShouldQueue
             $userData['event_time'] = $deviceInfo['usertime'] ?? time();
             $facebook->sendEvent('CompleteRegistration', $userData, ['status' => 'registered'], 'register_' . $user->uid);
         }
+
+        // Customer.io：创建/更新 profile 并发送 sign_up（见 CustomerIOService::createCustomer）
+        app(CustomerIOService::class)->createCustomer($user);
     }
 }

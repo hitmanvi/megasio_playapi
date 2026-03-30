@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Enums\ErrorCode;
+use App\Events\UserMineVisited;
 use App\Services\VipService;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
@@ -25,6 +26,8 @@ class UserController extends Controller
     {
         $user = $request->user();
         $user->update(['last_active_at' => now()]);
+
+        event(new UserMineVisited($user));
 
         return $this->responseItem([
             'uid' => $user->uid,

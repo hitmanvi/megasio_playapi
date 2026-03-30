@@ -57,12 +57,44 @@ class CustomerIOService
                         'email' => $fresh->email,
                         'created_at' => $fresh->created_at?->unix(),
                         'vip' => $vipLevel,
-                        'name' => $fresh->name,
-                        'receive_promotion_email' => $fresh->receive_promotion_email,
                     ]
                 );
 
             app(CustomerIOService::class)->sendEvent($fresh, 'sign_up', $fresh->created_at?->unix());
+        });
+    }
+
+    /**
+     * 登录后按当前用户表邮箱更新 Customer.io（customer id 为 uid）
+     */
+    public function syncEmailOnLogin(User $user): void
+    {
+        if (!config('services.customer_io.enabled') || !$this->credentialsConfigured()) {
+            return;
+        }
+
+        $userId = $user->getKey();
+        $siteId = $this->siteId;
+        $apiKey = $this->apiKey;
+
+        dispatch(function () use ($userId, $siteId, $apiKey) {
+            $fresh = User::query()->find($userId);
+            if (!$fresh || $fresh->uid === null || $fresh->uid === '') {
+                return;
+            }
+
+            $email = $fresh->email;
+            if ($email === null || trim((string) $email) === '') {
+                return;
+            }
+
+            $pathId = rawurlencode((string) $fresh->uid);
+
+            Http::withBasicAuth($siteId, $apiKey)
+                ->put(
+                    'https://track.customer.io/api/v1/customers/' . $pathId,
+                    ['email' => $email]
+                );
         });
     }
 
@@ -107,7 +139,10 @@ class CustomerIOService
         }
     }
 
-    public function sendEvent(User $user, string $event, ?int $timestamp = null): void
+    /**
+     * @param  array<string, mixed>|null  $data  Customer.io 事件 data 负载（可选）
+     */
+    public function sendEvent(User $user, string $event, ?int $timestamp = null, ?array $data = null): void
     {
         if (!config('services.customer_io.enabled') || !$this->credentialsConfigured()) {
             return;
@@ -121,7 +156,7 @@ class CustomerIOService
         $siteId = $this->siteId;
         $apiKey = $this->apiKey;
 
-        dispatch(function () use ($userId, $event, $timestamp, $siteId, $apiKey) {
+        dispatch(function () use ($userId, $event, $timestamp, $siteId, $apiKey, $data) {
             $fresh = User::query()->find($userId);
             if (!$fresh || $fresh->uid === null || $fresh->uid === '') {
                 return;
@@ -129,10 +164,18 @@ class CustomerIOService
 
             $pathId = rawurlencode((string) $fresh->uid);
 
+            $payload = [
+                'name' => $event,
+                'timestamp' => $timestamp,
+            ];
+            if ($data !== null && $data !== []) {
+                $payload['data'] = $data;
+            }
+
             Http::withBasicAuth($siteId, $apiKey)
                 ->post(
                     'https://track.customer.io/api/v1/customers/' . $pathId . '/events',
-                    ['name' => $event, 'timestamp' => $timestamp]
+                    $payload
                 );
         })->onQueue('low');
     }
