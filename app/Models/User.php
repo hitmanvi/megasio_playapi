@@ -60,6 +60,7 @@ class User extends Authenticatable
         'status',
         'remark',
         'last_active_at',
+        'receive_promotion_email',
     ];
 
     /**
@@ -77,6 +78,7 @@ class User extends Authenticatable
             'last_active_at' => 'datetime',
             'deposit_enabled' => 'boolean',
             'withdraw_enabled' => 'boolean',
+            'receive_promotion_email' => 'boolean',
         ];
     }
 

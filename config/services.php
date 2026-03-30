@@ -73,4 +73,14 @@ return [
         'app_secret' => env('FACEBOOK_APP_SECRET'),
     ],
 
+    /*
+    | Customer.io Track API (https://customer.io/docs/api/track/)
+    | Basic auth: Site ID + API Key from workspace Settings → API Credentials
+    */
+    'customer_io' => [
+        'enabled' => env('CUSTOMER_IO_ENABLED', false),
+        'site_id' => env('CUSTOMER_IO_SITE_ID'),
+        'api_key' => env('CUSTOMER_IO_API_KEY'),
+    ],
+
 ];
