@@ -249,7 +249,7 @@ Route::prefix('gp')->middleware(['throttle:gp'])->group(function () {
 // Sopay 回调路由
 Route::post('/sopay/callback', [SopayController::class, 'callback']);
 
-// Customer.io 入站 Webhook（签名：X-Signature，配置见 CUSTOMER_IO_WEBHOOK_*）
+// Customer.io 入站 Webhook（Reporting unsubscribed → receive_promotion_email，见 CUSTOMER_IO_WEBHOOK_*）
 Route::post('/webhooks/customer-io', [CustomerIOWebhookController::class, 'handle']);
 
 // Admin 接口路由（后台管理系统调用）

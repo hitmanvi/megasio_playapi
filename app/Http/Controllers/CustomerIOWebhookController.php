@@ -9,6 +9,11 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Log;
 
+/**
+ * Customer.io Reporting Webhook：仅处理退订（metric = unsubscribed），将 users.receive_promotion_email 置为 false。
+ *
+ * @see https://customer.io/docs/journeys/webhooks/
+ */
 class CustomerIOWebhookController extends Controller
 {
     public function handle(Request $request): JsonResponse|Response
@@ -18,18 +23,6 @@ class CustomerIOWebhookController extends Controller
         }
 
         $raw = $request->getContent();
-        $signature = $request->header('X-Signature');
-
-        Log::info('Customer.io webhook request', [
-            'ip' => $request->ip(),
-            'query' => $request->query->all(),
-            'headers' => [
-                'content-type' => $request->header('Content-Type'),
-                'x-signature' => $signature,
-                'user-agent' => $request->header('User-Agent'),
-            ],
-            'raw_body' => $raw,
-        ]);
 
         if (config('services.customer_io.webhook.verify_signature')) {
             $secret = (string) (config('services.customer_io.webhook.signing_secret') ?? '');
@@ -38,104 +31,46 @@ class CustomerIOWebhookController extends Controller
 
                 return response('Webhook signing not configured', 503);
             }
+            $signature = $request->header('X-Signature');
             if (!CustomerIOService::verifyWebhookSignature($raw, $signature, $secret)) {
                 return response('Invalid signature', 401);
             }
         }
 
-        $decoded = json_decode($raw, true);
-        if (!is_array($decoded)) {
+        $payload = json_decode($raw, true);
+        if (!is_array($payload)) {
             return response()->json(['message' => 'Invalid JSON body'], 422);
         }
 
-        $items = array_is_list($decoded) ? $decoded : [$decoded];
-        foreach ($items as $item) {
-            if (is_array($item)) {
-                $this->processWebhookItem($item);
-            }
+        $metric = strtolower((string) ($payload['metric'] ?? ''));
+        if ($metric !== 'unsubscribed') {
+            return response()->json(['ok' => true]);
+        }
+
+        $data = $payload['data'] ?? null;
+        if (!is_array($data)) {
+            Log::warning('Customer.io unsubscribed webhook: missing data');
+
+            return response()->json(['ok' => true]);
+        }
+
+        $uid = $this->stringOrNull($data['customer_id'] ?? null)
+            ?? $this->stringOrNull(is_array($data['identifiers'] ?? null) ? ($data['identifiers']['id'] ?? null) : null);
+
+        if ($uid === null) {
+            Log::warning('Customer.io unsubscribed webhook: no uid in data.customer_id / data.identifiers.id');
+
+            return response()->json(['ok' => true]);
+        }
+
+        $updated = User::query()->where('uid', $uid)->update(['receive_promotion_email' => false]);
+        if ($updated === 0) {
+            Log::warning('Customer.io unsubscribed: no user for uid', ['uid' => $uid]);
+        } else {
+            Log::info('Customer.io unsubscribed: receive_promotion_email cleared', ['uid' => $uid]);
         }
 
         return response()->json(['ok' => true]);
-    }
-
-    /**
-     * @param  array<string, mixed>  $item
-     */
-    private function processWebhookItem(array $item): void
-    {
-        if (($item['action'] ?? null) === 'set_receive_promotion_email') {
-            $uid = $this->stringOrNull($item['user_id'] ?? $item['userId'] ?? null);
-            if ($uid !== null && array_key_exists('value', $item)) {
-                $this->setReceivePromotionEmailByUid($uid, filter_var($item['value'], FILTER_VALIDATE_BOOLEAN));
-
-                return;
-            }
-        }
-
-        $uid = $this->resolveCustomerUid($item);
-        if ($uid === null) {
-            return;
-        }
-
-        $traits = $item['traits'] ?? $item['properties'] ?? [];
-        if (is_array($traits)) {
-            if (array_key_exists('receive_promotion_email', $traits)) {
-                $this->setReceivePromotionEmailByUid($uid, filter_var($traits['receive_promotion_email'], FILTER_VALIDATE_BOOLEAN));
-
-                return;
-            }
-            if (array_key_exists('unsubscribed', $traits)) {
-                $this->setReceivePromotionEmailByUid($uid, !filter_var($traits['unsubscribed'], FILTER_VALIDATE_BOOLEAN));
-
-                return;
-            }
-        }
-
-        $event = $item['event'] ?? $item['metric'] ?? $item['name'] ?? null;
-        if (!is_string($event) || $event === '') {
-            return;
-        }
-
-        $el = strtolower($event);
-        if (str_contains($el, 'unsubscrib') || str_contains($el, 'spam') || str_contains($el, 'suppress')) {
-            $this->setReceivePromotionEmailByUid($uid, false);
-
-            return;
-        }
-        if (str_contains($el, 'resubscrib') || str_contains($el, 'subscription_restored')) {
-            $this->setReceivePromotionEmailByUid($uid, true);
-        }
-    }
-
-    /**
-     * @param  array<string, mixed>  $item
-     */
-    private function resolveCustomerUid(array $item): ?string
-    {
-        foreach (['userId', 'user_id', 'customer_id'] as $key) {
-            if (isset($item[$key])) {
-                $v = $this->stringOrNull($item[$key]);
-                if ($v !== null) {
-                    return $v;
-                }
-            }
-        }
-
-        if (isset($item['customer']) && is_array($item['customer'])) {
-            $c = $item['customer'];
-            foreach (['id', 'userId', 'user_id'] as $key) {
-                $v = $this->stringOrNull($c[$key] ?? null);
-                if ($v !== null) {
-                    return $v;
-                }
-            }
-        }
-
-        if (isset($item['data']) && is_array($item['data'])) {
-            return $this->resolveCustomerUid($item['data']);
-        }
-
-        return null;
     }
 
     private function stringOrNull(mixed $v): ?string
@@ -146,13 +81,5 @@ class CustomerIOWebhookController extends Controller
         $s = trim((string) $v);
 
         return $s === '' ? null : $s;
-    }
-
-    private function setReceivePromotionEmailByUid(string $uid, bool $value): void
-    {
-        $updated = User::query()->where('uid', $uid)->update(['receive_promotion_email' => $value]);
-        if ($updated === 0) {
-            Log::warning('Customer.io webhook: no user found for uid', ['uid' => $uid]);
-        }
     }
 }
