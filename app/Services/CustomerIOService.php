@@ -192,6 +192,13 @@ class CustomerIOService
                 $payload['data'] = $data;
             }
 
+            Log::info('Customer.io send event', [
+                'event' => $event,
+                'uid' => $fresh->uid,
+                'timestamp' => $timestamp,
+                'data' => $data,
+            ]);
+
             Http::withBasicAuth($siteId, $apiKey)
                 ->post(
                     'https://track.customer.io/api/v1/customers/' . $pathId . '/events',
