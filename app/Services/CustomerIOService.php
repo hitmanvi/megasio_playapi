@@ -9,6 +9,26 @@ use Illuminate\Support\Facades\Log;
 
 class CustomerIOService
 {
+    /**
+     * 校验 Customer.io 出站 Webhook 的 X-Signature（原始 body + signing secret → hex HMAC-SHA1）
+     */
+    public static function verifyWebhookSignature(string $rawBody, ?string $signatureHeader, string $secret): bool
+    {
+        if ($signatureHeader === null || trim($signatureHeader) === '' || $secret === '') {
+            return false;
+        }
+
+        $sig = trim($signatureHeader);
+        if (str_contains($sig, '=')) {
+            $parts = explode('=', $sig, 2);
+            $sig = trim(end($parts));
+        }
+
+        $expected = hash_hmac('sha1', $rawBody, $secret);
+
+        return hash_equals(strtolower($expected), strtolower($sig));
+    }
+
     private $siteId;
 
     private $apiKey;

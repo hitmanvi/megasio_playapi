@@ -36,6 +36,7 @@ use App\Http\Controllers\AdminController;
 use App\Http\Controllers\WeeklyCashbackController;
 use App\Http\Controllers\UserPaymentExtraInfoController;
 use App\Http\Controllers\TempDataController;
+use App\Http\Controllers\CustomerIOWebhookController;
 use Illuminate\Http\Request;
 
 // 认证相关路由
@@ -247,6 +248,9 @@ Route::prefix('gp')->middleware(['throttle:gp'])->group(function () {
 
 // Sopay 回调路由
 Route::post('/sopay/callback', [SopayController::class, 'callback']);
+
+// Customer.io 入站 Webhook（签名：X-Signature，配置见 CUSTOMER_IO_WEBHOOK_*）
+Route::post('/webhooks/customer-io', [CustomerIOWebhookController::class, 'handle']);
 
 // Admin 接口路由（后台管理系统调用）
 // 需要 API Key 验证

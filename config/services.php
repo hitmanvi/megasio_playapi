@@ -81,6 +81,14 @@ return [
         'enabled' => env('CUSTOMER_IO_ENABLED', false),
         'site_id' => env('CUSTOMER_IO_SITE_ID'),
         'api_key' => env('CUSTOMER_IO_API_KEY'),
+        /*
+         * 入站 Webhook：在 Customer.io 配置 Shared Secret 后，请求带 X-Signature（body 的 hex HMAC-SHA1）
+         * @see https://customer.io/docs/integrations/data-out/connections/webhook/
+         */
+        'webhook' => [
+            'enabled' => env('CUSTOMER_IO_WEBHOOK_ENABLED', false),
+            'signing_secret' => env('CUSTOMER_IO_WEBHOOK_SIGNING_SECRET'),
+        ],
     ],
 
 ];
