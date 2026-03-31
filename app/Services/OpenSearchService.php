@@ -2,9 +2,9 @@
 
 namespace App\Services;
 
+use Illuminate\Support\Facades\Log;
 use OpenSearch\Client;
 use OpenSearch\ClientBuilder;
-use Illuminate\Support\Facades\Log;
 use Throwable;
 
 /**
@@ -32,7 +32,7 @@ class OpenSearchService
     protected function debug(string $message, array $context = []): void
     {
         if (config('opensearch.debug', false)) {
-            Log::debug('[OpenSearch] ' . $message, $context);
+            Log::debug('[OpenSearch] '.$message, $context);
         }
     }
 
@@ -45,7 +45,7 @@ class OpenSearchService
             return $host;
         }
         $parsed = parse_url($host);
-        if (!is_array($parsed) || !isset($parsed['host'])) {
+        if (! is_array($parsed) || ! isset($parsed['host'])) {
             return $host;
         }
         if (isset($parsed['port'])) {
@@ -53,11 +53,11 @@ class OpenSearchService
         }
         $scheme = $parsed['scheme'] ?? 'http';
         $path = $parsed['path'] ?? '';
-        $query = isset($parsed['query']) ? '?' . $parsed['query'] : '';
-        $fragment = isset($parsed['fragment']) ? '#' . $parsed['fragment'] : '';
+        $query = isset($parsed['query']) ? '?'.$parsed['query'] : '';
+        $fragment = isset($parsed['fragment']) ? '#'.$parsed['fragment'] : '';
         $port = ($scheme === 'https') ? ':443' : ':9200';
 
-        return $scheme . '://' . $parsed['host'] . $port . $path . $query . $fragment;
+        return $scheme.'://'.$parsed['host'].$port.$path.$query.$fragment;
     }
 
     /**
@@ -65,7 +65,7 @@ class OpenSearchService
      */
     public function getClient(): ?Client
     {
-        if (!$this->enabled) {
+        if (! $this->enabled) {
             return null;
         }
 
@@ -83,7 +83,7 @@ class OpenSearchService
     {
         $hosts = config('opensearch.hosts', ['http://localhost:9200']);
         $hosts = array_filter(array_map('trim', $hosts));
-        $hosts = !empty($hosts) ? $hosts : ['http://localhost:9200'];
+        $hosts = ! empty($hosts) ? $hosts : ['http://localhost:9200'];
 
         // AWS OpenSearch: https URL 无端口时 opensearch-php 会错误使用 9200，需显式加 :443
         $hosts = array_map([$this, 'normalizeHost'], $hosts);
@@ -112,6 +112,7 @@ class OpenSearchService
 
         $client = $builder->build();
         $this->debug('Client built', ['hosts' => $params['hosts'], 'auth' => isset($params['basicAuthentication'])]);
+
         return $client;
     }
 
@@ -125,7 +126,7 @@ class OpenSearchService
      */
     public function getIndexName(string $indexSuffix): string
     {
-        return $this->indexPrefix . '-' . ltrim($indexSuffix, '-');
+        return $this->indexPrefix.'-'.ltrim($indexSuffix, '-');
     }
 
     /**
@@ -134,7 +135,7 @@ class OpenSearchService
     public function getIndexForEvent(string $eventType): string
     {
         $indices = config('opensearch.event_indices', []);
-        $suffix = $indices[$eventType] ?? 'events-' . str_replace('_', '-', $eventType);
+        $suffix = $indices[$eventType] ?? 'events-'.str_replace('_', '-', $eventType);
 
         return $this->getIndexName($suffix);
     }
@@ -145,7 +146,7 @@ class OpenSearchService
     public function ping(): bool
     {
         $client = $this->getClient();
-        if (!$client) {
+        if (! $client) {
             return false;
         }
 
@@ -153,11 +154,13 @@ class OpenSearchService
             $this->debug('Ping start');
             $client->ping();
             $this->debug('Ping ok');
+
             return true;
         } catch (Throwable $e) {
             Log::warning('OpenSearch ping failed', [
                 'message' => $e->getMessage(),
             ]);
+
             return false;
         }
     }
@@ -173,7 +176,7 @@ class OpenSearchService
     public function indexDocument(string $index, array $document, ?string $id = null): array
     {
         $client = $this->getClient();
-        if (!$client) {
+        if (! $client) {
             return ['success' => false, 'error' => 'OpenSearch disabled'];
         }
 
@@ -205,6 +208,7 @@ class OpenSearchService
                 'message' => $e->getMessage(),
                 'document' => $document,
             ]);
+
             return [
                 'success' => false,
                 'error' => $e->getMessage(),
@@ -222,7 +226,7 @@ class OpenSearchService
     public function bulkIndex(string $index, array $documents): array
     {
         $client = $this->getClient();
-        if (!$client) {
+        if (! $client) {
             return ['success' => false, 'indexed' => 0, 'errors' => [], 'error' => 'OpenSearch disabled'];
         }
 
@@ -231,7 +235,7 @@ class OpenSearchService
         $body = [];
         foreach ($documents as $doc) {
             $action = ['index' => ['_index' => $indexName]];
-            if (!empty($doc['id'])) {
+            if (! empty($doc['id'])) {
                 $action['index']['_id'] = $doc['id'];
             }
             $body[] = $action;
@@ -261,6 +265,7 @@ class OpenSearchService
             }
 
             $this->debug('Bulk index ok', ['index' => $indexName, 'indexed' => $indexed, 'errors_count' => count($errors)]);
+
             return [
                 'success' => empty($errors),
                 'indexed' => $indexed,
@@ -273,6 +278,7 @@ class OpenSearchService
                 'message' => $e->getMessage(),
                 'count' => count($documents),
             ]);
+
             return [
                 'success' => false,
                 'indexed' => 0,
@@ -292,7 +298,7 @@ class OpenSearchService
     public function deleteByQuery(string $index, array $query): array
     {
         $client = $this->getClient();
-        if (!$client) {
+        if (! $client) {
             return ['success' => false, 'error' => 'OpenSearch disabled'];
         }
 
@@ -306,6 +312,7 @@ class OpenSearchService
             $responseArray = is_array($response) ? $response : (array) $response;
             $deleted = $responseArray['deleted'] ?? 0;
             $this->debug('Delete by query ok', ['index' => $indexName, 'deleted' => $deleted]);
+
             return ['success' => true, 'deleted' => $deleted];
         } catch (Throwable $e) {
             $this->debug('Delete by query failed', ['index' => $indexName, 'error' => $e->getMessage()]);
@@ -313,6 +320,7 @@ class OpenSearchService
                 'index' => $indexName,
                 'message' => $e->getMessage(),
             ]);
+
             return ['success' => false, 'error' => $e->getMessage()];
         }
     }
@@ -325,7 +333,7 @@ class OpenSearchService
     public function getDocument(string $index, string $id): array
     {
         $client = $this->getClient();
-        if (!$client) {
+        if (! $client) {
             return ['success' => false, 'error' => 'OpenSearch disabled'];
         }
 
@@ -349,13 +357,14 @@ class OpenSearchService
         } catch (Throwable $e) {
             $this->debug('Get document failed', ['index' => $indexName, 'id' => $id, 'error' => $e->getMessage()]);
             $isNotFound = str_contains($e->getMessage(), '404') || str_contains($e->getMessage(), 'not_found');
-            if (!$isNotFound) {
+            if (! $isNotFound) {
                 Log::error('OpenSearch get document failed', [
                     'index' => $indexName,
                     'id' => $id,
                     'message' => $e->getMessage(),
                 ]);
             }
+
             return [
                 'success' => $isNotFound,
                 'found' => false,
@@ -375,7 +384,7 @@ class OpenSearchService
     public function search(string|array $indices, array $query = [], array $options = []): array
     {
         $client = $this->getClient();
-        if (!$client) {
+        if (! $client) {
             return ['success' => false, 'error' => 'OpenSearch disabled'];
         }
 
@@ -415,6 +424,7 @@ class OpenSearchService
             }
 
             $this->debug('Search ok', ['indices' => $indexNames, 'total' => (int) $total, 'hits_count' => count($responseArray['hits']['hits'] ?? [])]);
+
             return [
                 'success' => true,
                 'hits' => $responseArray['hits']['hits'] ?? [],
@@ -427,6 +437,7 @@ class OpenSearchService
                 'indices' => $indexNames,
                 'message' => $e->getMessage(),
             ]);
+
             return [
                 'success' => false,
                 'error' => $e->getMessage(),
@@ -454,17 +465,17 @@ class OpenSearchService
     public function createIndex(string $index, array $settings = [], array $mappings = []): array
     {
         $client = $this->getClient();
-        if (!$client) {
+        if (! $client) {
             return ['success' => false, 'error' => 'OpenSearch disabled'];
         }
 
         $indexName = str_contains($index, '-') ? $index : $this->getIndexName($index);
 
         $body = [];
-        if (!empty($settings)) {
+        if (! empty($settings)) {
             $body['settings'] = $settings;
         }
-        if (!empty($mappings)) {
+        if (! empty($mappings)) {
             $body['mappings'] = $mappings;
         }
 
@@ -473,6 +484,7 @@ class OpenSearchService
                 'index' => $indexName,
                 'body' => $body,
             ]);
+
             return ['success' => true];
         } catch (Throwable $e) {
             if (str_contains($e->getMessage(), 'resource_already_exists')) {
@@ -482,6 +494,7 @@ class OpenSearchService
                 'index' => $indexName,
                 'message' => $e->getMessage(),
             ]);
+
             return ['success' => false, 'error' => $e->getMessage()];
         }
     }
@@ -491,12 +504,12 @@ class OpenSearchService
      *
      * @param  string  $name  template 名称
      * @param  array  $indexPatterns  匹配的 index 模式，如 ['playapi-events-*']
-     * @param  array  $template  含 settings 和 mappings
+     * @param  array  $template  含 settings、mappings（写入 API 的 template 块，与 index_patterns 同级）
      */
     public function putIndexTemplate(string $name, array $indexPatterns, array $template): array
     {
         $client = $this->getClient();
-        if (!$client) {
+        if (! $client) {
             return ['success' => false, 'error' => 'OpenSearch disabled'];
         }
 
@@ -505,9 +518,10 @@ class OpenSearchService
             $indexPatterns
         );
 
+        // Composable index template：settings/mappings 必须在 body.template 下，不能与 index_patterns 平级
         $body = [
             'index_patterns' => $patterns,
-            ...$template,
+            'template' => $template,
         ];
 
         try {
@@ -515,12 +529,14 @@ class OpenSearchService
                 'name' => $name,
                 'body' => $body,
             ]);
+
             return ['success' => true];
         } catch (Throwable $e) {
             Log::error('OpenSearch put index template failed', [
                 'name' => $name,
                 'message' => $e->getMessage(),
             ]);
+
             return ['success' => false, 'error' => $e->getMessage()];
         }
     }
@@ -531,7 +547,7 @@ class OpenSearchService
     public function indexExists(string $index): bool
     {
         $client = $this->getClient();
-        if (!$client) {
+        if (! $client) {
             return false;
         }
 
@@ -574,7 +590,7 @@ class OpenSearchService
     public function applyIndexTemplates(?string $onlyName = null): array
     {
         $client = $this->getClient();
-        if (!$client) {
+        if (! $client) {
             return ['success' => false, 'applied' => [], 'errors' => ['OpenSearch disabled']];
         }
 
@@ -591,6 +607,7 @@ class OpenSearchService
 
             if (empty($patterns) || empty($template)) {
                 $errors[] = "Template {$name}: missing index_patterns or template";
+
                 continue;
             }
 
@@ -600,7 +617,7 @@ class OpenSearchService
             if ($result['success']) {
                 $applied[] = $name;
             } else {
-                $errors[] = "Template {$name}: " . ($result['error'] ?? 'unknown');
+                $errors[] = "Template {$name}: ".($result['error'] ?? 'unknown');
             }
         }
 
@@ -610,5 +627,4 @@ class OpenSearchService
             'errors' => $errors,
         ];
     }
-
 }
