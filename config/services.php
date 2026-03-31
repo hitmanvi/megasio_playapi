@@ -88,6 +88,7 @@ return [
         'webhook' => [
             'enabled' => env('CUSTOMER_IO_WEBHOOK_ENABLED', false),
             'signing_secret' => env('CUSTOMER_IO_WEBHOOK_SIGNING_SECRET'),
+            'verify_signature' => env('CUSTOMER_IO_WEBHOOK_VERIFY_SIGNATURE', false),
         ],
     ],
 

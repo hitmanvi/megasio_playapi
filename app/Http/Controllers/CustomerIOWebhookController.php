@@ -17,17 +17,30 @@ class CustomerIOWebhookController extends Controller
             abort(404);
         }
 
-        $secret = (string) (config('services.customer_io.webhook.signing_secret') ?? '');
-        if ($secret === '') {
-            Log::error('Customer.io webhook is enabled but CUSTOMER_IO_WEBHOOK_SIGNING_SECRET is empty');
-
-            return response('Webhook signing not configured', 503);
-        }
-
         $raw = $request->getContent();
         $signature = $request->header('X-Signature');
-        if (!CustomerIOService::verifyWebhookSignature($raw, $signature, $secret)) {
-            return response('Invalid signature', 401);
+
+        Log::info('Customer.io webhook request', [
+            'ip' => $request->ip(),
+            'query' => $request->query->all(),
+            'headers' => [
+                'content-type' => $request->header('Content-Type'),
+                'x-signature' => $signature,
+                'user-agent' => $request->header('User-Agent'),
+            ],
+            'raw_body' => $raw,
+        ]);
+
+        if (config('services.customer_io.webhook.verify_signature')) {
+            $secret = (string) (config('services.customer_io.webhook.signing_secret') ?? '');
+            if ($secret === '') {
+                Log::error('Customer.io webhook verify_signature enabled but signing secret empty');
+
+                return response('Webhook signing not configured', 503);
+            }
+            if (!CustomerIOService::verifyWebhookSignature($raw, $signature, $secret)) {
+                return response('Invalid signature', 401);
+            }
         }
 
         $decoded = json_decode($raw, true);
