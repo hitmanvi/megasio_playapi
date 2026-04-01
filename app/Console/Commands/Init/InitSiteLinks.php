@@ -40,6 +40,7 @@ class InitSiteLinks extends Command
                 'key' => $key,
                 'url' => '',
                 'deletable' => false,
+                'enabled' => true,
             ]);
             $this->info("  已创建: {$key}");
             $created++;

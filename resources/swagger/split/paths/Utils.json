@@ -62,6 +62,46 @@
             }
         }
     },
+    "\/links": {
+        "get": {
+            "tags": [
+                "Utils"
+            ],
+            "summary": "获取站点链接列表",
+            "description": "仅返回后台已启用（enabled=true）的链接项（key、url、deletable）。未启用的记录不会出现在列表中。系统预置 key 由 init:site-links 初始化；deletable 为 false 表示不可删除。",
+            "responses": {
+                "200": {
+                    "description": "成功",
+                    "content": {
+                        "application\/json": {
+                            "schema": {
+                                "$ref": "#\/components\/schemas\/SiteLinkListResponse"
+                            },
+                            "example": {
+                                "code": 0,
+                                "errmsg": "Success",
+                                "data": {
+                                    "items": [
+                                        {
+                                            "key": "privacy_policy",
+                                            "url": "https:\/\/example.com\/privacy",
+                                            "deletable": false
+                                        },
+                                        {
+                                            "key": "terms_of_service",
+                                            "url": "https:\/\/example.com\/terms",
+                                            "deletable": false
+                                        }
+                                    ],
+                                    "meta": {}
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
     "\/upload": {
         "post": {
             "tags": [

@@ -10,12 +10,14 @@ class SiteLink extends Model
         'key',
         'url',
         'deletable',
+        'enabled',
     ];
 
     protected function casts(): array
     {
         return [
             'deletable' => 'boolean',
+            'enabled' => 'boolean',
         ];
     }
 }

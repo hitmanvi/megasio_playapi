@@ -1086,6 +1086,52 @@
                 }
             }
         },
+        "SiteLink": {
+            "type": "object",
+            "properties": {
+                "key": {
+                    "type": "string",
+                    "description": "链接类型标识，如 privacy_policy、terms_of_service"
+                },
+                "url": {
+                    "type": "string",
+                    "description": "链接地址；未配置时可能为空字符串"
+                },
+                "deletable": {
+                    "type": "boolean",
+                    "description": "是否允许删除；系统预置项为 false，自定义项可为 true"
+                }
+            },
+            "description": "列表接口仅返回 enabled=true 的链接，故响应中不含 enabled 字段"
+        },
+        "SiteLinkListResponse": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "integer",
+                    "description": "响应码，0表示成功"
+                },
+                "errmsg": {
+                    "type": "string",
+                    "description": "响应消息"
+                },
+                "data": {
+                    "type": "object",
+                    "properties": {
+                        "items": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#\/components\/schemas\/SiteLink"
+                            }
+                        },
+                        "meta": {
+                            "type": "object",
+                            "description": "列表元数据（当前为空对象）"
+                        }
+                    }
+                }
+            }
+        },
         "BalanceListResponse": {
             "type": "object",
             "properties": {
