@@ -107,6 +107,9 @@ class GameService
                     'id' => $game->brand->id,
                     'name' => $game->brand->getName($locale),
                     'provider' => $game->brand->provider,
+                    'restricted_region' => $game->brand->restricted_region,
+                    'maintain_start' => $game->brand->maintain_start,
+                    'maintain_end' => $game->brand->maintain_end,
                 ] : null,
                 'category' => $game->category ? [
                     'id' => $game->category->id,
