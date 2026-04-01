@@ -4,19 +4,18 @@ namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Foundation\Auth\User as Authenticatable;
-use Illuminate\Notifications\Notifiable;
-use Laravel\Sanctum\HasApiTokens;
-use Illuminate\Support\Str;
-use App\Models\AgentLink;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Str;
+use Laravel\Sanctum\HasApiTokens;
 
 class User extends Authenticatable
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, Notifiable, HasApiTokens;
+    use HasApiTokens, HasFactory, Notifiable;
 
     /**
      * The attributes that are mass assignable.
@@ -93,11 +92,34 @@ class User extends Authenticatable
     }
 
     /**
-     * 生成唯一的UID - 使用ULID
+     * 生成唯一的 UID：固定 8 位，小写字母 a-z 与数字 0-9
      */
     public static function generateUid(): string
     {
-        return Str::ulid()->toString();
+        $characters = 'abcdefghijklmnopqrstuvwxyz0123456789';
+        $length = 8;
+        $maxAttempts = 100;
+
+        for ($attempt = 0; $attempt < $maxAttempts; $attempt++) {
+            $code = '';
+            for ($i = 0; $i < $length; $i++) {
+                $code .= $characters[random_int(0, strlen($characters) - 1)];
+            }
+
+            if (! static::where('uid', $code)->exists()) {
+                return $code;
+            }
+        }
+
+        // 极低概率：仍用 a-f0-9 子集保证格式，并继续查重
+        for ($attempt = 0; $attempt < 100; $attempt++) {
+            $code = substr(bin2hex(random_bytes(4)), 0, $length);
+            if (! static::where('uid', $code)->exists()) {
+                return $code;
+            }
+        }
+
+        throw new \RuntimeException('Failed to generate unique uid after multiple attempts');
     }
 
     /**
@@ -116,13 +138,13 @@ class User extends Authenticatable
             }
 
             // 检查是否已存在
-            if (!static::where('invite_code', $code)->exists()) {
+            if (! static::where('invite_code', $code)->exists()) {
                 return $code;
             }
         }
 
         // 如果100次尝试都失败，使用时间戳+随机字符
-        return strtoupper(substr(Str::random(6) . time(), 0, 8));
+        return strtoupper(substr(Str::random(6).time(), 0, 8));
     }
 
     /**
@@ -309,7 +331,7 @@ class User extends Authenticatable
      */
     public function addTag(int $tagId, ?string $value = null, ?string $reason = null): void
     {
-        if (!$this->hasTagById($tagId)) {
+        if (! $this->hasTagById($tagId)) {
             $this->tags()->attach($tagId);
         }
 
