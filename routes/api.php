@@ -1,43 +1,41 @@
 <?php
 
+use App\Http\Controllers\AdminController;
+use App\Http\Controllers\ArticleController;
+use App\Http\Controllers\ArticleGroupController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\BalanceController;
-use App\Http\Controllers\RolloverController;
-use App\Http\Controllers\UserController;
 use App\Http\Controllers\BannerController;
+use App\Http\Controllers\BonusTaskController;
 use App\Http\Controllers\BrandController;
+use App\Http\Controllers\CheckInController;
 use App\Http\Controllers\CurrencyController;
+use App\Http\Controllers\CustomerIOWebhookController;
 use App\Http\Controllers\DepositController;
 use App\Http\Controllers\ExchangeRateController;
-use App\Http\Controllers\InvitationController;
-use App\Http\Controllers\OrderController;
-use App\Http\Controllers\TransactionController;
-use App\Http\Controllers\WithdrawController;
 use App\Http\Controllers\GameCategoryController;
 use App\Http\Controllers\GameController;
-use App\Http\Controllers\GameGroupController;
-use App\Http\Controllers\PaymentMethodController;
-use App\Http\Controllers\ThemeController;
-use App\Http\Controllers\UtilsController;
-use App\Http\Controllers\GameProviders\FunkyController;
-use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\SopayController;
-use App\Http\Controllers\KycController;
-use App\Http\Controllers\BundleController;
-use App\Http\Controllers\RedeemController;
-use App\Http\Controllers\VipController;
-use App\Http\Controllers\CheckInController;
-use App\Http\Controllers\BonusTaskController;
-use App\Http\Controllers\ArticleGroupController;
-use App\Http\Controllers\ArticleController;
-use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\GameFavoriteController;
-use App\Http\Controllers\AdminController;
-use App\Http\Controllers\WeeklyCashbackController;
-use App\Http\Controllers\UserPaymentExtraInfoController;
+use App\Http\Controllers\GameGroupController;
+use App\Http\Controllers\GameProviders\FunkyController;
+use App\Http\Controllers\InvitationController;
+use App\Http\Controllers\KycController;
+use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\OrderController;
+use App\Http\Controllers\PaymentMethodController;
+use App\Http\Controllers\RolloverController;
+use App\Http\Controllers\SiteLinkController;
+use App\Http\Controllers\SopayController;
 use App\Http\Controllers\TempDataController;
-use App\Http\Controllers\CustomerIOWebhookController;
-use Illuminate\Http\Request;
+use App\Http\Controllers\ThemeController;
+use App\Http\Controllers\TransactionController;
+use App\Http\Controllers\UserController;
+use App\Http\Controllers\UserPaymentExtraInfoController;
+use App\Http\Controllers\UtilsController;
+use App\Http\Controllers\VipController;
+use App\Http\Controllers\WeeklyCashbackController;
+use App\Http\Controllers\WithdrawController;
+use Illuminate\Support\Facades\Route;
 
 // 认证相关路由
 Route::prefix('auth')->group(function () {
@@ -47,7 +45,7 @@ Route::prefix('auth')->group(function () {
     Route::post('/google', [AuthController::class, 'loginWithGoogle']);
     Route::post('/send-verification-code', [AuthController::class, 'sendVerificationCode']);
     Route::post('/reset-password', [AuthController::class, 'resetPassword']);
-    
+
     // 需要认证的路由
     Route::middleware('auth:sanctum')->group(function () {
         Route::post('/logout', [AuthController::class, 'logout']);
@@ -188,7 +186,7 @@ Route::prefix('games')->group(function () {
     Route::get('/', [GameController::class, 'index']);
     Route::get('/recommend', [GameController::class, 'recommend']);
     Route::post('/{id}/demo', [GameController::class, 'demo']);
-    
+
     // 需要认证的路由
     Route::middleware('auth:sanctum')->group(function () {
         Route::get('/recent/list', [GameController::class, 'recent']);
@@ -215,7 +213,7 @@ Route::prefix('help-center')->group(function () {
         Route::get('/', [ArticleGroupController::class, 'index']);
         Route::get('/{id}', [ArticleGroupController::class, 'show']);
     });
-    
+
     // 文章相关路由
     Route::prefix('articles')->group(function () {
         Route::get('/', [ArticleController::class, 'index']);
@@ -232,6 +230,7 @@ Route::prefix('temp-data')->group(function () {
     Route::get('/', [TempDataController::class, 'index']);
 });
 Route::get('/settings', [UtilsController::class, 'settings']);
+Route::get('/links', [SiteLinkController::class, 'index']);
 Route::middleware('auth:sanctum')->post('/upload', [UtilsController::class, 'uploadImage']);
 
 // 游戏提供商回调路由（需要 IP 白名单验证和独立的 rate limit）
@@ -258,7 +257,6 @@ Route::prefix('x7k9m2p4')->middleware(['admin.api'])->group(function () {
     Route::post('/kyc/completed', [AdminController::class, 'notifyKycCompleted']);
 });
 
-    
 // 存款相关路由（需要认证）
 Route::middleware('auth:sanctum')->prefix('deposits')->group(function () {
     Route::get('/', [DepositController::class, 'index']);
@@ -277,4 +275,3 @@ Route::middleware('auth:sanctum')->prefix('withdraws')->group(function () {
     Route::get('/form-fields', [WithdrawController::class, 'formFields']);
     Route::get('/{orderNo}', [WithdrawController::class, 'show']);
 });
-
