@@ -46,7 +46,7 @@ class ThemeController extends Controller
         $result = $themes->map(function ($theme) use ($locale) {
             return [
                 'id' => $theme->id,
-                'name' => $theme->getName($locale),
+                'name' => $theme->name,
                 'icon' => $theme->icon,
                 'sort_id' => $theme->sort_id,
             ];
