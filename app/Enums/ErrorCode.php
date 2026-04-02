@@ -62,12 +62,14 @@ enum ErrorCode: int
 
     // 游戏提供商错误 (6000-6999)
     case BET_DUP = 6001;
+    case GAME_BRAND_UNDER_MAINTENANCE = 6002;
+
     /**
      * 获取错误消息
      */
     public function getMessage(): string
     {
-        return match($this) {
+        return match ($this) {
             self::SUCCESS => 'Success',
 
             // 通用错误
@@ -123,6 +125,7 @@ enum ErrorCode: int
 
             // 游戏提供商错误
             self::BET_DUP => 'Duplicate bet transaction',
+            self::GAME_BRAND_UNDER_MAINTENANCE => 'This game brand is under maintenance. Please try again later.',
 
             default => 'Unknown error',
         };

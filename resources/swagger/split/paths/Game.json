@@ -317,7 +317,7 @@
                 "Game"
             ],
             "summary": "获取游戏 session 地址",
-            "description": "获取指定游戏的 session 地址（需要认证）",
+            "description": "获取指定游戏的 session 地址（需要认证）。若游戏所属品牌当前处于维护时段（Brand.isInMaintenance，即 maintain_start～maintain_end 内），则返回业务错误码 6002（HTTP 200，body 内 code=6002）。",
             "security": [
                 {
                     "bearerAuth": []

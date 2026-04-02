@@ -85,6 +85,10 @@ class Brand extends Model
      */
     public function isInMaintenance(): bool
     {
+        if (! $this->maintain_auto) {
+            return false;
+        }
+
         if (!$this->maintain_start || !$this->maintain_end) {
             return false;
         }

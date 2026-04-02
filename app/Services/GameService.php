@@ -18,16 +18,16 @@ class GameService
 
     public function __construct()
     {
-        $this->userRecentGameService = new UserRecentGameService();
+        $this->userRecentGameService = new UserRecentGameService;
     }
+
     /**
      * 获取游戏列表（分页）
      *
-     * @param array $filters 筛选条件
-     * @param string $sort 排序方式
-     * @param string $locale 语言代码
-     * @param int $perPage 每页数量
-     * @return LengthAwarePaginator
+     * @param  array  $filters  筛选条件
+     * @param  string  $sort  排序方式
+     * @param  string  $locale  语言代码
+     * @param  int  $perPage  每页数量
      */
     public function getGamesPaginated(array $filters = [], string $sort = 'new', string $locale = 'en', int $perPage = 20): LengthAwarePaginator
     {
@@ -36,24 +36,24 @@ class GameService
             ->with(['brand', 'category', 'themes']);
 
         // 按 category_id 筛选（支持数组）
-        if (!empty($filters['category_id']) && is_array($filters['category_id'])) {
+        if (! empty($filters['category_id']) && is_array($filters['category_id'])) {
             $query->whereIn('category_id', $filters['category_id']);
         }
 
         // 按 brand_id 筛选（支持数组）
-        if (!empty($filters['brand_id']) && is_array($filters['brand_id'])) {
+        if (! empty($filters['brand_id']) && is_array($filters['brand_id'])) {
             $query->whereIn('brand_id', $filters['brand_id']);
         }
 
         // 按 theme_id 筛选（支持数组）
-        if (!empty($filters['theme_id']) && is_array($filters['theme_id'])) {
+        if (! empty($filters['theme_id']) && is_array($filters['theme_id'])) {
             $query->whereHas('themes', function ($q) use ($filters) {
                 $q->whereIn('themes.id', $filters['theme_id']);
             });
         }
 
         // 按名称搜索（支持原始名称和翻译名称）
-        if (!empty($filters['name'])) {
+        if (! empty($filters['name'])) {
             $translationIds = Translation::where('translatable_type', Game::class)
                 ->where('field', 'name')
                 ->where('locale', $locale)
@@ -77,8 +77,8 @@ class GameService
     /**
      * 获取游戏详情
      *
-     * @param int $id 游戏ID
-     * @return Game
+     * @param  int  $id  游戏ID
+     *
      * @throws \Illuminate\Database\Eloquent\ModelNotFoundException
      */
     public function getGame(int $id): Game
@@ -90,10 +90,6 @@ class GameService
 
     /**
      * 格式化游戏列表数据
-     *
-     * @param Collection $games
-     * @param string $locale
-     * @return array
      */
     public function formatGamesList(Collection $games, string $locale = 'en'): array
     {
@@ -110,6 +106,8 @@ class GameService
                     'restricted_region' => $game->brand->restricted_region,
                     'maintain_start' => $game->brand->maintain_start,
                     'maintain_end' => $game->brand->maintain_end,
+                    'maintain_auto' => $game->brand->maintain_auto,
+                    'in_maintenance' => $game->brand->isInMaintenance(),
                 ] : null,
                 'category' => $game->category ? [
                     'id' => $game->category->id,
@@ -131,10 +129,6 @@ class GameService
 
     /**
      * 格式化游戏详情数据
-     *
-     * @param Game $game
-     * @param string $locale
-     * @return array
      */
     public function formatGameDetail(Game $game, string $locale = 'en'): array
     {
@@ -173,9 +167,7 @@ class GameService
     /**
      * 应用排序
      *
-     * @param Builder $query
-     * @param string $sort
-     * @return void
+     * @param  Builder  $query
      */
     protected function applySort($query, string $sort): void
     {
@@ -199,9 +191,8 @@ class GameService
     /**
      * 获取推荐游戏列表（分页）
      *
-     * @param int $gameId 当前游戏ID
-     * @param int $perPage 每页数量
-     * @return LengthAwarePaginator
+     * @param  int  $gameId  当前游戏ID
+     * @param  int  $perPage  每页数量
      */
     public function getRecommendedGamesPaginated(int $gameId, int $perPage = 20): LengthAwarePaginator
     {
@@ -215,15 +206,11 @@ class GameService
 
     /**
      * 获取游戏demo地址
-     *
-     * @param int $gameId
-     * @param string $currency
-     * @return string|null
      */
     public function getGameDemoUrl(int $gameId, string $currency): ?string
     {
         $game = Game::with('brand')->find($gameId);
-        if (!$game || !$game->brand) {
+        if (! $game || ! $game->brand) {
             return null;
         }
 
@@ -233,13 +220,14 @@ class GameService
         }
 
         $providerName = $game->brand->provider;
-        if (!$providerName) {
+        if (! $providerName) {
             return null;
         }
 
         try {
             // 创建 provider 实例，传入 currency
             $provider = GameProviderFactory::create($providerName, $currency);
+
             return $provider->demo($game->out_id);
         } catch (\InvalidArgumentException $e) {
             return null;
@@ -249,21 +237,21 @@ class GameService
     /**
      * 获取游戏 session 地址
      *
-     * @param int $gameId
-     * @param int $userId
-     * @param string $currency
-     * @return string
      * @throws \Exception
      */
     public function getGameSessionUrl(int $gameId, int $userId, string $currency): string
     {
         $game = Game::with('brand')->find($gameId);
-        if (!$game || !$game->brand) {
+        if (! $game || ! $game->brand) {
             throw new Exception(ErrorCode::NOT_FOUND, 'Game not found');
         }
 
+        if ($game->brand->isInMaintenance()) {
+            throw new Exception(ErrorCode::GAME_BRAND_UNDER_MAINTENANCE);
+        }
+
         $providerName = $game->brand->provider;
-        if (!$providerName) {
+        if (! $providerName) {
             throw new Exception(ErrorCode::NOT_FOUND, 'Game provider not configured');
         }
 
@@ -273,11 +261,12 @@ class GameService
             $provider = GameProviderFactory::create($providerName, $currency);
             /** @var string $sessionUrl */
             $sessionUrl = $provider->session((string) $userId, (string) $game->out_id);
+
             return $sessionUrl;
         } catch (\InvalidArgumentException $e) {
-            throw new Exception(ErrorCode::NOT_FOUND, 'Game provider not found: ' . $e->getMessage());
+            throw new Exception(ErrorCode::NOT_FOUND, 'Game provider not found: '.$e->getMessage());
         } catch (\Exception $e) {
-            throw new Exception(ErrorCode::INTERNAL_ERROR, 'Failed to create game session: ' . $e->getMessage());
+            throw new Exception(ErrorCode::INTERNAL_ERROR, 'Failed to create game session: '.$e->getMessage());
         }
     }
 
@@ -290,11 +279,10 @@ class GameService
      * 获取用户最近游玩的游戏列表（分页）
      * 优先从 Redis 缓存读取，缓存未命中则从数据库加载
      *
-     * @param int $userId 用户ID
-     * @param string $sort 排序方式: recent(最近游玩), play_count(游玩次数), max_multiplier(最大倍数)
-     * @param int $perPage 每页数量
-     * @param int $page 页码
-     * @return LengthAwarePaginator
+     * @param  int  $userId  用户ID
+     * @param  string  $sort  排序方式: recent(最近游玩), play_count(游玩次数), max_multiplier(最大倍数)
+     * @param  int  $perPage  每页数量
+     * @param  int  $page  页码
      */
     public function getRecentPlayedGamesPaginated(int $userId, string $sort = 'recent', int $perPage = 20, int $page = 1): LengthAwarePaginator
     {
@@ -304,14 +292,13 @@ class GameService
     /**
      * 格式化最近游玩游戏列表数据
      *
-     * @param Collection $items
-     * @param string $locale
-     * @return array
+     * @param  Collection  $items
      */
     public function formatRecentGamesList($items, string $locale = 'en'): array
     {
         return $items->map(function ($item) use ($locale) {
             $game = $item['game'];
+
             return [
                 'id' => $game->id,
                 'name' => $game->getNameTranslation($locale),
