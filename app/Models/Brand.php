@@ -24,6 +24,7 @@ class Brand extends Model
         'maintain_start',
         'maintain_end',
         'maintain_auto',
+        'maintain_week_day',
     ];
 
     /**
@@ -38,6 +39,7 @@ class Brand extends Model
         'maintain_start' => 'datetime',
         'maintain_end' => 'datetime',
         'sort_id' => 'integer',
+        'maintain_week_day' => 'integer',
     ];
 
     /**
@@ -91,6 +93,12 @@ class Brand extends Model
 
         if (!$this->maintain_start || !$this->maintain_end) {
             return false;
+        }
+
+        if ($this->maintain_week_day) {
+            if (date('w') !== $this->maintain_week_day) {
+                return false;
+            }
         }
 
         $now = now();
