@@ -2091,6 +2091,20 @@
                     "type": "boolean",
                     "description": "是否自动维护"
                 },
+                "maintain_week_day": {
+                    "type": "array",
+                    "nullable": true,
+                    "items": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 6
+                    },
+                    "description": "维护生效的星期（PHP date(\"w\")：0=周日…6=周六）；多选。空或 null 表示不按星期过滤"
+                },
+                "in_maintenance": {
+                    "type": "boolean",
+                    "description": "当前是否处于维护中（综合 maintain_auto、时段与星期）"
+                },
                 "created_at": {
                     "type": "string",
                     "format": "date-time",

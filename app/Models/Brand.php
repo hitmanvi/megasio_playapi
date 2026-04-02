@@ -39,7 +39,7 @@ class Brand extends Model
         'maintain_start' => 'datetime',
         'maintain_end' => 'datetime',
         'sort_id' => 'integer',
-        'maintain_week_day' => 'integer',
+        'maintain_week_day' => 'array',
     ];
 
     /**
@@ -91,17 +91,21 @@ class Brand extends Model
             return false;
         }
 
-        if (!$this->maintain_start || !$this->maintain_end) {
+        if (! $this->maintain_start || ! $this->maintain_end) {
             return false;
         }
 
-        if ($this->maintain_week_day) {
-            if (date('w') !== $this->maintain_week_day) {
+        $weekDays = $this->maintain_week_day;
+        if (is_array($weekDays) && $weekDays !== []) {
+            $today = (int) now()->format('w');
+            $normalized = array_map('intval', $weekDays);
+            if (! in_array($today, $normalized, true)) {
                 return false;
             }
         }
 
         $now = now();
+
         return $now->between($this->maintain_start, $this->maintain_end);
     }
 
@@ -110,7 +114,7 @@ class Brand extends Model
      */
     public function isRegionRestricted(string $region): bool
     {
-        if (!$this->restricted_region) {
+        if (! $this->restricted_region) {
             return false;
         }
 

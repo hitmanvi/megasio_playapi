@@ -5,8 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\Brand;
 use App\Models\Translation;
 use App\Services\BrandService;
-use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 
 class BrandController extends Controller
 {
@@ -24,10 +24,10 @@ class BrandController extends Controller
     {
         $locale = $this->getLocale($request);
         $name = $request->input('name');
-        
+
         // 处理 ids 参数，支持单个值或数组
         $ids = $request->input('ids');
-        if ($ids && !is_array($ids)) {
+        if ($ids && ! is_array($ids)) {
             $ids = [$ids];
         }
 
@@ -36,12 +36,12 @@ class BrandController extends Controller
             ->ordered();
 
         // 按 ids 筛选（支持数组）
-        if (!empty($ids) && is_array($ids)) {
+        if (! empty($ids) && is_array($ids)) {
             $query->whereIn('id', $ids);
         }
 
         // 按名称搜索（支持原始名称和翻译名称）
-        if (!empty($name)) {
+        if (! empty($name)) {
             $translationIds = Translation::where('translatable_type', Brand::class)
                 ->where('field', 'name')
                 ->where('locale', $locale)
@@ -76,11 +76,11 @@ class BrandController extends Controller
         $perPage = (int) $request->input('per_page', 20);
 
         $brandsPaginator = $this->brandService->getRecommendedBrandsPaginated($id, $perPage);
-        
+
         // 格式化分页数据
         $brands = $brandsPaginator->getCollection();
         $result = $this->brandService->formatBrandsList($brands, $locale);
-        
+
         // 创建新的分页器，使用格式化后的数据
         $formattedPaginator = new \Illuminate\Pagination\LengthAwarePaginator(
             $result,
@@ -112,6 +112,7 @@ class BrandController extends Controller
             'maintain_start' => $brand->maintain_start,
             'maintain_end' => $brand->maintain_end,
             'maintain_auto' => $brand->maintain_auto,
+            'maintain_week_day' => $brand->maintain_week_day,
             'in_maintenance' => $brand->isInMaintenance(),
             'created_at' => $brand->created_at,
             'updated_at' => $brand->updated_at,
