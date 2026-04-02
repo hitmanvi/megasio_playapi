@@ -8450,7 +8450,7 @@
                     "Withdraw"
                 ],
                 "summary": "获取提款订单列表",
-                "description": "获取当前用户的提款订单列表，支持按状态、支付状态、货币类型、支付方式筛选",
+                "description": "获取当前用户的提款订单列表，支持按状态、支付状态、货币类型、支付方式筛选。响应 data 内除 items、meta 外包含 tags：当前用户已打上的、且标签定义 enabled=true 的标签列表。",
                 "security": [
                     {
                         "bearerAuth": []
@@ -8551,7 +8551,16 @@
                                             "current_page": 1,
                                             "last_page": 1,
                                             "total": 1
-                                        }
+                                        },
+                                        "tags": [
+                                            {
+                                                "id": 1,
+                                                "name": "paid",
+                                                "display_name": "Paid user",
+                                                "color": "#22c55e",
+                                                "description": null
+                                            }
+                                        ]
                                     }
                                 }
                             }
@@ -11936,6 +11945,31 @@
                     }
                 }
             },
+            "UserTagPublic": {
+                "type": "object",
+                "description": "用户身上的标签（仅 enabled 的标签定义）",
+                "properties": {
+                    "id": {
+                        "type": "integer"
+                    },
+                    "name": {
+                        "type": "string",
+                        "description": "标签唯一标识"
+                    },
+                    "display_name": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "color": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "description": {
+                        "type": "string",
+                        "nullable": true
+                    }
+                }
+            },
             "WithdrawListResponse": {
                 "type": "object",
                 "properties": {
@@ -11971,6 +12005,13 @@
                                         "type": "integer",
                                         "description": "总记录数"
                                     }
+                                }
+                            },
+                            "tags": {
+                                "type": "array",
+                                "description": "当前登录用户的标签列表（与分页条目无关，便于提款页展示风控\/身份标记）",
+                                "items": {
+                                    "$ref": "#\/components\/schemas\/UserTagPublic"
                                 }
                             }
                         }

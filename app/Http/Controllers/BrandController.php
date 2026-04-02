@@ -112,6 +112,7 @@ class BrandController extends Controller
             'maintain_start' => $brand->maintain_start,
             'maintain_end' => $brand->maintain_end,
             'maintain_auto' => $brand->maintain_auto,
+            'in_maintenance' => $brand->isInMaintenance(),
             'created_at' => $brand->created_at,
             'updated_at' => $brand->updated_at,
         ];
