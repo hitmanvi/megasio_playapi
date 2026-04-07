@@ -194,9 +194,9 @@ return [
     |--------------------------------------------------------------------------
     |
     | The number of days after which a bonus (such as deposit or promotion bonus)
-    | will expire if not used or claimed. Set to null to disable expiry.
+    | will expire if not used or claimed. Omit env for default 7; empty string disables expiry.
     |
     */
 
-    'bonus_expire_days' => env('BONUS_EXPIRE_DAYS', 7),
+    'bonus_expire_days' => ($e = env('BONUS_EXPIRE_DAYS')) === null ? 7 : ($e === '' ? null : (int) $e),
 ];

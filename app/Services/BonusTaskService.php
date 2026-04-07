@@ -2,32 +2,30 @@
 
 namespace App\Services;
 
-use App\Models\BonusTask;
-use App\Models\Order;
 use App\Jobs\SendWebSocketMessage;
-use App\Services\NotificationService;
+use App\Models\BonusTask;
 use Carbon\Carbon;
-use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
 class BonusTaskService
 {
     protected BalanceService $balanceService;
+
     protected TransactionService $transactionService;
+
     protected NotificationService $notificationService;
 
     public function __construct()
     {
-        $this->balanceService = new BalanceService();
-        $this->transactionService = new TransactionService();
-        $this->notificationService = new NotificationService();
+        $this->balanceService = new BalanceService;
+        $this->transactionService = new TransactionService;
+        $this->notificationService = new NotificationService;
     }
 
     /**
      * 获取用户可领取的 BonusTask 列表
      *
-     * @param int $userId
      * @return \Illuminate\Database\Eloquent\Collection
      */
     public function getClaimableTasks(int $userId)
@@ -41,9 +39,6 @@ class BonusTaskService
 
     /**
      * 获取用户当前激活的 bonus task（未过期的）
-     *
-     * @param int $userId
-     * @return BonusTask|null
      */
     public function getActiveBonusTask(int $userId): ?BonusTask
     {
@@ -51,7 +46,7 @@ class BonusTaskService
             ->where('status', BonusTask::STATUS_ACTIVE)
             ->where(function ($query) {
                 $query->whereNull('expired_at')
-                      ->orWhere('expired_at', '>', now());
+                    ->orWhere('expired_at', '>', now());
             })
             ->first();
     }
@@ -59,9 +54,6 @@ class BonusTaskService
     /**
      * 领取 BonusTask 奖励
      *
-     * @param int $userId
-     * @param int $taskId
-     * @return array
      * @throws \Exception
      */
     public function claim(int $userId, int $taskId): array
@@ -70,18 +62,18 @@ class BonusTaskService
             ->where('id', $taskId)
             ->first();
 
-        if (!$task) {
+        if (! $task) {
             throw new \Exception('Bonus task not found');
         }
 
-        if (!$task->isClaimable()) {
+        if (! $task->isClaimable()) {
             throw new \Exception('Bonus task is not claimable');
         }
 
         return DB::transaction(function () use ($task, $userId) {
             // 计算领取金额：min(cap_bonus, last_bonus)
             $claimAmount = $task->getClaimAmount();
-            
+
             // 更新任务状态
             $task->status = BonusTask::STATUS_CLAIMED;
             $task->save();
@@ -111,16 +103,16 @@ class BonusTaskService
     /**
      * 创建 BonusTask
      *
-     * @param array $data 任务数据
-     * @return BonusTask
+     * @param  array  $data  任务数据
      */
     public function createTask(array $data): BonusTask
     {
         // 如果没有设置 expired_at，根据配置计算过期时间
-        if (!isset($data['expired_at'])) {
+        if (! isset($data['expired_at'])) {
             $expireDays = config('app.bonus_expire_days');
-            if ($expireDays !== null) {
-                $data['expired_at'] = Carbon::now()->addDays($expireDays);
+            // env/config 常为字符串；Carbon 3 要求 addDays 为 int|float
+            if ($expireDays !== null && $expireDays !== '' && is_numeric($expireDays)) {
+                $data['expired_at'] = Carbon::now()->addDays((float) $expireDays);
             }
         }
 
@@ -140,9 +132,6 @@ class BonusTaskService
 
     /**
      * 激活任务
-     *
-     * @param BonusTask $task
-     * @return void
      */
     public function activate(BonusTask $task): void
     {
@@ -157,7 +146,6 @@ class BonusTaskService
      * 检查并激活下一个待激活的任务
      * 如果当前没有激活的任务，自动激活最快要过期的 pending 任务
      *
-     * @param int $userId
      * @return BonusTask|null 返回被激活的任务，如果没有则返回 null
      */
     public function activateNextPendingTask(int $userId): ?BonusTask
@@ -175,7 +163,7 @@ class BonusTaskService
             ->where(function ($query) {
                 // 只激活未过期的任务
                 $query->whereNull('expired_at')
-                      ->orWhere('expired_at', '>', now());
+                    ->orWhere('expired_at', '>', now());
             })
             ->orderByRaw('CASE WHEN expired_at IS NULL THEN 1 ELSE 0 END') // 有过期时间的优先
             ->orderBy('expired_at', 'asc') // 按过期时间升序（最快要过期的在前）
@@ -184,6 +172,7 @@ class BonusTaskService
 
         if ($pendingTask) {
             $this->activate($pendingTask);
+
             return $pendingTask;
         }
 
@@ -193,64 +182,58 @@ class BonusTaskService
     /**
      * 扣减 bonus 余额（下注）
      * 同时增加 wager（流水）
-     *
-     * @param BonusTask $task
-     * @param float $amount
-     * @return bool
      */
     public function deductBonus(BonusTask $task, float $amount): bool
     {
         // 检查是否可以操作（包括过期检查）
-        if (!$task->canOperate()) {
+        if (! $task->canOperate()) {
             // 如果任务已过期且处于 pending 或 active 状态，更新状态为过期
             if ($task->isExpired() && ($task->isPending() || $task->isActive())) {
                 $task->status = BonusTask::STATUS_EXPIRED;
                 $task->save();
             }
+
             return false;
         }
-        
+
         // 检查余额是否足够
         if ($task->last_bonus < $amount) {
             return false;
         }
-        
+
         // 扣减 bonus 余额
         $task->last_bonus -= $amount;
-        
+
         // 确保 last_bonus 不会小于 0
         if ($task->last_bonus < 0) {
             $task->last_bonus = 0;
         }
-        
+
         // 增加 wager（流水）
         $task->wager = min($task->wager + $amount, $task->need_wager);
-        
+
         // 检查是否已完成所需流水并处于激活状态，避免不必要的刷新
         if ($task->isActive() && $task->wager >= $task->need_wager) {
             $this->completeTask($task);
         }
-        
+
         $task->save();
-        
+
         // 发送 WebSocket 推送
         $this->sendBonusTaskUpdate($task, 'deduct', $amount);
-        
+
         return true;
     }
 
     /**
      * 完成任务：发放 cap_bonus 奖励并更新状态为已领取
-     *
-     * @param BonusTask $task
-     * @return void
      */
     protected function completeTask(BonusTask $task): void
     {
         DB::transaction(function () use ($task) {
             // 计算奖励金额：cap_bonus
             $rewardAmount = (float) $task->cap_bonus;
-            
+
             // 发放奖励到用户余额
             if ($rewardAmount > 0) {
                 $this->balanceService->bonusTaskReward(
@@ -270,10 +253,10 @@ class BonusTaskService
                     $task->bonus_name
                 );
             }
-            
+
             // 清空 last_bonus
             $task->last_bonus = 0;
-            
+
             // 更新任务状态为已领取（因为奖励已自动发放）
             $task->status = BonusTask::STATUS_CLAIMED;
             $task->save();
@@ -288,20 +271,16 @@ class BonusTaskService
 
     /**
      * 增加 bonus 余额（赢钱）
-     *
-     * @param BonusTask $task
-     * @param float $amount
-     * @return void
      */
     public function addBonus(BonusTask $task, float $amount): void
     {
-        if (!$task->canOperate()) {
+        if (! $task->canOperate()) {
             return;
         }
-        
+
         $task->last_bonus = $task->last_bonus + $amount;
         $task->save();
-        
+
         // 发送 WebSocket 推送
         $this->sendBonusTaskUpdate($task, 'add', $amount);
     }
@@ -309,7 +288,6 @@ class BonusTaskService
     /**
      * 将指定用户下已过期的 bonus task 更新为 expired 状态
      *
-     * @param int $userId
      * @return int 更新条数
      */
     public function expireOverdueTasksForUser(int $userId): int
@@ -325,8 +303,7 @@ class BonusTaskService
     /**
      * 获取用户的 BonusTask 列表
      *
-     * @param int $userId
-     * @param string|array|null $status 状态过滤（可选，支持单个值或数组）
+     * @param  string|array|null  $status  状态过滤（可选，支持单个值或数组）
      * @return \Illuminate\Database\Eloquent\Collection
      */
     public function getTasks(int $userId, $status = null)
@@ -351,9 +328,8 @@ class BonusTaskService
     /**
      * 获取用户的 BonusTask 列表（分页）
      *
-     * @param int $userId
-     * @param string|array|null $status 状态过滤（可选，支持单个值或数组）
-     * @param int $perPage 每页数量
+     * @param  string|array|null  $status  状态过滤（可选，支持单个值或数组）
+     * @param  int  $perPage  每页数量
      * @return \Illuminate\Contracts\Pagination\LengthAwarePaginator
      */
     public function getTasksPaginated(int $userId, $status = null, int $perPage = 20)
@@ -377,9 +353,6 @@ class BonusTaskService
 
     /**
      * 格式化 BonusTask 数据
-     *
-     * @param BonusTask $task
-     * @return array
      */
     public function formatBonusTask(BonusTask $task): array
     {
@@ -404,20 +377,18 @@ class BonusTaskService
     /**
      * 发送 BonusTask 更新 WebSocket 推送
      *
-     * @param BonusTask $task
-     * @param string $operation 操作类型 (add/deduct)
-     * @param float $amount 变动金额
-     * @return void
+     * @param  string  $operation  操作类型 (add/deduct)
+     * @param  float  $amount  变动金额
      */
     public function sendBonusTaskUpdate(BonusTask $task, string $operation, float $amount): void
     {
         try {
             // 加载用户关联以获取 uid
-            if (!$task->relationLoaded('user')) {
+            if (! $task->relationLoaded('user')) {
                 $task->load('user');
             }
 
-            if (!$task->user || !$task->user->uid) {
+            if (! $task->user || ! $task->user->uid) {
                 return;
             }
 
@@ -452,9 +423,6 @@ class BonusTaskService
 
     /**
      * 获取用户的 BonusTask 统计数据
-     *
-     * @param int $userId
-     * @return array
      */
     public function getStats(int $userId): array
     {
