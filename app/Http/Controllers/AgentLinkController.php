@@ -41,7 +41,7 @@ class AgentLinkController extends Controller
         if (isset($cfg['enabled']) && ! $cfg['enabled']) {
             return null;
         }
-        $id = $cfg['pixel_id'] ?? null;
+        $id = $cfg['pixel'] ?? null;
 
         return ($id !== null && $id !== '') ? (string) $id : null;
     }
