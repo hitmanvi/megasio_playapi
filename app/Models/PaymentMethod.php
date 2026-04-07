@@ -28,6 +28,8 @@ class PaymentMethod extends Model
         'enabled',
         'sort_id',
         'synced_at',
+        'sync_min_amount',
+        'sync_max_amount',
         'notes',
         'crypto_info',
         'fields',
@@ -52,6 +54,8 @@ class PaymentMethod extends Model
         'max_amount' => 'decimal:8',
         'min_amount' => 'decimal:8',
         'default_amount' => 'decimal:8',
+        'sync_min_amount' => 'decimal:8',
+        'sync_max_amount' => 'decimal:8',
         'synced_at' => 'datetime',
     ];
 
@@ -59,6 +63,7 @@ class PaymentMethod extends Model
      * Payment method type constants.
      */
     const TYPE_DEPOSIT = 'deposit';
+
     const TYPE_WITHDRAW = 'withdraw';
 
     /**
@@ -187,7 +192,7 @@ class PaymentMethod extends Model
 
         // Check if amount is in the fixed amounts array
         if ($this->amounts && is_array($this->amounts) && count($this->amounts) > 0) {
-            return in_array((string)$amount, array_map('strval', $this->amounts));
+            return in_array((string) $amount, array_map('strval', $this->amounts));
         }
 
         return true;
@@ -196,8 +201,7 @@ class PaymentMethod extends Model
     /**
      * Get the fields attribute, returning empty array if null.
      *
-     * @param mixed $value
-     * @return array
+     * @param  mixed  $value
      */
     public function getFieldsAttribute($value): array
     {
@@ -212,6 +216,7 @@ class PaymentMethod extends Model
 
         // If JSON string, decode it
         $decoded = json_decode($value, true);
+
         return is_array($decoded) ? $decoded : [];
     }
 }

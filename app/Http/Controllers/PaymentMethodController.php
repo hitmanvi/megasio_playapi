@@ -3,14 +3,14 @@
 namespace App\Http\Controllers;
 
 use App\Models\PaymentMethod;
-use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 
 class PaymentMethodController extends Controller
 {
     /**
      * 获取支付方式列表
-     * 
+     *
      * 支持根据 currency, type, is_fiat, ids 进行筛选（均为可选参数）
      */
     public function index(Request $request): JsonResponse
@@ -20,7 +20,7 @@ class PaymentMethodController extends Controller
         // 筛选：IDs（可选，数组格式）
         if ($request->has('ids') && is_array($request->input('ids'))) {
             $ids = array_filter(array_map('intval', $request->input('ids')));
-            if (!empty($ids)) {
+            if (! empty($ids)) {
                 $query->whereIn('id', $ids);
             }
         }
@@ -55,9 +55,9 @@ class PaymentMethodController extends Controller
                 'currency' => $method->currency,
                 'type' => $method->type,
                 'amounts' => $method->amounts,
-                'max_amount' => $method->max_amount ? (float)$method->max_amount : null,
-                'min_amount' => $method->min_amount ? (float)$method->min_amount : null,
-                'default_amount' => $method->default_amount ? (float)$method->default_amount : null,
+                'max_amount' => $method->max_amount ? (float) $method->max_amount : null,
+                'min_amount' => $method->min_amount ? (float) $method->min_amount : null,
+                'default_amount' => $method->default_amount ? (float) $method->default_amount : null,
                 'support_custom_amount' => $method->support_custom_amount ?? false,
                 'sort_id' => $method->sort_id,
                 'crypto_info' => $method->crypto_info,
