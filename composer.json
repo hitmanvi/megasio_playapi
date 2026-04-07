@@ -7,6 +7,7 @@
     "license": "MIT",
     "require": {
         "php": "^8.2",
+        "aws/aws-sdk-php": "^3.376",
         "facebook/php-business-sdk": "^24.0",
         "firebase/php-jwt": "^6.11",
         "google/apiclient": "^2.18",
