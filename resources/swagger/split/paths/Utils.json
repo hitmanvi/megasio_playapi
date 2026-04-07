@@ -217,5 +217,95 @@
                 }
             }
         }
+    },
+    "\/agent-links\/pixel": {
+        "get": {
+            "tags": [
+                "Utils"
+            ],
+            "summary": "按推广码获取 Facebook Pixel ID",
+            "description": "根据 agent link 的 promotion_code（推广码）查询该链接配置的 Facebook Pixel ID，供前端埋点使用。仅返回已启用代理与启用链接；未配置或 facebook_config.enabled 为 false 时 pixel_id 为 null。无效或停用推广码返回 404。",
+            "parameters": [
+                {
+                    "name": "code",
+                    "in": "query",
+                    "required": true,
+                    "schema": {
+                        "type": "string",
+                        "maxLength": 32
+                    },
+                    "description": "AgentLink 的 promotion_code（推广码）"
+                }
+            ],
+            "responses": {
+                "200": {
+                    "description": "成功",
+                    "content": {
+                        "application\/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "code": {
+                                        "type": "integer",
+                                        "example": 0
+                                    },
+                                    "errmsg": {
+                                        "type": "string",
+                                        "example": "Success"
+                                    },
+                                    "data": {
+                                        "type": "object",
+                                        "properties": {
+                                            "promotion_code": {
+                                                "type": "string",
+                                                "description": "推广码"
+                                            },
+                                            "pixel_id": {
+                                                "type": "string",
+                                                "nullable": true,
+                                                "description": "Facebook Pixel ID；未配置或已禁用时为 null"
+                                            }
+                                        }
+                                    }
+                                }
+                            },
+                            "example": {
+                                "code": 0,
+                                "errmsg": "Success",
+                                "data": {
+                                    "promotion_code": "ABC123",
+                                    "pixel_id": "123456789012345"
+                                }
+                            }
+                        }
+                    }
+                },
+                "404": {
+                    "description": "推广码无效或链接\/代理未启用",
+                    "content": {
+                        "application\/json": {
+                            "schema": {
+                                "$ref": "#\/components\/schemas\/ErrorResponse"
+                            },
+                            "example": {
+                                "code": 1004,
+                                "errmsg": "Resource not found",
+                                "data": "Invalid or inactive promotion code"
+                            }
+                        }
+                    }
+                },
+                "422": {
+                    "description": "缺少或非法参数 code",
+                    "content": {
+                        "application\/json": {
+                            "schema": {
+                                "$ref": "#\/components\/schemas\/ErrorResponse"
+                            }
+                        }
+                    }
+                }
+            }
+        }
     }
 }

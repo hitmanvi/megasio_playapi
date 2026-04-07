@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AdminController;
+use App\Http\Controllers\AgentLinkController;
 use App\Http\Controllers\ArticleController;
 use App\Http\Controllers\ArticleGroupController;
 use App\Http\Controllers\AuthController;
@@ -230,6 +231,7 @@ Route::prefix('temp-data')->group(function () {
     Route::get('/', [TempDataController::class, 'index']);
 });
 Route::get('/settings', [UtilsController::class, 'settings']);
+Route::get('/agent-links/pixel', [AgentLinkController::class, 'pixel']);
 Route::get('/links', [SiteLinkController::class, 'index']);
 Route::middleware('auth:sanctum')->post('/upload', [UtilsController::class, 'uploadImage']);
 
