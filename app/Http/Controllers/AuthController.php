@@ -30,13 +30,31 @@ class AuthController extends Controller
     {
         $request->validate([
             'name' => 'string|max:255',
-            'phone' => 'nullable|string',
-            'area_code' => 'nullable|string|max:10',
-            'email' => 'nullable|string|email|max:255',
+            'phone' => [
+                'nullable',
+                'string',
+                Rule::requiredIf(fn () => ! $request->filled('email')),
+                Rule::prohibitedIf(fn () => $request->filled('email')),
+            ],
+            'area_code' => 'nullable|string|max:10|required_with:phone',
+            'email' => [
+                'nullable',
+                'string',
+                'email',
+                'max:255',
+                Rule::requiredIf(fn () => ! $request->filled('phone')),
+                Rule::prohibitedIf(fn () => $request->filled('phone')),
+            ],
             'password' => 'required|string|min:6',
             'invite_code' => 'nullable|string',
             'receive_promotion_email' => 'sometimes|boolean',
+            'code' => 'required|string|size:6',
         ]);
+
+        $areaCode = $request->input('area_code');
+        if ($areaCode && str_starts_with($areaCode, '+')) {
+            $areaCode = substr($areaCode, 1);
+        }
 
         try {
             if ($request->filled('email')) {
@@ -49,11 +67,23 @@ class AuthController extends Controller
                     throw new AppException(ErrorCode::PHONE_ALREADY_EXISTS, 'Phone number already exists');
                 }
             }
+
+            $codeType = 'register';
+            $code = $request->input('code');
+            if ($request->filled('email')) {
+                $isValid = $this->verificationCodeService->verifyEmailCode((string) $request->email, $code, $codeType);
+            } else {
+                $isValid = $this->verificationCodeService->verifySmsCode((string) $request->phone, $code, $areaCode, $codeType);
+            }
+            if (! $isValid) {
+                return $this->error(ErrorCode::VERIFICATION_CODE_INVALID, 'Invalid verification code');
+            }
+
             $deviceInfo = $this->getDeviceInfoForEvent($request, null);
             $result = $this->authService->register([
                 'name' => $request->name,
                 'phone' => $request->phone,
-                'area_code' => $request->area_code,
+                'area_code' => $areaCode,
                 'email' => $request->email,
                 'password' => $request->password,
                 'invite_code' => $request->invite_code,

@@ -643,7 +643,7 @@
                     "Authentication"
                 ],
                 "summary": "用户注册",
-                "description": "创建新用户账户。invite_code：4位为推广码（绑定 AgentLink），非4位为邀请码（绑定邀请人）。可选 receive_promotion_email：是否接受推广邮件；为 true 时注册成功后会同步至营销系统（如 Customer.io）；不传默认 false，且该字段不会出现在返回的 user 对象中",
+                "description": "创建新用户账户。须先调用「发送验证码」且 type=register，再提交与本接口一致的 phone+area_code 或 email 及 6 位 code。手机号与邮箱只能选填其一。invite_code：4位为推广码（绑定 AgentLink），非4位为邀请码（绑定邀请人）。可选 receive_promotion_email：是否接受推广邮件；为 true 时注册成功后会同步至营销系统（如 Customer.io）；不传默认 false，且该字段不会出现在返回的 user 对象中",
                 "requestBody": {
                     "required": true,
                     "content": {
@@ -651,14 +651,27 @@
                             "schema": {
                                 "$ref": "#\/components\/schemas\/RegisterRequest"
                             },
-                            "example": {
-                                "name": "张三",
-                                "phone": "13800138000",
-                                "area_code": "86",
-                                "email": "zhangsan@example.com",
-                                "password": "password123",
-                                "password_confirmation": "password123",
-                                "receive_promotion_email": true
+                            "examples": {
+                                "register_by_phone": {
+                                    "summary": "手机号注册",
+                                    "value": {
+                                        "name": "张三",
+                                        "phone": "13800138000",
+                                        "area_code": "86",
+                                        "password": "password123",
+                                        "code": "123456",
+                                        "receive_promotion_email": true
+                                    }
+                                },
+                                "register_by_email": {
+                                    "summary": "邮箱注册",
+                                    "value": {
+                                        "name": "张三",
+                                        "email": "zhangsan@example.com",
+                                        "password": "password123",
+                                        "code": "123456"
+                                    }
+                                }
                             }
                         }
                     }
@@ -734,6 +747,29 @@
                                             "code": 3006,
                                             "errmsg": "Invalid invite code",
                                             "data": null
+                                        }
+                                    },
+                                    "invalid_verification_code": {
+                                        "summary": "验证码无效或已过期",
+                                        "value": {
+                                            "code": 2010,
+                                            "errmsg": "Invalid verification code",
+                                            "data": null
+                                        }
+                                    },
+                                    "phone_email_both": {
+                                        "summary": "手机号与邮箱不能同时提供",
+                                        "value": {
+                                            "code": 1001,
+                                            "errmsg": "Validation failed",
+                                            "data": {
+                                                "phone": [
+                                                    "The phone field is prohibited when email is present."
+                                                ],
+                                                "email": [
+                                                    "The email field is prohibited when phone is present."
+                                                ]
+                                            }
                                         }
                                     }
                                 }
@@ -9519,37 +9555,43 @@
             "RegisterRequest": {
                 "type": "object",
                 "required": [
-                    "name",
-                    "password"
+                    "password",
+                    "code"
                 ],
                 "properties": {
                     "name": {
                         "type": "string",
                         "maxLength": 255,
-                        "description": "用户姓名"
+                        "description": "用户姓名（可选，默认取手机号或邮箱）"
                     },
                     "phone": {
                         "type": "string",
                         "nullable": true,
-                        "description": "手机号码（与邮箱至少提供一个）"
+                        "description": "手机号；与邮箱二选一，不可同时传（需先调用发送验证码且 type=register）"
                     },
                     "area_code": {
                         "type": "string",
                         "maxLength": 10,
                         "nullable": true,
-                        "description": "区号\/国家代码（不需要+号，如：86）"
+                        "description": "区号\/国家代码（不需要+号，如：86）；传 phone 时必填"
                     },
                     "email": {
                         "type": "string",
                         "format": "email",
                         "maxLength": 255,
                         "nullable": true,
-                        "description": "邮箱地址（与手机号至少提供一个）"
+                        "description": "邮箱；与手机号二选一，不可同时传（需先调用发送验证码且 type=register）"
+                    },
+                    "code": {
+                        "type": "string",
+                        "minLength": 6,
+                        "maxLength": 6,
+                        "description": "6 位验证码（与发送验证码接口 type=register 对应）"
                     },
                     "password": {
                         "type": "string",
-                        "minLength": 8,
-                        "description": "密码（至少8位）"
+                        "minLength": 6,
+                        "description": "密码（至少 6 位）"
                     },
                     "password_confirmation": {
                         "type": "string",

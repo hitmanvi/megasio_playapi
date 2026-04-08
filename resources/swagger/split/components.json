@@ -469,37 +469,43 @@
         "RegisterRequest": {
             "type": "object",
             "required": [
-                "name",
-                "password"
+                "password",
+                "code"
             ],
             "properties": {
                 "name": {
                     "type": "string",
                     "maxLength": 255,
-                    "description": "用户姓名"
+                    "description": "用户姓名（可选，默认取手机号或邮箱）"
                 },
                 "phone": {
                     "type": "string",
                     "nullable": true,
-                    "description": "手机号码（与邮箱至少提供一个）"
+                    "description": "手机号；与邮箱二选一，不可同时传（需先调用发送验证码且 type=register）"
                 },
                 "area_code": {
                     "type": "string",
                     "maxLength": 10,
                     "nullable": true,
-                    "description": "区号\/国家代码（不需要+号，如：86）"
+                    "description": "区号\/国家代码（不需要+号，如：86）；传 phone 时必填"
                 },
                 "email": {
                     "type": "string",
                     "format": "email",
                     "maxLength": 255,
                     "nullable": true,
-                    "description": "邮箱地址（与手机号至少提供一个）"
+                    "description": "邮箱；与手机号二选一，不可同时传（需先调用发送验证码且 type=register）"
+                },
+                "code": {
+                    "type": "string",
+                    "minLength": 6,
+                    "maxLength": 6,
+                    "description": "6 位验证码（与发送验证码接口 type=register 对应）"
                 },
                 "password": {
                     "type": "string",
-                    "minLength": 8,
-                    "description": "密码（至少8位）"
+                    "minLength": 6,
+                    "description": "密码（至少 6 位）"
                 },
                 "password_confirmation": {
                     "type": "string",
