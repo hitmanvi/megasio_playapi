@@ -50,13 +50,19 @@ return [
     ],
 
     /*
-    | Google reCAPTCHA（发送验证码等场景）。RECAPTCHA_ENABLED=true 且配置 RECAPTCHA_SECRET_KEY 后，
-    | 客户端须在请求中携带 recaptcha_token（v2/v3 返回的 token）；v3 可配 RECAPTCHA_MIN_SCORE、RECAPTCHA_EXPECTED_ACTION
+    | Google reCAPTCHA Enterprise（发送验证码等）。需 GCP 项目、启用 API、服务账号具备 recaptchaenterprise 权限。
+    | RECAPTCHA_ENABLED=true 且配置 project_id + site_key；鉴权见 RECAPTCHA_ENTERPRISE_CREDENTIALS 或 GOOGLE_APPLICATION_CREDENTIALS。
+    | 文档：https://docs.cloud.google.com/php/docs/reference/cloud-recaptcha-enterprise/latest
     */
     'recaptcha' => [
         'enabled' => filter_var(env('RECAPTCHA_ENABLED', false), FILTER_VALIDATE_BOOLEAN),
-        'secret' => env('RECAPTCHA_SECRET_KEY'),
-        'min_score' => (float) env('RECAPTCHA_MIN_SCORE', 0.5),
+        'enterprise' => [
+            'project_id' => env('RECAPTCHA_ENTERPRISE_PROJECT_ID'),
+            'site_key' => env('RECAPTCHA_ENTERPRISE_SITE_KEY'),
+            'credentials' => env('RECAPTCHA_ENTERPRISE_CREDENTIALS'),
+        ],
+        /* 仅当设置 RECAPTCHA_MIN_SCORE 时校验 RiskAnalysis.score（0~1，越高越像真人）；不配置则只校验 token 有效 */
+        'min_score' => env('RECAPTCHA_MIN_SCORE'),
         'expected_action' => env('RECAPTCHA_EXPECTED_ACTION'),
     ],
 

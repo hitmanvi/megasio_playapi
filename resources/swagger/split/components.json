@@ -574,11 +574,11 @@
         },
         "SendVerificationCodeRequest": {
             "type": "object",
-            "description": "发送验证码请求。必须提供 phone 或 email 其中一个参数，不能同时提供。系统会根据提供的参数自动选择发送方式：提供 phone 则发送短信验证码，提供 email 则发送邮件验证码。注意：当提供 phone 时，area_code 为必填项。当服务端开启 RECAPTCHA_ENABLED 且配置了 RECAPTCHA_SECRET_KEY 时，必须额外传入 recaptcha_token（Google reCAPTCHA v2\/v3 前端返回的 token）。",
+            "description": "发送验证码请求。必须提供 phone 或 email 其中一个参数，不能同时提供。系统会根据提供的参数自动选择发送方式：提供 phone 则发送短信验证码，提供 email 则发送邮件验证码。注意：当提供 phone 时，area_code 为必填项。当服务端开启 RECAPTCHA_ENABLED 且配置了 Enterprise 的 project\/site key 时，必须额外传入 recaptcha_token（reCAPTCHA Enterprise 客户端生成的 token）。",
             "properties": {
                 "recaptcha_token": {
                     "type": "string",
-                    "description": "Google reCAPTCHA 校验 token；生产开启 reCAPTCHA 时必填"
+                    "description": "reCAPTCHA Enterprise 客户端生成的 token；开启 RECAPTCHA 且配置 Enterprise 时必填"
                 },
                 "phone": {
                     "type": "string",
