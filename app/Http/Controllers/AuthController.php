@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Enums\ErrorCode;
 use App\Exceptions\Exception as AppException;
 use App\Services\AuthService;
+use App\Services\RecaptchaService;
 use App\Services\VerificationCodeService;
 use Exception;
 use Illuminate\Http\JsonResponse;
@@ -17,10 +18,13 @@ class AuthController extends Controller
 
     protected VerificationCodeService $verificationCodeService;
 
+    protected RecaptchaService $recaptchaService;
+
     public function __construct()
     {
         $this->authService = new AuthService;
         $this->verificationCodeService = new VerificationCodeService;
+        $this->recaptchaService = new RecaptchaService;
     }
 
     /**
@@ -181,6 +185,12 @@ class AuthController extends Controller
             'email' => 'required_without:phone|string|email',
             'area_code' => 'nullable|string|max:10|required_with:phone',
             'type' => 'nullable|string|in:register,login,reset_password,default',
+            'recaptcha_token' => [
+                'nullable',
+                'string',
+                'max:4096',
+                Rule::requiredIf(fn () => $this->recaptchaService->isVerificationEnabled()),
+            ],
         ]);
 
         $phone = $request->input('phone');
@@ -194,6 +204,13 @@ class AuthController extends Controller
         }
 
         try {
+            if ($this->recaptchaService->isVerificationEnabled()) {
+                $this->recaptchaService->assertVerified(
+                    (string) $request->input('recaptcha_token', ''),
+                    $request->ip()
+                );
+            }
+
             // 根据提供的是手机号还是邮箱，调用对应的方法
             if (! empty($email)) {
                 $result = $this->verificationCodeService->sendEmailCode($email, $type);

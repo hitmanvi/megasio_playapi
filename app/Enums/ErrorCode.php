@@ -28,6 +28,7 @@ enum ErrorCode: int
     case VERIFICATION_CODE_SEND_TOO_FREQUENT = 2009;
     case VERIFICATION_CODE_INVALID = 2010;
     case VERIFICATION_CODE_EXPIRED = 2011;
+    case RECAPTCHA_VERIFICATION_FAILED = 2012;
 
     // 用户相关错误 (3000-3999)
     case USER_NOT_FOUND = 3001;
@@ -93,6 +94,7 @@ enum ErrorCode: int
             self::VERIFICATION_CODE_SEND_TOO_FREQUENT => 'Verification code sent too frequently, please try again later',
             self::VERIFICATION_CODE_INVALID => 'Invalid verification code',
             self::VERIFICATION_CODE_EXPIRED => 'Verification code has expired',
+            self::RECAPTCHA_VERIFICATION_FAILED => 'Recaptcha verification failed',
 
             // 用户相关错误
             self::USER_NOT_FOUND => 'User not found',

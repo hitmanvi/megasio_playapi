@@ -880,7 +880,7 @@
                     "Authentication"
                 ],
                 "summary": "发送验证码",
-                "description": "向指定手机号或邮箱发送验证码。根据提供的参数自动选择发送方式：如果提供 phone 参数则发送短信，如果提供 email 参数则发送邮件。验证码有效期为5分钟，重发间隔为60秒。",
+                "description": "向指定手机号或邮箱发送验证码。根据提供的参数自动选择发送方式：如果提供 phone 参数则发送短信，如果提供 email 参数则发送邮件。验证码有效期为5分钟，重发间隔为60秒。若环境变量 RECAPTCHA_ENABLED=true 且已配置 RECAPTCHA_SECRET_KEY，则必须传 recaptcha_token，服务端会调用 Google siteverify 校验（支持 v2\/v3；v3 可配置 RECAPTCHA_MIN_SCORE、RECAPTCHA_EXPECTED_ACTION）。",
                 "requestBody": {
                     "required": true,
                     "content": {
@@ -895,7 +895,8 @@
                                     "value": {
                                         "phone": "13800138000",
                                         "area_code": "86",
-                                        "type": "register"
+                                        "type": "register",
+                                        "recaptcha_token": "03AGdBq27..."
                                     }
                                 },
                                 "email": {
@@ -903,7 +904,8 @@
                                     "description": "使用邮箱发送邮件验证码",
                                     "value": {
                                         "email": "user@example.com",
-                                        "type": "register"
+                                        "type": "register",
+                                        "recaptcha_token": "03AGdBq27..."
                                     }
                                 }
                             }
@@ -1007,6 +1009,15 @@
                                         "value": {
                                             "code": 2008,
                                             "errmsg": "Failed to send verification code",
+                                            "data": null
+                                        }
+                                    },
+                                    "recaptcha_failed": {
+                                        "summary": "reCAPTCHA 校验失败",
+                                        "description": "token 缺失\/无效、v3 分数过低或与 RECAPTCHA_EXPECTED_ACTION 不一致",
+                                        "value": {
+                                            "code": 2012,
+                                            "errmsg": "Recaptcha verification failed",
                                             "data": null
                                         }
                                     }
@@ -9660,8 +9671,12 @@
             },
             "SendVerificationCodeRequest": {
                 "type": "object",
-                "description": "发送验证码请求。必须提供 phone 或 email 其中一个参数，不能同时提供。系统会根据提供的参数自动选择发送方式：提供 phone 则发送短信验证码，提供 email 则发送邮件验证码。注意：当提供 phone 时，area_code 为必填项。",
+                "description": "发送验证码请求。必须提供 phone 或 email 其中一个参数，不能同时提供。系统会根据提供的参数自动选择发送方式：提供 phone 则发送短信验证码，提供 email 则发送邮件验证码。注意：当提供 phone 时，area_code 为必填项。当服务端开启 RECAPTCHA_ENABLED 且配置了 RECAPTCHA_SECRET_KEY 时，必须额外传入 recaptcha_token（Google reCAPTCHA v2\/v3 前端返回的 token）。",
                 "properties": {
+                    "recaptcha_token": {
+                        "type": "string",
+                        "description": "Google reCAPTCHA 校验 token；生产开启 reCAPTCHA 时必填"
+                    },
                     "phone": {
                         "type": "string",
                         "description": "手机号（与email二选一，提供此参数将发送短信验证码）"

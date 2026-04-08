@@ -36,17 +36,28 @@ return [
     ],
 
     'sopay' => [
-        'endpoint'     => env('SOPAY_ENDPOINT'),
-        'app_id'       => env('SOPAY_APP_ID'),
-        'app_key'      => env('SOPAY_APP_KEY'),
+        'endpoint' => env('SOPAY_ENDPOINT'),
+        'app_id' => env('SOPAY_APP_ID'),
+        'app_key' => env('SOPAY_APP_KEY'),
         'callback_url' => env('SOPAY_CALLBACK_URL'),
-        'return_url'   => env('SOPAY_RETURN_URL'),
-        'public_key'   => storage_path('keys/sopay.pem'),
+        'return_url' => env('SOPAY_RETURN_URL'),
+        'public_key' => storage_path('keys/sopay.pem'),
     ],
 
     'exchange_rate' => [
         'endpoint' => env('EXCHANGE_RATE_ENDPOINT'),
         'api_key' => env('EXCHANGE_RATE_API_KEY'),
+    ],
+
+    /*
+    | Google reCAPTCHA（发送验证码等场景）。RECAPTCHA_ENABLED=true 且配置 RECAPTCHA_SECRET_KEY 后，
+    | 客户端须在请求中携带 recaptcha_token（v2/v3 返回的 token）；v3 可配 RECAPTCHA_MIN_SCORE、RECAPTCHA_EXPECTED_ACTION
+    */
+    'recaptcha' => [
+        'enabled' => filter_var(env('RECAPTCHA_ENABLED', false), FILTER_VALIDATE_BOOLEAN),
+        'secret' => env('RECAPTCHA_SECRET_KEY'),
+        'min_score' => (float) env('RECAPTCHA_MIN_SCORE', 0.5),
+        'expected_action' => env('RECAPTCHA_EXPECTED_ACTION'),
     ],
 
     'google' => [
