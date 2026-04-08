@@ -4,8 +4,8 @@ namespace App\Services;
 
 use App\Enums\ErrorCode;
 use App\Exceptions\Exception;
-use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use ReCaptcha\ReCaptcha;
 
 class RecaptchaService
 {
@@ -22,7 +22,8 @@ class RecaptchaService
     }
 
     /**
-     * 调用 Google siteverify；v3 时校验 score；可配置 expected_action 与前端 action 一致时再通过
+     * 使用 {@see ReCaptcha} 调用 Google siteverify；v3 在成功后按 min_score 校验分数；
+     * 配置了 expected_action 时由库内与 token 中的 action 比对
      *
      * @throws Exception
      */
@@ -46,80 +47,42 @@ class RecaptchaService
             'token_length' => strlen($token),
         ]);
 
-        try {
-            $response = Http::timeout(10)
-                ->asForm()
-                ->post('https://www.google.com/recaptcha/api/siteverify', [
-                    'secret' => $secret,
-                    'response' => $token,
-                    'remoteip' => $remoteIp,
-                ]);
-        } catch (\Throwable $e) {
-            Log::debug('Recaptcha siteverify exception', [
-                'remote_ip' => $remoteIp,
-                'exception' => $e::class,
-                'message' => $e->getMessage(),
-            ]);
-            Log::warning('Recaptcha siteverify request failed', ['exception' => $e->getMessage()]);
-
-            throw new Exception(ErrorCode::RECAPTCHA_VERIFICATION_FAILED);
-        }
-
-        if (! $response->successful()) {
-            Log::debug('Recaptcha siteverify non-success HTTP', [
-                'remote_ip' => $remoteIp,
-                'status' => $response->status(),
-                'body_preview' => substr($response->body(), 0, 500),
-            ]);
-            Log::warning('Recaptcha siteverify HTTP error', ['status' => $response->status()]);
-
-            throw new Exception(ErrorCode::RECAPTCHA_VERIFICATION_FAILED);
-        }
-
-        $data = $response->json();
-        Log::debug('Recaptcha siteverify parsed', [
-            'remote_ip' => $remoteIp,
-            'success' => is_array($data) ? ($data['success'] ?? null) : null,
-            'score' => is_array($data) ? ($data['score'] ?? null) : null,
-            'action' => is_array($data) ? ($data['action'] ?? null) : null,
-            'hostname' => is_array($data) ? ($data['hostname'] ?? null) : null,
-            'challenge_ts' => is_array($data) ? ($data['challenge_ts'] ?? null) : null,
-            'error_codes' => is_array($data) ? ($data['error-codes'] ?? null) : null,
-            'json_invalid' => ! is_array($data),
-        ]);
-
-        if (! is_array($data) || empty($data['success'])) {
-            Log::info('Recaptcha verification rejected', ['errors' => $data['error-codes'] ?? []]);
-
-            throw new Exception(ErrorCode::RECAPTCHA_VERIFICATION_FAILED);
-        }
-
-        if (isset($data['score'])) {
-            $minScore = (float) config('services.recaptcha.min_score', 0.5);
-            if ((float) $data['score'] < $minScore) {
-                Log::debug('Recaptcha score below threshold', [
-                    'remote_ip' => $remoteIp,
-                    'score' => $data['score'],
-                    'min_score' => $minScore,
-                ]);
-                Log::info('Recaptcha score too low', ['score' => $data['score'], 'min' => $minScore]);
-
-                throw new Exception(ErrorCode::RECAPTCHA_VERIFICATION_FAILED);
-            }
-        }
-
+        $recaptcha = new ReCaptcha($secret);
         $expectedAction = config('services.recaptcha.expected_action');
         if (is_string($expectedAction) && $expectedAction !== '') {
-            if (($data['action'] ?? '') !== $expectedAction) {
-                Log::debug('Recaptcha action mismatch (detail)', [
+            $recaptcha->setExpectedAction($expectedAction);
+        }
+
+        $resp = $recaptcha->verify($token, $remoteIp);
+
+        Log::debug('Recaptcha siteverify response', [
+            'remote_ip' => $remoteIp,
+            'response' => $resp->toArray(),
+        ]);
+
+        if (! $resp->isSuccess()) {
+            $errors = $resp->getErrorCodes();
+            if (in_array(ReCaptcha::E_CONNECTION_FAILED, $errors, true)) {
+                Log::warning('Recaptcha siteverify connection failed', ['errors' => $errors]);
+            } elseif (in_array(ReCaptcha::E_INVALID_JSON, $errors, true)) {
+                Log::warning('Recaptcha siteverify invalid JSON', ['errors' => $errors]);
+            } else {
+                Log::info('Recaptcha verification rejected', ['errors' => $errors]);
+            }
+
+            throw new Exception(ErrorCode::RECAPTCHA_VERIFICATION_FAILED);
+        }
+
+        $score = $resp->getScore();
+        if ($score !== null) {
+            $minScore = (float) config('services.recaptcha.min_score', 0.5);
+            if ($score < $minScore) {
+                Log::debug('Recaptcha score below threshold', [
                     'remote_ip' => $remoteIp,
-                    'expected' => $expectedAction,
-                    'actual' => $data['action'] ?? null,
+                    'score' => $score,
+                    'min_score' => $minScore,
                 ]);
-                Log::info('Recaptcha action mismatch', [
-                    'expected' => $expectedAction,
-                    'actual' => $data['action'] ?? null,
-                ]);
+                Log::info('Recaptcha score too low', ['score' => $score, 'min' => $minScore]);
 
                 throw new Exception(ErrorCode::RECAPTCHA_VERIFICATION_FAILED);
             }
@@ -127,9 +90,9 @@ class RecaptchaService
 
         Log::debug('Recaptcha assertVerified ok', [
             'remote_ip' => $remoteIp,
-            'score' => $data['score'] ?? null,
-            'action' => $data['action'] ?? null,
-            'hostname' => $data['hostname'] ?? null,
+            'score' => $resp->getScore(),
+            'action' => $resp->getAction(),
+            'hostname' => $resp->getHostname(),
         ]);
     }
 }
