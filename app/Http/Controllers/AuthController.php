@@ -76,7 +76,7 @@ class AuthController extends Controller
                 $isValid = $this->verificationCodeService->verifySmsCode((string) $request->phone, $code, $areaCode, $codeType);
             }
             if (! $isValid) {
-                return $this->error(ErrorCode::VERIFICATION_CODE_INVALID, 'Invalid verification code');
+                return $this->error(ErrorCode::VERIFICATION_CODE_INVALID);
             }
 
             $deviceInfo = $this->getDeviceInfoForEvent($request, null);
