@@ -393,18 +393,19 @@
                                 },
                                 "too_frequent": {
                                     "summary": "发送过于频繁",
-                                    "description": "距离上次发送验证码不足60秒",
+                                    "description": "距离上次发送验证码不足冷却时间",
                                     "value": {
                                         "code": 2009,
-                                        "errmsg": "SMS sending too frequent, please try again later",
+                                        "errmsg": "Verification code sent too frequently, please try again later",
                                         "data": null
                                     }
                                 },
                                 "send_failed": {
-                                    "summary": "发送失败",
+                                    "summary": "验证码发送失败",
+                                    "description": "短信、邮件等渠道发送失败时均可能返回",
                                     "value": {
                                         "code": 2008,
-                                        "errmsg": "Failed to send SMS",
+                                        "errmsg": "Failed to send verification code",
                                         "data": null
                                     }
                                 }

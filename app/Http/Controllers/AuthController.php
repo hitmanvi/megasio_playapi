@@ -7,20 +7,22 @@ use App\Exceptions\Exception as AppException;
 use App\Services\AuthService;
 use App\Services\VerificationCodeService;
 use Exception;
-use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 
 class AuthController extends Controller
 {
     protected AuthService $authService;
+
     protected VerificationCodeService $verificationCodeService;
 
     public function __construct()
     {
-        $this->authService = new AuthService();
-        $this->verificationCodeService = new VerificationCodeService();
+        $this->authService = new AuthService;
+        $this->verificationCodeService = new VerificationCodeService;
     }
+
     /**
      * 用户注册
      */
@@ -104,7 +106,6 @@ class AuthController extends Controller
         return $this->responseItem(null);
     }
 
-
     /**
      * 刷新用户令牌
      */
@@ -123,7 +124,7 @@ class AuthController extends Controller
     {
         $user = $request->user();
         $request->validate([
-            'current_password' => [Rule::requiredIf(!$user->isFirstTimeSetPassword())],
+            'current_password' => [Rule::requiredIf(! $user->isFirstTimeSetPassword())],
             'password' => 'required|string|min:6',
         ]);
 
@@ -164,16 +165,17 @@ class AuthController extends Controller
 
         try {
             // 根据提供的是手机号还是邮箱，调用对应的方法
-            if (!empty($email)) {
+            if (! empty($email)) {
                 $result = $this->verificationCodeService->sendEmailCode($email, $type);
             } else {
                 $result = $this->verificationCodeService->sendSmsCode($phone, $areaCode, $type);
             }
+
             return $this->responseItem($result);
         } catch (AppException $e) {
             return $this->error($e->getErrorCode(), $e->getMessage());
         } catch (Exception $e) {
-            return $this->error(ErrorCode::SMS_SEND_FAILED, $e->getMessage());
+            return $this->error(ErrorCode::VERIFICATION_CODE_SEND_FAILED, $e->getMessage());
         }
     }
 
@@ -247,7 +249,7 @@ class AuthController extends Controller
         try {
             // 验证验证码
             $codeType = 'reset_password';
-            if (!empty($email)) {
+            if (! empty($email)) {
                 $isValid = $this->verificationCodeService->verifyEmailCode($email, $code, $codeType);
                 $account = $email;
             } else {
@@ -255,7 +257,7 @@ class AuthController extends Controller
                 $account = $phone;
             }
 
-            if (!$isValid) {
+            if (! $isValid) {
                 return $this->error(ErrorCode::VERIFICATION_CODE_INVALID, 'Invalid verification code');
             }
 

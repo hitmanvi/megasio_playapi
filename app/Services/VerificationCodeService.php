@@ -116,7 +116,7 @@ class VerificationCodeService
         $cacheKey = $this->getResendCacheKey($identifier, $isEmail, $areaCode, $type);
         if (Cache::has($cacheKey)) {
             $remainingSeconds = Cache::get($cacheKey) - now()->timestamp;
-            throw new Exception(ErrorCode::SMS_SEND_TOO_FREQUENT, "Please wait {$remainingSeconds} seconds before resending");
+            throw new Exception(ErrorCode::VERIFICATION_CODE_SEND_TOO_FREQUENT, "Please wait {$remainingSeconds} seconds before resending");
         }
 
         // 生成验证码
