@@ -18,6 +18,7 @@ use Firebase\JWT\JWT;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Google\Client as GoogleClient;
+use Illuminate\Support\Facades\Log;
 
 class AuthService
 {
@@ -371,6 +372,17 @@ class AuthService
      */
     public function loginWithGoogle(string $idToken, ?string $inviteCode = null, ?string $ipAddress = null, ?string $userAgent = null, array $deviceInfo = [], ?string $client = null, bool $receivePromotionEmail = false): array
     {
+        // 这里做一下debug日志
+        Log::debug('Google 登录/注册', [
+            'id_token' => '***', // 不要输出敏感 token
+            'invite_code' => $inviteCode,
+            'ip' => $ipAddress,
+            'user_agent' => $userAgent,
+            'device_info' => $deviceInfo,
+            'client' => $client,
+            'receive_promotion_email' => $receivePromotionEmail,
+        ]);
+
         try {
             // 验证 Google ID Token（根据客户端选择对应 client_id）
             $googleUser = $this->verifyGoogleIdToken($idToken, $client);
