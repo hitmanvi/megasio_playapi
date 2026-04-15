@@ -66,6 +66,7 @@ class Controller
             'ko_click_id' => $request->header('x-mmp-ko-click-id', ''),
             'device_id' => $request->header('x-mmp-device-id', ''),
             'x-mmp-native-user-agent' => $request->header('x-mmp-native-user-agent', ''),
+            'extra_data' => $request->get('extra_data', []),
         ];
 
         return $info;
