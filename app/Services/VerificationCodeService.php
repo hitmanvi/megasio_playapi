@@ -322,10 +322,10 @@ class VerificationCodeService
             Log::info("Verification code for {$email}: {$code}");
         }
 
-        Mail::to($email)->send(new VerificationCodeMail(
-            $code,
-            $type,
-            self::CODE_EXPIRE_MINUTES,
-        ));
+        // Mail::to($email)->send(new VerificationCodeMail(
+        //     $code,
+        //     $type,
+        //     self::CODE_EXPIRE_MINUTES,
+        // ));
     }
 }
