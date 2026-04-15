@@ -56,8 +56,6 @@ class Controller
             'device_ids' => $deviceIds,
             'device_ua' => $request->header('user-agent', ''),
             'origination_ip' => $this->getClientIp($request),
-            'app_version' => $request->header('x-app-version', ''),
-            'device_ver' => $request->header('x-device-ver', ''),
             'usertime' => (int) ($request->header('x-usertime') ?? time()),
             'fbc' => $request->header('x-mmp-fbc', ''),
             'fbp' => $request->header('x-mmp-fbp', ''),
