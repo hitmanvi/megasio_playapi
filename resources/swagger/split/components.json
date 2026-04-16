@@ -2260,6 +2260,10 @@
                 "sort_id": {
                     "type": "integer",
                     "description": "排序ID"
+                },
+                "games_count": {
+                    "type": "integer",
+                    "description": "该主题下启用游戏数量"
                 }
             }
         },
