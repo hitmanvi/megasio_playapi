@@ -24,6 +24,7 @@ class GameGroup extends Model
         'app_limit',
         'web_limit',
         'enabled',
+        'visible',
     ];
 
     /**
@@ -36,6 +37,7 @@ class GameGroup extends Model
         'app_limit' => 'integer',
         'web_limit' => 'integer',
         'enabled' => 'boolean',
+        'visible' => 'boolean',
     ];
 
     /**
@@ -78,6 +80,14 @@ class GameGroup extends Model
     public function scopeEnabled($query)
     {
         return $query->where('enabled', true);
+    }
+
+    /**
+     * Scope to filter groups shown in listings / UI.
+     */
+    public function scopeVisible($query)
+    {
+        return $query->where('visible', true);
     }
 
     /**

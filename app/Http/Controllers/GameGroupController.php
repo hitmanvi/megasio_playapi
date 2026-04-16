@@ -4,8 +4,9 @@ namespace App\Http\Controllers;
 
 use App\Enums\ErrorCode;
 use App\Models\GameGroup;
-use Illuminate\Http\Request;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use Illuminate\Pagination\LengthAwarePaginator;
 
 class GameGroupController extends Controller
@@ -24,6 +25,8 @@ class GameGroupController extends Controller
             ->enabled()
             ->ordered();
 
+        $this->applyGameGroupVisibleFilter($query, $request);
+
         if ($category) {
             $query->byCategory($category);
         }
@@ -39,6 +42,7 @@ class GameGroupController extends Controller
                 'name' => $group->name ?: $group->getNameTranslation($locale),
                 'app_limit' => $group->app_limit,
                 'web_limit' => $group->web_limit,
+                'visible' => $group->visible,
             ];
         });
 
@@ -63,10 +67,14 @@ class GameGroupController extends Controller
 
         $perPage = (int) $request->input('per_page', 20);
 
-        $groupsPaginator = GameGroup::where('category', $category)
+        $query = GameGroup::query()
+            ->where('category', $category)
             ->enabled()
-            ->ordered()
-            ->paginate($perPage);
+            ->ordered();
+
+        $this->applyGameGroupVisibleFilter($query, $request);
+
+        $groupsPaginator = $query->paginate($perPage);
 
         $result = $groupsPaginator->getCollection()->map(function ($group) use ($locale) {
             return [
@@ -76,6 +84,7 @@ class GameGroupController extends Controller
                 'name' => $group->name ?: $group->getNameTranslation($locale),
                 'app_limit' => $group->app_limit,
                 'web_limit' => $group->web_limit,
+                'visible' => $group->visible,
             ];
         });
 
@@ -92,6 +101,18 @@ class GameGroupController extends Controller
     }
 
     /**
+     * 列表 visible 筛选：未传 visible 时默认仅 visible=true；传入 true/false 则按该值过滤
+     */
+    protected function applyGameGroupVisibleFilter(Builder $query, Request $request): void
+    {
+        if ($request->filled('visible')) {
+            $query->where('visible', $request->boolean('visible'));
+        } else {
+            $query->visible();
+        }
+    }
+
+    /**
      * 获取 support_bonus 群组详情
      */
     public function getSupportBonusDetail(Request $request): JsonResponse
@@ -100,10 +121,11 @@ class GameGroupController extends Controller
 
         $group = GameGroup::supportBonus()
             ->enabled()
+            ->visible()
             ->ordered()
             ->first();
 
-        if (!$group) {
+        if (! $group) {
             return $this->error(ErrorCode::NOT_FOUND, 'Support bonus group not found');
         }
 
@@ -114,6 +136,7 @@ class GameGroupController extends Controller
             'sort_id' => $group->sort_id,
             'app_limit' => $group->app_limit,
             'web_limit' => $group->web_limit,
+            'visible' => $group->visible,
         ];
 
         return $this->responseItem($result);
@@ -128,7 +151,7 @@ class GameGroupController extends Controller
 
         $group = GameGroup::findOrFail($id);
 
-        if (!$group->enabled) {
+        if (! $group->enabled || ! $group->visible) {
             return $this->error(ErrorCode::NOT_FOUND, 'Game group not found or disabled');
         }
 
@@ -140,6 +163,7 @@ class GameGroupController extends Controller
             'app_limit' => $group->app_limit,
             'web_limit' => $group->web_limit,
             'enabled' => $group->enabled,
+            'visible' => $group->visible,
         ];
 
         return $this->responseItem($result);
@@ -155,27 +179,27 @@ class GameGroupController extends Controller
 
         $group = GameGroup::findOrFail($groupId);
 
-        if (!$group->enabled) {
+        if (! $group->enabled || ! $group->visible) {
             return $this->responseItem([]);
         }
 
         // 处理 brand_id、theme_id 过滤（支持单个值或数组）
         $brandIds = $request->input('brand_id');
         $themeIds = $request->input('theme_id');
-        if ($brandIds && !is_array($brandIds)) {
+        if ($brandIds && ! is_array($brandIds)) {
             $brandIds = [$brandIds];
         }
-        if ($themeIds && !is_array($themeIds)) {
+        if ($themeIds && ! is_array($themeIds)) {
             $themeIds = [$themeIds];
         }
 
         $perPage = (int) $request->input('per_page', 20);
 
         $gamesQuery = $group->games();
-        if (!empty($brandIds)) {
+        if (! empty($brandIds)) {
             $gamesQuery->whereIn('brand_id', $brandIds);
         }
-        if (!empty($themeIds)) {
+        if (! empty($themeIds)) {
             $gamesQuery->whereHas('themes', function ($q) use ($themeIds) {
                 $q->whereIn('themes.id', $themeIds);
             });
@@ -183,7 +207,7 @@ class GameGroupController extends Controller
 
         $gamesPaginator = $gamesQuery->paginate($perPage);
 
-        $result = $gamesPaginator->getCollection()->map(function ($game) use ($locale) {
+        $result = $gamesPaginator->getCollection()->map(function ($game) {
             return [
                 'id' => $game->id,
                 'name' => $game->name,
