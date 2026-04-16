@@ -14,6 +14,7 @@ class InitAll extends Command
         'init:setting',
         'init:agent',
         'init:site-links',
+        'init:game-groups',
         'init:opensearch',
     ];
 
