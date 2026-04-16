@@ -5,8 +5,17 @@
                 "GameGroup"
             ],
             "summary": "获取游戏群组列表",
-            "description": "获取启用状态的游戏群组（分页），支持按分类筛选",
+            "description": "获取启用状态的游戏群组（分页），支持按分类筛选。未传 visible 时默认只返回 visible=true；传入 visible=false 可只查不可见分组",
             "parameters": [
+                {
+                    "name": "visible",
+                    "in": "query",
+                    "required": false,
+                    "description": "是否仅展示用分组；不传则默认为 true（只返回 visible=true）",
+                    "schema": {
+                        "type": "boolean"
+                    }
+                },
                 {
                     "name": "category",
                     "in": "query",
@@ -209,8 +218,17 @@
                 "GameGroup"
             ],
             "summary": "获取指定分类的游戏群组",
-            "description": "根据分类获取游戏群组（分页）",
+            "description": "根据分类获取游戏群组（分页）。未传 visible 时默认只返回 visible=true",
             "parameters": [
+                {
+                    "name": "visible",
+                    "in": "query",
+                    "required": false,
+                    "description": "是否仅展示用分组；不传则默认为 true（只返回 visible=true）",
+                    "schema": {
+                        "type": "boolean"
+                    }
+                },
                 {
                     "name": "category",
                     "in": "path",

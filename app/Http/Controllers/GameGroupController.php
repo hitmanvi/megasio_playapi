@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Enums\ErrorCode;
 use App\Models\GameGroup;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Pagination\LengthAwarePaginator;
@@ -22,8 +23,9 @@ class GameGroupController extends Controller
 
         $query = GameGroup::query()
             ->enabled()
-            ->visible()
             ->ordered();
+
+        $this->applyGameGroupVisibleFilter($query, $request);
 
         if ($category) {
             $query->byCategory($category);
@@ -65,11 +67,14 @@ class GameGroupController extends Controller
 
         $perPage = (int) $request->input('per_page', 20);
 
-        $groupsPaginator = GameGroup::where('category', $category)
+        $query = GameGroup::query()
+            ->where('category', $category)
             ->enabled()
-            ->visible()
-            ->ordered()
-            ->paginate($perPage);
+            ->ordered();
+
+        $this->applyGameGroupVisibleFilter($query, $request);
+
+        $groupsPaginator = $query->paginate($perPage);
 
         $result = $groupsPaginator->getCollection()->map(function ($group) use ($locale) {
             return [
@@ -93,6 +98,18 @@ class GameGroupController extends Controller
         );
 
         return $this->responseListWithPaginator($formattedPaginator);
+    }
+
+    /**
+     * 列表 visible 筛选：未传 visible 时默认仅 visible=true；传入 true/false 则按该值过滤
+     */
+    protected function applyGameGroupVisibleFilter(Builder $query, Request $request): void
+    {
+        if ($request->filled('visible')) {
+            $query->where('visible', $request->boolean('visible'));
+        } else {
+            $query->visible();
+        }
     }
 
     /**
