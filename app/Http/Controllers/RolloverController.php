@@ -4,8 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Enums\ErrorCode;
 use App\Models\Rollover;
-use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 
 class RolloverController extends Controller
 {
@@ -15,7 +15,7 @@ class RolloverController extends Controller
     public function index(Request $request): JsonResponse
     {
         $user = $request->user();
-        
+
         // 构建查询
         $query = Rollover::where('user_id', $user->id)
             ->orderBy('created_at', 'desc');
@@ -62,7 +62,12 @@ class RolloverController extends Controller
      */
     public function types(): JsonResponse
     {
-        return $this->responseItem([Rollover::SOURCE_TYPE_DEPOSIT]);
+        return $this->responseItem([
+            Rollover::SOURCE_TYPE_DEPOSIT,
+            Rollover::SOURCE_TYPE_BONUS,
+            Rollover::SOURCE_TYPE_REWARD,
+            Rollover::SOURCE_TYPE_AIRDROP,
+        ]);
     }
 
     /**
@@ -71,12 +76,12 @@ class RolloverController extends Controller
     public function show(Request $request, int $id): JsonResponse
     {
         $user = $request->user();
-        
+
         $rollover = Rollover::where('user_id', $user->id)
             ->where('id', $id)
             ->first();
 
-        if (!$rollover) {
+        if (! $rollover) {
             return $this->error(ErrorCode::NOT_FOUND, 'Rollover not found');
         }
 
@@ -85,9 +90,6 @@ class RolloverController extends Controller
 
     /**
      * 格式化 rollover 数据用于 API 响应
-     *
-     * @param Rollover $rollover
-     * @return array
      */
     protected function formatRolloverForResponse(Rollover $rollover): array
     {

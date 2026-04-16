@@ -2,11 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\ErrorCode;
 use App\Models\Transaction;
 use App\Services\TransactionService;
-use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
-use App\Enums\ErrorCode;
+use Illuminate\Http\Request;
 
 class TransactionController extends Controller
 {
@@ -34,6 +34,7 @@ class TransactionController extends Controller
             Transaction::TYPE_INVITATION_REWARD,
             Transaction::TYPE_VIP_LEVEL_UP_REWARD,
             Transaction::TYPE_WEEKLY_CASHBACK,
+            Transaction::TYPE_AIRDROP,
         ];
 
         return $this->responseItem($types);
@@ -41,20 +42,20 @@ class TransactionController extends Controller
 
     /**
      * 获取交易记录列表
-     * 
+     *
      * 支持的时间范围参数：24h, 7d, 30d
      */
     public function index(Request $request): JsonResponse
     {
         $user = $request->user();
-        if (!$user) {
+        if (! $user) {
             return $this->error(ErrorCode::UNAUTHORIZED, 'User not authenticated');
         }
 
         // 验证时间范围参数
         $period = $request->input('period');
         $allowedPeriods = ['24h', '7d', '30d'];
-        if ($period && !in_array($period, $allowedPeriods)) {
+        if ($period && ! in_array($period, $allowedPeriods)) {
             return $this->error(ErrorCode::VALIDATION_ERROR, 'Period must be one of: 24h, 7d, 30d');
         }
 
@@ -73,7 +74,7 @@ class TransactionController extends Controller
             $filters['period'] = $period;
         }
 
-        $perPage = max(1, (int)$request->input('per_page', 20));
+        $perPage = max(1, (int) $request->input('per_page', 20));
         $transactions = $this->transactionService->getUserTransactionsPaginated($user->id, $filters, $perPage);
 
         // 格式化返回数据
@@ -90,13 +91,13 @@ class TransactionController extends Controller
     public function show(Request $request, int $id): JsonResponse
     {
         $user = $request->user();
-        if (!$user) {
+        if (! $user) {
             return $this->error(ErrorCode::UNAUTHORIZED, 'User not authenticated');
         }
 
         $transaction = $this->transactionService->getTransactionById($id);
 
-        if (!$transaction) {
+        if (! $transaction) {
             return $this->error(ErrorCode::NOT_FOUND, 'Transaction not found');
         }
 
@@ -110,4 +111,3 @@ class TransactionController extends Controller
         );
     }
 }
-

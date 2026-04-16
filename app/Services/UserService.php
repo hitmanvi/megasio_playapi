@@ -15,6 +15,7 @@ class UserService
         Transaction::TYPE_INVITATION_REWARD => 'invitation',
         Transaction::TYPE_VIP_LEVEL_UP_REWARD => 'vip_level_up',
         Transaction::TYPE_WEEKLY_CASHBACK => 'weekly_cashback',
+        Transaction::TYPE_AIRDROP => 'airdrop',
     ];
 
     /**
@@ -53,12 +54,12 @@ class UserService
             $currency = strtoupper((string) $row->currency);
             $amount = (float) $row->total;
 
-            if (!isset($categories[$categoryKey][$currency])) {
+            if (! isset($categories[$categoryKey][$currency])) {
                 $categories[$categoryKey][$currency] = 0.0;
             }
             $categories[$categoryKey][$currency] += $amount;
 
-            if (!isset($totalByCurrency[$currency])) {
+            if (! isset($totalByCurrency[$currency])) {
                 $totalByCurrency[$currency] = 0.0;
             }
             $totalByCurrency[$currency] += $amount;

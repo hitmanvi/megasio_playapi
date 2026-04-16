@@ -45,7 +45,13 @@
                             "WITHDRAWAL_UNFREEZE",
                             "REFUND",
                             "BET",
-                            "PAYOUT"
+                            "PAYOUT",
+                            "CHECK_IN_REWARD",
+                            "BONUS_TASK_REWARD",
+                            "INVITATION_REWARD",
+                            "VIP_LEVEL_UP_REWARD",
+                            "WEEKLY_CASHBACK",
+                            "AIRDROP"
                         ]
                     }
                 },
@@ -158,7 +164,13 @@
                                     "WITHDRAWAL_UNFREEZE",
                                     "REFUND",
                                     "BET",
-                                    "PAYOUT"
+                                    "PAYOUT",
+                                    "CHECK_IN_REWARD",
+                                    "BONUS_TASK_REWARD",
+                                    "INVITATION_REWARD",
+                                    "VIP_LEVEL_UP_REWARD",
+                                    "WEEKLY_CASHBACK",
+                                    "AIRDROP"
                                 ]
                             }
                         }

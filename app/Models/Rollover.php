@@ -9,13 +9,19 @@ class Rollover extends Model
 {
     // 状态常量
     const STATUS_PENDING = 'pending';        // 待激活
+
     const STATUS_ACTIVE = 'active';         // 进行中
+
     const STATUS_COMPLETED = 'completed';   // 已完成
 
     // 来源类型常量
     const SOURCE_TYPE_DEPOSIT = 'deposit';   // 充值
+
     const SOURCE_TYPE_BONUS = 'bonus';       // 奖励
+
     const SOURCE_TYPE_REWARD = 'reward';     // 奖励
+
+    const SOURCE_TYPE_AIRDROP = 'airdrop';   // 空投
 
     protected $fillable = [
         'user_id',
@@ -86,6 +92,7 @@ class Rollover extends Model
         }
 
         $percent = ($this->current_wager / $this->required_wager) * 100;
+
         return min(100.0, max(0.0, round($percent, 2)));
     }
 
@@ -102,6 +109,7 @@ class Rollover extends Model
             $this->status = self::STATUS_COMPLETED;
             $this->completed_at = now();
             $this->save();
+
             return true;
         }
 
@@ -110,10 +118,6 @@ class Rollover extends Model
 
     /**
      * 获取用户未完成的 rollover 总额
-     *
-     * @param int $userId
-     * @param string $currency
-     * @return float
      */
     public static function getUncompletedTotal(int $userId, string $currency): float
     {

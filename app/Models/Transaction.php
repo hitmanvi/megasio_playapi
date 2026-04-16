@@ -39,16 +39,28 @@ class Transaction extends Model
      * Transaction types constants.
      */
     const TYPE_DEPOSIT = 'DEPOSIT';
+
     const TYPE_WITHDRAWAL = 'WITHDRAWAL';
+
     const TYPE_WITHDRAWAL_UNFREEZE = 'WITHDRAWAL_UNFREEZE';
+
     const TYPE_REFUND = 'REFUND';
+
     const TYPE_BET = 'BET';
+
     const TYPE_PAYOUT = 'PAYOUT';
+
     const TYPE_CHECK_IN_REWARD = 'CHECK_IN_REWARD';
+
     const TYPE_BONUS_TASK_REWARD = 'BONUS_TASK_REWARD';
+
     const TYPE_INVITATION_REWARD = 'INVITATION_REWARD';
+
     const TYPE_VIP_LEVEL_UP_REWARD = 'VIP_LEVEL_UP_REWARD';
+
     const TYPE_WEEKLY_CASHBACK = 'WEEKLY_CASHBACK';
+
+    const TYPE_AIRDROP = 'AIRDROP';
 
     /**
      * 计入用户「奖励」流水的类型（余额增加、非充值/游戏派彩等）
@@ -63,6 +75,7 @@ class Transaction extends Model
             self::TYPE_INVITATION_REWARD,
             self::TYPE_VIP_LEVEL_UP_REWARD,
             self::TYPE_WEEKLY_CASHBACK,
+            self::TYPE_AIRDROP,
         ];
     }
 
@@ -124,7 +137,7 @@ class Transaction extends Model
      */
     public function getRelatedEntity(): ?array
     {
-        if (!$this->related_entity_id) {
+        if (! $this->related_entity_id) {
             return null;
         }
 
@@ -176,13 +189,13 @@ class Transaction extends Model
                 if (count($parts) === 2) {
                     $gameId = $parts[0];
                     $txidPart = $parts[1];
-                    
+
                     // txid 可能带有后缀 (txid_suffix)，尝试提取原始 txid
                     // 先尝试完整匹配，再尝试前缀匹配
                     $providerTx = ProviderTransaction::where('txid', $txidPart)->first();
-                    if (!$providerTx) {
+                    if (! $providerTx) {
                         // 尝试用 LIKE 查询（针对测试数据带后缀的情况）
-                        $providerTx = ProviderTransaction::where('txid', 'like', explode('_', $txidPart)[0] . '%')
+                        $providerTx = ProviderTransaction::where('txid', 'like', explode('_', $txidPart)[0].'%')
                             ->where('game_id', $gameId)
                             ->first();
                     }
