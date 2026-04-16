@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Enums\ErrorCode;
 use App\Models\GameGroup;
+use App\Services\GameService;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -11,6 +12,13 @@ use Illuminate\Pagination\LengthAwarePaginator;
 
 class GameGroupController extends Controller
 {
+    protected GameService $gameService;
+
+    public function __construct(GameService $gameService)
+    {
+        $this->gameService = $gameService;
+    }
+
     /**
      * 获取游戏群组列表
      */
@@ -202,7 +210,6 @@ class GameGroupController extends Controller
      */
     public function getGames(Request $request, int $groupId): JsonResponse
     {
-        $platform = $request->input('platform', 'web');
         $locale = $this->getLocale($request);
 
         $group = GameGroup::findOrFail($groupId);
@@ -223,7 +230,9 @@ class GameGroupController extends Controller
 
         $perPage = (int) $request->input('per_page', 20);
 
-        $gamesQuery = $group->games();
+        $gamesQuery = $group->games()
+            ->enabled()
+            ->with(['brand', 'category', 'themes']);
         if (! empty($brandIds)) {
             $gamesQuery->whereIn('brand_id', $brandIds);
         }
@@ -234,16 +243,7 @@ class GameGroupController extends Controller
         }
 
         $gamesPaginator = $gamesQuery->paginate($perPage);
-
-        $result = $gamesPaginator->getCollection()->map(function ($game) {
-            return [
-                'id' => $game->id,
-                'name' => $game->name,
-                'thumbnail' => $game->thumbnail,
-                'sort_id' => $game->pivot->sort_id ?? 0,
-                'support_bonus' => $game->support_bonus,
-            ];
-        });
+        $result = $this->gameService->formatGamesList($gamesPaginator->getCollection(), $locale);
 
         // 创建新的分页器，使用格式化后的数据
         $formattedPaginator = new LengthAwarePaginator(
