@@ -5,7 +5,7 @@
                 "Theme"
             ],
             "summary": "获取主题列表",
-            "description": "获取所有启用的主题列表（分页），支持多语言和名称搜索",
+            "description": "获取所有启用的主题列表（分页），支持多语言和名称搜索，并返回每个主题对应的启用游戏数量",
             "parameters": [
                 {
                     "name": "Locale",
@@ -63,13 +63,15 @@
                                             "id": 1,
                                             "name": "Action",
                                             "icon": "fas fa-fist-raised",
-                                            "sort_id": 1
+                                            "sort_id": 1,
+                                            "games_count": 32
                                         },
                                         {
                                             "id": 2,
                                             "name": "Comedy",
                                             "icon": "fas fa-laugh",
-                                            "sort_id": 2
+                                            "sort_id": 2,
+                                            "games_count": 18
                                         }
                                     ],
                                     "meta": {

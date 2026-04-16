@@ -4,8 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\Theme;
 use App\Models\Translation;
-use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use Illuminate\Pagination\LengthAwarePaginator;
 
 class ThemeController extends Controller
@@ -21,10 +21,15 @@ class ThemeController extends Controller
 
         $query = Theme::query()
             ->enabled()
+            ->withCount([
+                'games as games_count' => function ($q) {
+                    $q->enabled();
+                },
+            ])
             ->ordered();
 
         // 按名称搜索（支持原始名称和翻译名称）
-        if (!empty($name)) {
+        if (! empty($name)) {
             $translationIds = Translation::where('translatable_type', Theme::class)
                 ->where('field', 'name')
                 ->where('locale', $locale)
@@ -43,12 +48,13 @@ class ThemeController extends Controller
 
         // 格式化分页数据
         $themes = $themesPaginator->getCollection();
-        $result = $themes->map(function ($theme) use ($locale) {
+        $result = $themes->map(function ($theme) {
             return [
                 'id' => $theme->id,
                 'name' => $theme->name,
                 'icon' => $theme->icon,
                 'sort_id' => $theme->sort_id,
+                'games_count' => $theme->games_count,
             ];
         });
 
