@@ -1450,6 +1450,10 @@
                     "type": "integer",
                     "nullable": true,
                     "description": "Web端显示游戏数量限制"
+                },
+                "visible": {
+                    "type": "boolean",
+                    "description": "是否在列表等场景展示"
                 }
             }
         },
@@ -1514,6 +1518,10 @@
                     "type": "integer",
                     "nullable": true,
                     "description": "Web端显示游戏数量限制"
+                },
+                "visible": {
+                    "type": "boolean",
+                    "description": "是否在列表等场景展示"
                 }
             }
         },
@@ -1550,6 +1558,10 @@
                 "enabled": {
                     "type": "boolean",
                     "description": "是否启用"
+                },
+                "visible": {
+                    "type": "boolean",
+                    "description": "是否在列表等场景展示"
                 }
             }
         },

@@ -44,6 +44,7 @@ class InitGameGroups extends Command
                     'app_limit' => null,
                     'web_limit' => null,
                     'enabled' => true,
+                    'visible' => true,
                 ]
             );
 
@@ -64,17 +65,18 @@ class InitGameGroups extends Command
                 GameGroup::NAME_SUPPORT_BONUS,
             ])
             ->orderBy('sort_id')
-            ->get(['id', 'name', 'category', 'sort_id', 'enabled']);
+            ->get(['id', 'name', 'category', 'sort_id', 'enabled', 'visible']);
 
         if ($rows->isNotEmpty()) {
             $this->table(
-                ['ID', 'name', 'category', 'sort_id', 'enabled'],
+                ['ID', 'name', 'category', 'sort_id', 'enabled', 'visible'],
                 $rows->map(fn ($g) => [
                     $g->id,
                     $g->name,
                     $g->category,
                     $g->sort_id,
                     $g->enabled ? 'true' : 'false',
+                    $g->visible ? 'true' : 'false',
                 ])->all()
             );
         }
