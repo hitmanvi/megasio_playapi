@@ -141,6 +141,36 @@ class GameGroupController extends Controller
     }
 
     /**
+     * 获取 name=Recommended 的游戏群组详情
+     */
+    public function getRecommendedDetail(Request $request): JsonResponse
+    {
+        $locale = $this->getLocale($request);
+
+        $group = GameGroup::recommended()
+            ->enabled()
+            ->visible()
+            ->ordered()
+            ->first();
+
+        if (! $group) {
+            return $this->error(ErrorCode::NOT_FOUND, 'Recommended group not found');
+        }
+
+        $result = [
+            'id' => $group->id,
+            'category' => $group->category,
+            'name' => $group->name ?: $group->getNameTranslation($locale),
+            'sort_id' => $group->sort_id,
+            'app_limit' => $group->app_limit,
+            'web_limit' => $group->web_limit,
+            'visible' => $group->visible,
+        ];
+
+        return $this->responseItem($result);
+    }
+
+    /**
      * 获取游戏群组详情
      */
     public function show(Request $request, int $id): JsonResponse

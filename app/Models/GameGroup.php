@@ -67,6 +67,14 @@ class GameGroup extends Model
     }
 
     /**
+     * Scope to filter Recommended group (by name = NAME_RECOMMENDED).
+     */
+    public function scopeRecommended($query)
+    {
+        return $query->where('name', self::NAME_RECOMMENDED);
+    }
+
+    /**
      * Scope to filter support_bonus group (by name = NAME_SUPPORT_BONUS).
      */
     public function scopeSupportBonus($query)
