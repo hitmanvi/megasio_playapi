@@ -23,7 +23,10 @@
                                 "code": 0,
                                 "errmsg": "Success",
                                 "data": [
-                                    "deposit"
+                                    "deposit",
+                                    "bonus",
+                                    "reward",
+                                    "airdrop"
                                 ]
                             }
                         }
@@ -94,7 +97,7 @@
                 {
                     "name": "source_type",
                     "in": "query",
-                    "description": "来源类型筛选（deposit, bonus, reward），支持数组格式",
+                    "description": "来源类型筛选（deposit, bonus, reward, airdrop），支持数组格式",
                     "schema": {
                         "oneOf": [
                             {
@@ -102,7 +105,8 @@
                                 "enum": [
                                     "deposit",
                                     "bonus",
-                                    "reward"
+                                    "reward",
+                                    "airdrop"
                                 ]
                             },
                             {
@@ -112,7 +116,8 @@
                                     "enum": [
                                         "deposit",
                                         "bonus",
-                                        "reward"
+                                        "reward",
+                                        "airdrop"
                                     ]
                                 }
                             }

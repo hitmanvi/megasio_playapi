@@ -3237,7 +3237,13 @@
                         "WITHDRAWAL_UNFREEZE",
                         "REFUND",
                         "BET",
-                        "PAYOUT"
+                        "PAYOUT",
+                        "CHECK_IN_REWARD",
+                        "BONUS_TASK_REWARD",
+                        "INVITATION_REWARD",
+                        "VIP_LEVEL_UP_REWARD",
+                        "WEEKLY_CASHBACK",
+                        "AIRDROP"
                     ],
                     "description": "交易类型"
                 },
@@ -3328,9 +3334,10 @@
                     "enum": [
                         "deposit",
                         "bonus",
-                        "reward"
+                        "reward",
+                        "airdrop"
                     ],
-                    "description": "来源类型：deposit（充值）、bonus（奖励）、reward（奖励）"
+                    "description": "来源类型：deposit（充值）、bonus（奖励）、reward（奖励）、airdrop（空投）"
                 },
                 "related_id": {
                     "type": "integer",
@@ -3418,9 +3425,10 @@
                         "enum": [
                             "deposit",
                             "bonus",
-                            "reward"
+                            "reward",
+                            "airdrop"
                         ],
-                        "description": "来源类型：deposit（充值）、bonus（奖励）、reward（奖励）"
+                        "description": "来源类型：deposit（充值）、bonus（奖励）、reward（奖励）、airdrop（空投）"
                     }
                 }
             }

@@ -7023,7 +7023,7 @@
                     {
                         "name": "source_type",
                         "in": "query",
-                        "description": "来源类型筛选（deposit, bonus, reward），支持数组格式",
+                        "description": "来源类型筛选（deposit, bonus, reward, airdrop），支持数组格式",
                         "schema": {
                             "oneOf": [
                                 {
@@ -7031,7 +7031,8 @@
                                     "enum": [
                                         "deposit",
                                         "bonus",
-                                        "reward"
+                                        "reward",
+                                        "airdrop"
                                     ]
                                 },
                                 {
@@ -7041,7 +7042,8 @@
                                         "enum": [
                                             "deposit",
                                             "bonus",
-                                            "reward"
+                                            "reward",
+                                            "airdrop"
                                         ]
                                     }
                                 }
@@ -7145,7 +7147,10 @@
                                     "code": 0,
                                     "errmsg": "Success",
                                     "data": [
-                                        "deposit"
+                                        "deposit",
+                                        "bonus",
+                                        "reward",
+                                        "airdrop"
                                     ]
                                 }
                             }
@@ -7500,7 +7505,13 @@
                                 "WITHDRAWAL_UNFREEZE",
                                 "REFUND",
                                 "BET",
-                                "PAYOUT"
+                                "PAYOUT",
+                                "CHECK_IN_REWARD",
+                                "BONUS_TASK_REWARD",
+                                "INVITATION_REWARD",
+                                "VIP_LEVEL_UP_REWARD",
+                                "WEEKLY_CASHBACK",
+                                "AIRDROP"
                             ]
                         }
                     },
@@ -7613,7 +7624,13 @@
                                         "WITHDRAWAL_UNFREEZE",
                                         "REFUND",
                                         "BET",
-                                        "PAYOUT"
+                                        "PAYOUT",
+                                        "CHECK_IN_REWARD",
+                                        "BONUS_TASK_REWARD",
+                                        "INVITATION_REWARD",
+                                        "VIP_LEVEL_UP_REWARD",
+                                        "WEEKLY_CASHBACK",
+                                        "AIRDROP"
                                     ]
                                 }
                             }
@@ -12409,7 +12426,13 @@
                             "WITHDRAWAL_UNFREEZE",
                             "REFUND",
                             "BET",
-                            "PAYOUT"
+                            "PAYOUT",
+                            "CHECK_IN_REWARD",
+                            "BONUS_TASK_REWARD",
+                            "INVITATION_REWARD",
+                            "VIP_LEVEL_UP_REWARD",
+                            "WEEKLY_CASHBACK",
+                            "AIRDROP"
                         ],
                         "description": "交易类型"
                     },
@@ -12500,9 +12523,10 @@
                         "enum": [
                             "deposit",
                             "bonus",
-                            "reward"
+                            "reward",
+                            "airdrop"
                         ],
-                        "description": "来源类型：deposit（充值）、bonus（奖励）、reward（奖励）"
+                        "description": "来源类型：deposit（充值）、bonus（奖励）、reward（奖励）、airdrop（空投）"
                     },
                     "related_id": {
                         "type": "integer",
@@ -12590,9 +12614,10 @@
                             "enum": [
                                 "deposit",
                                 "bonus",
-                                "reward"
+                                "reward",
+                                "airdrop"
                             ],
-                            "description": "来源类型：deposit（充值）、bonus（奖励）、reward（奖励）"
+                            "description": "来源类型：deposit（充值）、bonus（奖励）、reward（奖励）、airdrop（空投）"
                         }
                     }
                 }
