@@ -3895,13 +3895,13 @@
                     "GameGroup"
                 ],
                 "summary": "获取游戏群组列表",
-                "description": "获取启用状态的游戏群组（分页），支持按分类筛选。未传 visible 时默认只返回 visible=true；传入 visible=false 可只查不可见分组",
+                "description": "获取启用状态的游戏群组（分页），支持按分类筛选。默认不按 visible 过滤（可见与不可见都会返回）；可选传 visible=true\/false 仅查对应分组",
                 "parameters": [
                     {
                         "name": "visible",
                         "in": "query",
                         "required": false,
-                        "description": "是否仅展示用分组；不传则默认为 true（只返回 visible=true）",
+                        "description": "按是否展示筛选；不传则返回全部（含 visible=false）",
                         "schema": {
                             "type": "boolean"
                         }
@@ -4044,13 +4044,13 @@
                     "GameGroup"
                 ],
                 "summary": "获取指定分类的游戏群组",
-                "description": "根据分类获取游戏群组（分页）。未传 visible 时默认只返回 visible=true",
+                "description": "根据分类获取游戏群组（分页）。默认不按 visible 过滤；可选传 visible 筛选",
                 "parameters": [
                     {
                         "name": "visible",
                         "in": "query",
                         "required": false,
-                        "description": "是否仅展示用分组；不传则默认为 true（只返回 visible=true）",
+                        "description": "按是否展示筛选；不传则返回全部（含 visible=false）",
                         "schema": {
                             "type": "boolean"
                         }

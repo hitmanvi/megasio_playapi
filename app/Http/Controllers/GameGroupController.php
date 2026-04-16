@@ -101,14 +101,12 @@ class GameGroupController extends Controller
     }
 
     /**
-     * 列表 visible 筛选：未传 visible 时默认仅 visible=true；传入 true/false 则按该值过滤
+     * 列表 visible 筛选：未传时不按 visible 过滤（返回全部启用分组）；传入 true/false 时再过滤
      */
     protected function applyGameGroupVisibleFilter(Builder $query, Request $request): void
     {
         if ($request->filled('visible')) {
             $query->where('visible', $request->boolean('visible'));
-        } else {
-            $query->visible();
         }
     }
 
