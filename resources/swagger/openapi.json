@@ -4113,6 +4113,61 @@
                 }
             }
         },
+        "\/game-groups\/recommended": {
+            "get": {
+                "tags": [
+                    "GameGroup"
+                ],
+                "summary": "获取 Recommended 群组详情",
+                "description": "获取 name=Recommended 的游戏群组详情（需启用且 visible）",
+                "parameters": [
+                    {
+                        "name": "Locale",
+                        "in": "header",
+                        "description": "语言代码",
+                        "schema": {
+                            "type": "string",
+                            "default": "en"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "获取成功",
+                        "content": {
+                            "application\/json": {
+                                "schema": {
+                                    "$ref": "#\/components\/schemas\/SupportBonusGroupDetailResponse"
+                                },
+                                "example": {
+                                    "code": 0,
+                                    "errmsg": "Success",
+                                    "data": {
+                                        "id": 1,
+                                        "category": "System",
+                                        "name": "Recommended",
+                                        "sort_id": 1,
+                                        "app_limit": 10,
+                                        "web_limit": 20,
+                                        "visible": true
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Recommended 群组不存在、已禁用或不可见",
+                        "content": {
+                            "application\/json": {
+                                "schema": {
+                                    "$ref": "#\/components\/schemas\/ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "\/game-groups\/{groupId}\/games": {
             "get": {
                 "tags": [

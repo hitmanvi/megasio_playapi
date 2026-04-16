@@ -202,6 +202,7 @@ Route::prefix('games')->group(function () {
 Route::prefix('game-groups')->group(function () {
     Route::get('/', [GameGroupController::class, 'index']);
     Route::get('/bonus', [GameGroupController::class, 'getSupportBonusDetail']);
+    Route::get('/recommended', [GameGroupController::class, 'getRecommendedDetail']);
     Route::get('/category/{category}', [GameGroupController::class, 'getByCategory']);
     Route::get('/{id}', [GameGroupController::class, 'show']);
     Route::get('/{groupId}/games', [GameGroupController::class, 'getGames']);
