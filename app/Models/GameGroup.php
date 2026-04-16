@@ -8,7 +8,10 @@ use Illuminate\Database\Eloquent\Relations\MorphMany;
 
 class GameGroup extends Model
 {
+    public const NAME_RECOMMENDED = 'Recommended';
+
     public const NAME_SUPPORT_BONUS = 'Support Bonus';
+
     /**
      * The attributes that are mass assignable.
      *
@@ -39,16 +42,18 @@ class GameGroup extends Model
      * Category constants.
      */
     const CATEGORY_EVENT = 'Event';
+
     const CATEGORY_SYSTEM = 'System';
+
     /**
      * Get the games in this group.
      */
     public function games(): BelongsToMany
     {
         return $this->belongsToMany(Game::class, 'game_group_game')
-                    ->withPivot('sort_id')
-                    ->withTimestamps()
-                    ->orderBy('sort_id', 'asc');
+            ->withPivot('sort_id')
+            ->withTimestamps()
+            ->orderBy('sort_id', 'asc');
     }
 
     /**
@@ -89,8 +94,8 @@ class GameGroup extends Model
     public function getGamesForPlatform($platform = 'web'): \Illuminate\Database\Eloquent\Collection
     {
         $limit = $platform === 'app' ? $this->app_limit : $this->web_limit;
-        
-        if (!$limit) {
+
+        if (! $limit) {
             return $this->games;
         }
 
@@ -111,9 +116,9 @@ class GameGroup extends Model
     public function getNameTranslation(string $locale): ?string
     {
         $translation = $this->translations()
-                           ->where('field', 'name')
-                           ->where('locale', $locale)
-                           ->first();
+            ->where('field', 'name')
+            ->where('locale', $locale)
+            ->first();
 
         return $translation ? $translation->value : null;
     }
@@ -124,8 +129,8 @@ class GameGroup extends Model
     public function getNames(): array
     {
         return $this->translations()
-                   ->where('field', 'name')
-                   ->pluck('value', 'locale')
-                   ->toArray();
+            ->where('field', 'name')
+            ->pluck('value', 'locale')
+            ->toArray();
     }
 }
