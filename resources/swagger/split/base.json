@@ -109,6 +109,10 @@
             "description": "奖励任务相关接口"
         },
         {
+            "name": "PromotionCode",
+            "description": "兑换码（promotion code）相关接口"
+        },
+        {
             "name": "Notification",
             "description": "通知消息相关接口"
         },
