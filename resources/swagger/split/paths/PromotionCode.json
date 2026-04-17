@@ -1,0 +1,161 @@
+{
+    "\/promotion-codes\/claim": {
+        "post": {
+            "tags": [
+                "PromotionCode"
+            ],
+            "summary": "兑换 promotion code",
+            "description": "提交兑换码领取奖励。当前 bonus_type 仅支持 bonus_task：后台在 promotion_codes.bonus_config 中配置 cap_bonus、need_wager 等，将经 BonusTaskService 创建任务。code 不区分大小写。若该用户已存在 pending 领取记录，将续跑完成；已完成则返回已领取错误。target_type=all 面向全体；target_type=users 时 bonus_config 需含 eligible_user_ids（用户 id 数组）。currency 可选，缺省为服务端默认币种（APP_CURRENCY）。",
+            "security": [
+                {
+                    "bearerAuth": []
+                }
+            ],
+            "requestBody": {
+                "required": true,
+                "content": {
+                    "application\/json": {
+                        "schema": {
+                            "$ref": "#\/components\/schemas\/PromotionCodeClaimRequest"
+                        },
+                        "example": {
+                            "code": "WELCOME2026"
+                        }
+                    }
+                }
+            },
+            "responses": {
+                "200": {
+                    "description": "领取成功",
+                    "content": {
+                        "application\/json": {
+                            "schema": {
+                                "$ref": "#\/components\/schemas\/PromotionCodeClaimResponse"
+                            },
+                            "example": {
+                                "code": 0,
+                                "errmsg": "Success",
+                                "data": {
+                                    "claim": {
+                                        "id": 1,
+                                        "status": "completed",
+                                        "claimed_at": "2026-04-17 12:00:00"
+                                    },
+                                    "bonus_task": {
+                                        "id": 100,
+                                        "task_no": "PROMO_1_42",
+                                        "bonus_name": "Welcome",
+                                        "cap_bonus": 10,
+                                        "base_bonus": 10,
+                                        "last_bonus": 10,
+                                        "need_wager": 100,
+                                        "wager": 0,
+                                        "status": "pending",
+                                        "currency": "USD",
+                                        "expired_at": "2026-05-17T12:00:00+00:00",
+                                        "progress_percent": 0,
+                                        "created_at": "2026-04-17T12:00:00.000000Z",
+                                        "updated_at": "2026-04-17T12:00:00.000000Z"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "401": {
+                    "description": "未授权",
+                    "content": {
+                        "application\/json": {
+                            "schema": {
+                                "$ref": "#\/components\/schemas\/ErrorResponse"
+                            }
+                        }
+                    }
+                },
+                "422": {
+                    "description": "参数校验失败（如 code 为空）",
+                    "content": {
+                        "application\/json": {
+                            "schema": {
+                                "$ref": "#\/components\/schemas\/ErrorResponse"
+                            },
+                            "example": {
+                                "code": 1001,
+                                "errmsg": "Validation failed",
+                                "data": null
+                            }
+                        }
+                    }
+                },
+                "400": {
+                    "description": "业务错误（兑换码不存在、已过期、已领完、已领取、无资格、配置无效等）",
+                    "content": {
+                        "application\/json": {
+                            "schema": {
+                                "$ref": "#\/components\/schemas\/ErrorResponse"
+                            },
+                            "examples": {
+                                "not_found": {
+                                    "summary": "兑换码不存在",
+                                    "value": {
+                                        "code": 4020,
+                                        "errmsg": "Promotion code not found",
+                                        "data": null
+                                    }
+                                },
+                                "expired": {
+                                    "summary": "兑换码已过期",
+                                    "value": {
+                                        "code": 4021,
+                                        "errmsg": "Promotion code has expired",
+                                        "data": null
+                                    }
+                                },
+                                "exhausted": {
+                                    "summary": "领取次数已用尽",
+                                    "value": {
+                                        "code": 4022,
+                                        "errmsg": "Promotion code has been fully redeemed",
+                                        "data": null
+                                    }
+                                },
+                                "already_claimed": {
+                                    "summary": "当前用户已领取过",
+                                    "value": {
+                                        "code": 4023,
+                                        "errmsg": "You have already claimed this promotion code",
+                                        "data": null
+                                    }
+                                },
+                                "not_eligible": {
+                                    "summary": "不符合领取对象",
+                                    "value": {
+                                        "code": 4024,
+                                        "errmsg": "You are not eligible for this promotion code",
+                                        "data": null
+                                    }
+                                },
+                                "invalid_config": {
+                                    "summary": "bonus_config 无效",
+                                    "value": {
+                                        "code": 4025,
+                                        "errmsg": "Invalid promotion bonus configuration",
+                                        "data": null
+                                    }
+                                },
+                                "unsupported_type": {
+                                    "summary": "不支持的 bonus_type",
+                                    "value": {
+                                        "code": 4026,
+                                        "errmsg": "Unsupported promotion bonus type",
+                                        "data": null
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

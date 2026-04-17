@@ -4584,6 +4584,67 @@
                 }
             }
         },
+        "PromotionCodeClaimRequest": {
+            "type": "object",
+            "required": [
+                "code"
+            ],
+            "properties": {
+                "code": {
+                    "type": "string",
+                    "maxLength": 255,
+                    "description": "兑换码（不区分大小写）"
+                }
+            }
+        },
+        "PromotionCodeClaimItem": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "integer",
+                    "description": "领取记录 ID"
+                },
+                "status": {
+                    "type": "string",
+                    "enum": [
+                        "pending",
+                        "completed"
+                    ],
+                    "description": "领取状态"
+                },
+                "claimed_at": {
+                    "type": "string",
+                    "description": "领取时间"
+                }
+            }
+        },
+        "PromotionCodeClaimData": {
+            "type": "object",
+            "properties": {
+                "claim": {
+                    "$ref": "#\/components\/schemas\/PromotionCodeClaimItem"
+                },
+                "bonus_task": {
+                    "$ref": "#\/components\/schemas\/BonusTask"
+                }
+            }
+        },
+        "PromotionCodeClaimResponse": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "integer",
+                    "description": "响应码，0表示成功"
+                },
+                "errmsg": {
+                    "type": "string",
+                    "description": "响应消息"
+                },
+                "data": {
+                    "$ref": "#\/components\/schemas\/PromotionCodeClaimData"
+                }
+            }
+        },
         "BonusTask": {
             "type": "object",
             "properties": {

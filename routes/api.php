@@ -24,6 +24,7 @@ use App\Http\Controllers\KycController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\PaymentMethodController;
+use App\Http\Controllers\PromotionCodeController;
 use App\Http\Controllers\RolloverController;
 use App\Http\Controllers\SiteLinkController;
 use App\Http\Controllers\SopayController;
@@ -78,6 +79,11 @@ Route::middleware('auth:sanctum')->prefix('weekly-cashbacks')->group(function ()
     Route::get('/claimable', [WeeklyCashbackController::class, 'claimable']);
     Route::get('/{no}', [WeeklyCashbackController::class, 'show']);
     Route::post('/{no}/claim', [WeeklyCashbackController::class, 'claim']);
+});
+
+// 兑换码（需要认证）
+Route::middleware('auth:sanctum')->prefix('promotion-codes')->group(function () {
+    Route::post('/claim', [PromotionCodeController::class, 'claim']);
 });
 
 // Rollover 相关路由（需要认证）

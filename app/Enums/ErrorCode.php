@@ -50,6 +50,15 @@ enum ErrorCode: int
     case WEEKLY_CASHBACK_NOT_FOUND = 4010;
     case WEEKLY_CASHBACK_NOT_CLAIMABLE = 4011;
     case WEEKLY_CASHBACK_NO_AMOUNT = 4012;
+
+    // Promotion code (4020-4029)
+    case PROMOTION_CODE_NOT_FOUND = 4020;
+    case PROMOTION_CODE_EXPIRED = 4021;
+    case PROMOTION_CODE_EXHAUSTED = 4022;
+    case PROMOTION_CODE_ALREADY_CLAIMED = 4023;
+    case PROMOTION_CODE_NOT_ELIGIBLE = 4024;
+    case PROMOTION_CODE_INVALID_BONUS_CONFIG = 4025;
+    case PROMOTION_CODE_UNSUPPORTED_BONUS_TYPE = 4026;
     // 支付错误 (5000-5999)
     case PAY_DEPOSIT_FAILED = 5001;
     case PAY_WITHDRAW_FAILED = 5002;
@@ -113,6 +122,14 @@ enum ErrorCode: int
             self::WEEKLY_CASHBACK_NOT_FOUND => 'Weekly cashback not found',
             self::WEEKLY_CASHBACK_NOT_CLAIMABLE => 'Weekly cashback is not claimable',
             self::WEEKLY_CASHBACK_NO_AMOUNT => 'No amount to claim',
+
+            self::PROMOTION_CODE_NOT_FOUND => 'Promotion code not found',
+            self::PROMOTION_CODE_EXPIRED => 'Promotion code has expired',
+            self::PROMOTION_CODE_EXHAUSTED => 'Promotion code has been fully redeemed',
+            self::PROMOTION_CODE_ALREADY_CLAIMED => 'You have already claimed this promotion code',
+            self::PROMOTION_CODE_NOT_ELIGIBLE => 'You are not eligible for this promotion code',
+            self::PROMOTION_CODE_INVALID_BONUS_CONFIG => 'Invalid promotion bonus configuration',
+            self::PROMOTION_CODE_UNSUPPORTED_BONUS_TYPE => 'Unsupported promotion bonus type',
 
             // 支付错误
             self::PAY_DEPOSIT_FAILED => 'Deposit failed',
