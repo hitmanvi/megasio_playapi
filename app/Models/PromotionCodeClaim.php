@@ -16,10 +16,12 @@ class PromotionCodeClaim extends Model
         'promotion_code_id',
         'status',
         'claimed_at',
+        'expired_at',
     ];
 
     protected $casts = [
         'claimed_at' => 'datetime',
+        'expired_at' => 'datetime',
     ];
 
     public function promotionCode(): BelongsTo
@@ -40,5 +42,13 @@ class PromotionCodeClaim extends Model
     public function isCompleted(): bool
     {
         return $this->status === self::STATUS_COMPLETED;
+    }
+
+    /**
+     * 领取记录是否在 expired_at 之前仍有效（null 表示不设此项时限）
+     */
+    public function isRecordExpired(): bool
+    {
+        return $this->expired_at !== null && $this->expired_at->isPast();
     }
 }

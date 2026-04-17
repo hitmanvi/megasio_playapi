@@ -4615,6 +4615,12 @@
                 "claimed_at": {
                     "type": "string",
                     "description": "领取时间"
+                },
+                "expired_at": {
+                    "type": "string",
+                    "format": "date-time",
+                    "nullable": true,
+                    "description": "领取记录失效时间，null 表示不过期"
                 }
             }
         },
