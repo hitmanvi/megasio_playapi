@@ -47,6 +47,10 @@ class PromotionCodeService
                     throw new Exception(ErrorCode::PROMOTION_CODE_NOT_FOUND);
                 }
 
+                if ($promo->isInactiveStatus()) {
+                    throw new Exception(ErrorCode::PROMOTION_CODE_INACTIVE);
+                }
+
                 if ($promo->isGloballyExpired()) {
                     throw new Exception(ErrorCode::PROMOTION_CODE_EXPIRED);
                 }
@@ -66,12 +70,7 @@ class PromotionCodeService
                 }
 
                 if (! $existingClaim) {
-                    $completedCount = PromotionCodeClaim::query()
-                        ->where('promotion_code_id', $promo->id)
-                        ->where('status', PromotionCodeClaim::STATUS_COMPLETED)
-                        ->count();
-
-                    if ($completedCount >= $promo->times) {
+                    if ($promo->isExhaustedStatus() || $promo->claimed_count >= $promo->times) {
                         throw new Exception(ErrorCode::PROMOTION_CODE_EXHAUSTED);
                     }
 
@@ -94,6 +93,13 @@ class PromotionCodeService
 
                 $claim->status = PromotionCodeClaim::STATUS_COMPLETED;
                 $claim->save();
+
+                $newCount = (int) $promo->claimed_count + 1;
+                $promo->claimed_count = $newCount;
+                if ($newCount >= $promo->times) {
+                    $promo->status = PromotionCode::STATUS_EXHAUSTED;
+                }
+                $promo->save();
 
                 return [
                     'claim' => $claim,

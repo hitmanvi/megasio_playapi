@@ -16,18 +16,30 @@ class PromotionCode extends Model
     /** 奖励类型：bonus task（暂仅支持） */
     public const BONUS_TYPE_BONUS_TASK = 'bonus_task';
 
+    /** 兑换码状态：可领取 */
+    public const STATUS_ACTIVE = 'active';
+
+    /** 兑换码状态：停用（后台关闭） */
+    public const STATUS_INACTIVE = 'inactive';
+
+    /** 兑换码状态：次数已领完 */
+    public const STATUS_EXHAUSTED = 'exhausted';
+
     protected $fillable = [
         'name',
         'code',
         'times',
+        'claimed_count',
         'bonus_type',
         'bonus_config',
         'expired_at',
         'target_type',
+        'status',
     ];
 
     protected $casts = [
         'times' => 'integer',
+        'claimed_count' => 'integer',
         'bonus_config' => 'array',
         'expired_at' => 'datetime',
     ];
@@ -38,6 +50,21 @@ class PromotionCode extends Model
     public function isGloballyExpired(): bool
     {
         return $this->expired_at !== null && $this->expired_at->isPast();
+    }
+
+    public function isActiveStatus(): bool
+    {
+        return $this->status === self::STATUS_ACTIVE;
+    }
+
+    public function isInactiveStatus(): bool
+    {
+        return $this->status === self::STATUS_INACTIVE;
+    }
+
+    public function isExhaustedStatus(): bool
+    {
+        return $this->status === self::STATUS_EXHAUSTED;
     }
 
     /**
