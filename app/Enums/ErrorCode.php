@@ -60,6 +60,7 @@ enum ErrorCode: int
     case PROMOTION_CODE_INVALID_BONUS_CONFIG = 4025;
     case PROMOTION_CODE_UNSUPPORTED_BONUS_TYPE = 4026;
     case PROMOTION_CODE_INACTIVE = 4027;
+    case PROMOTION_CODE_CLAIM_EXPIRED = 4028;
     // 支付错误 (5000-5999)
     case PAY_DEPOSIT_FAILED = 5001;
     case PAY_WITHDRAW_FAILED = 5002;
@@ -132,6 +133,7 @@ enum ErrorCode: int
             self::PROMOTION_CODE_INVALID_BONUS_CONFIG => 'Invalid promotion bonus configuration',
             self::PROMOTION_CODE_UNSUPPORTED_BONUS_TYPE => 'Unsupported promotion bonus type',
             self::PROMOTION_CODE_INACTIVE => 'Promotion code is not active',
+            self::PROMOTION_CODE_CLAIM_EXPIRED => 'Promotion claim has expired',
 
             // 支付错误
             self::PAY_DEPOSIT_FAILED => 'Deposit failed',

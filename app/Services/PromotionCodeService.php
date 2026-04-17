@@ -26,6 +26,7 @@ class PromotionCodeService
      *
      * bonus_config 必填：cap_bonus、need_wager；可选：currency（缺省用 config app.currency）、base_bonus、last_bonus、bonus_name、expired_at。
      * target_type=users 时需在 bonus_config 中提供 eligible_user_ids（用户 id 数组）。
+     * 已存在 pending 的 promotion_code_claims 时，若 claim.expired_at 已过期则拒绝（PROMOTION_CODE_CLAIM_EXPIRED）。
      *
      * @return array{claim: PromotionCodeClaim, bonus_task: BonusTask}
      */
@@ -81,6 +82,9 @@ class PromotionCodeService
                         'claimed_at' => now(),
                     ]);
                 } elseif ($existingClaim->status === PromotionCodeClaim::STATUS_PENDING) {
+                    if ($existingClaim->isRecordExpired()) {
+                        throw new Exception(ErrorCode::PROMOTION_CODE_CLAIM_EXPIRED);
+                    }
                     $claim = $existingClaim;
                 } else {
                     throw new Exception(ErrorCode::PROMOTION_CODE_ALREADY_CLAIMED);

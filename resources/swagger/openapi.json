@@ -6575,7 +6575,7 @@
                     "PromotionCode"
                 ],
                 "summary": "兑换 promotion code",
-                "description": "提交兑换码领取奖励。当前 bonus_type 仅支持 bonus_task：后台在 promotion_codes.bonus_config 中配置 cap_bonus、need_wager 等，将经 BonusTaskService 创建任务。code 不区分大小写。若该用户已存在 pending 领取记录，将续跑完成；已完成则返回已领取错误。target_type=all 面向全体；target_type=users 时 bonus_config 需含 eligible_user_ids（用户 id 数组）。currency 可选，缺省为服务端默认币种（APP_CURRENCY）。promotion_codes.status 为 inactive 时不可领；claimed_count 与 times、status（含 exhausted）在服务端维护。",
+                "description": "提交兑换码领取奖励。当前 bonus_type 仅支持 bonus_task：后台在 promotion_codes.bonus_config 中配置 cap_bonus、need_wager 等，将经 BonusTaskService 创建任务。code 不区分大小写。若该用户已存在 pending 领取记录，将续跑完成；若该记录 promotion_code_claims.expired_at 已过期则返回 4028；已完成则返回已领取错误。target_type=all 面向全体；target_type=users 时 bonus_config 需含 eligible_user_ids（用户 id 数组）。currency 可选，缺省为服务端默认币种（APP_CURRENCY）。promotion_codes.status 为 inactive 时不可领；claimed_count 与 times、status（含 exhausted）在服务端维护。",
                 "security": [
                     {
                         "bearerAuth": []
@@ -6609,7 +6609,8 @@
                                         "claim": {
                                             "id": 1,
                                             "status": "completed",
-                                            "claimed_at": "2026-04-17 12:00:00"
+                                            "claimed_at": "2026-04-17 12:00:00",
+                                            "expired_at": null
                                         },
                                         "bonus_task": {
                                             "id": 100,
@@ -6726,6 +6727,14 @@
                                         "value": {
                                             "code": 4027,
                                             "errmsg": "Promotion code is not active",
+                                            "data": null
+                                        }
+                                    },
+                                    "claim_expired": {
+                                        "summary": "已有 pending 领取记录且 claim.expired_at 已过期",
+                                        "value": {
+                                            "code": 4028,
+                                            "errmsg": "Promotion claim has expired",
                                             "data": null
                                         }
                                     }
@@ -13975,6 +13984,12 @@
                     "claimed_at": {
                         "type": "string",
                         "description": "领取时间"
+                    },
+                    "expired_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "nullable": true,
+                        "description": "领取记录失效时间，null 表示不过期"
                     }
                 }
             },
