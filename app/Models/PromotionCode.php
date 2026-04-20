@@ -79,4 +79,9 @@ class PromotionCode extends Model
     {
         return $this->hasMany(PromotionCodeClaim::class);
     }
+
+    public function customerIoCampaignLinks(): HasMany
+    {
+        return $this->hasMany(CustomerIoCampaignPromotionCode::class);
+    }
 }

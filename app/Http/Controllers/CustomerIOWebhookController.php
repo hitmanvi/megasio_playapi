@@ -11,6 +11,8 @@ use Illuminate\Support\Facades\Log;
 
 /**
  * Customer.io Reporting Webhook：仅处理退订（metric = unsubscribed），将 users.receive_promotion_email 置为 false。
+ * 默认必须校验入站 X-Signature（与 services.customer_io.webhook 中 signing_secret 配置）；
+ * 未设置环境变量时 verify_signature 为 true，仅联调可显式关闭。
  *
  * @see https://customer.io/docs/journeys/webhooks/
  */
@@ -18,7 +20,7 @@ class CustomerIOWebhookController extends Controller
 {
     public function handle(Request $request): JsonResponse|Response
     {
-        if (!config('services.customer_io.webhook.enabled')) {
+        if (! config('services.customer_io.webhook.enabled')) {
             abort(404);
         }
 
@@ -32,13 +34,13 @@ class CustomerIOWebhookController extends Controller
                 return response('Webhook signing not configured', 503);
             }
             $signature = $request->header('X-Signature');
-            if (!CustomerIOService::verifyWebhookSignature($raw, $signature, $secret)) {
+            if (! CustomerIOService::verifyWebhookSignature($raw, $signature, $secret)) {
                 return response('Invalid signature', 401);
             }
         }
 
         $payload = json_decode($raw, true);
-        if (!is_array($payload)) {
+        if (! is_array($payload)) {
             return response()->json(['message' => 'Invalid JSON body'], 422);
         }
 
@@ -48,7 +50,7 @@ class CustomerIOWebhookController extends Controller
         }
 
         $data = $payload['data'] ?? null;
-        if (!is_array($data)) {
+        if (! is_array($data)) {
             Log::warning('Customer.io unsubscribed webhook: missing data');
 
             return response()->json(['ok' => true]);
