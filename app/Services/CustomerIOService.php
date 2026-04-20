@@ -51,13 +51,28 @@ class CustomerIOService
         $secret = (string) (config('services.customer_io.webhook.signing_secret') ?? '');
         $cioSig = self::firstHeader($request, ['X-CIO-Signature', 'X-Cio-Signature']);
         $cioTs = self::firstHeader($request, ['X-CIO-Timestamp', 'X-Cio-Timestamp']);
+        $remoteIp = (string) ($request->ip() ?? '');
+        $ipWhitelist = self::normalizeIpWhitelist(config('services.customer_io.webhook.ip_whitelist', ''));
+        $whitelistEnabled = $ipWhitelist !== [];
 
         Log::debug('Customer.io webhook signature verify: start', [
             'body_bytes' => strlen($raw),
             'x_cio_signature_present' => ! self::isBlank($cioSig),
             'x_cio_timestamp_present' => ! self::isBlank($cioTs),
             'signing_secret_configured' => $secret !== '',
+            'remote_ip' => $remoteIp,
+            'ip_whitelist_enabled' => $whitelistEnabled,
+            'ip_whitelist_count' => count($ipWhitelist),
         ]);
+
+        if ($whitelistEnabled && ! self::isIpAllowed($remoteIp, $ipWhitelist)) {
+            Log::warning('Customer.io webhook ip not allowed', [
+                'remote_ip' => $remoteIp,
+                'ip_whitelist_count' => count($ipWhitelist),
+            ]);
+
+            return response('IP not allowed', 403);
+        }
 
         if ($secret === '') {
             Log::error('Customer.io webhook verify_signature enabled but signing secret empty');
@@ -114,6 +129,102 @@ class CustomerIOService
         }
 
         return trim((string) $value) === '';
+    }
+
+    /**
+     * @param  mixed  $rawWhitelist  string("ip1,ip2") 或数组
+     * @return list<string>
+     */
+    private static function normalizeIpWhitelist(mixed $rawWhitelist): array
+    {
+        if (is_string($rawWhitelist)) {
+            $rawWhitelist = explode(',', $rawWhitelist);
+        }
+
+        if (! is_array($rawWhitelist)) {
+            return [];
+        }
+
+        $rules = [];
+        foreach ($rawWhitelist as $item) {
+            $rule = trim((string) $item);
+            if ($rule !== '') {
+                $rules[] = $rule;
+            }
+        }
+
+        return $rules;
+    }
+
+    /**
+     * @param  list<string>  $whitelist
+     */
+    private static function isIpAllowed(string $ip, array $whitelist): bool
+    {
+        if ($ip === '') {
+            return false;
+        }
+
+        foreach ($whitelist as $rule) {
+            if (str_contains($rule, '/')) {
+                if (self::ipInCidr($ip, $rule)) {
+                    return true;
+                }
+
+                continue;
+            }
+
+            if ($ip === $rule) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private static function ipInCidr(string $ip, string $cidr): bool
+    {
+        $parts = explode('/', $cidr, 2);
+        if (count($parts) !== 2) {
+            return false;
+        }
+
+        [$network, $prefixRaw] = $parts;
+        if (! ctype_digit($prefixRaw)) {
+            return false;
+        }
+
+        $ipBin = @inet_pton($ip);
+        $networkBin = @inet_pton($network);
+        if ($ipBin === false || $networkBin === false) {
+            return false;
+        }
+        if (strlen($ipBin) !== strlen($networkBin)) {
+            return false;
+        }
+
+        $prefix = (int) $prefixRaw;
+        $maxBits = strlen($ipBin) * 8;
+        if ($prefix < 0 || $prefix > $maxBits) {
+            return false;
+        }
+
+        $fullBytes = intdiv($prefix, 8);
+        $remainingBits = $prefix % 8;
+
+        if ($fullBytes > 0 && substr($ipBin, 0, $fullBytes) !== substr($networkBin, 0, $fullBytes)) {
+            return false;
+        }
+
+        if ($remainingBits === 0) {
+            return true;
+        }
+
+        $mask = 0xFF << (8 - $remainingBits);
+        $ipByte = ord($ipBin[$fullBytes]);
+        $networkByte = ord($networkBin[$fullBytes]);
+
+        return ($ipByte & $mask) === ($networkByte & $mask);
     }
 
     // -------------------------------------------------------------------------
