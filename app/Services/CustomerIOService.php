@@ -11,29 +11,33 @@ use Illuminate\Support\Facades\Log;
 
 class CustomerIOService
 {
+    private const TRACK_API_CUSTOMERS = 'https://track.customer.io/api/v1/customers';
+
+    // -------------------------------------------------------------------------
+    // Inbound webhook（Reporting / Journey）
+    // -------------------------------------------------------------------------
+
     /**
-     * 校验 Customer.io 出站 Webhook 的 X-Signature（原始 body + signing secret → hex HMAC-SHA1）
+     * X-CIO-Signature + X-CIO-Timestamp：签名为 HMAC-SHA256 hex，原文为 v0:{timestamp}:{rawBody}。
+     *
+     * @see https://customer.io/docs/journeys/webhooks-action/#securely-verify-requests
      */
-    public static function verifyWebhookSignature(string $rawBody, ?string $signatureHeader, string $secret): bool
+    public static function verifyWebhookSignature(string $rawBody, ?string $signatureHex, ?string $timestampHeader, string $secret): bool
     {
-        if ($signatureHeader === null || trim($signatureHeader) === '' || $secret === '') {
+        if ($secret === '' || self::isBlank($signatureHex) || self::isBlank($timestampHeader)) {
             return false;
         }
 
-        $sig = trim($signatureHeader);
-        if (str_contains($sig, '=')) {
-            $parts = explode('=', $sig, 2);
-            $sig = trim(end($parts));
-        }
+        $timestamp = trim((string) $timestampHeader);
+        $signature = strtolower(self::extractSignatureHex((string) $signatureHex));
+        $signedPayload = 'v0:'.$timestamp.':'.$rawBody;
+        $expectedHex = strtolower(hash_hmac('sha256', $signedPayload, $secret));
 
-        $expected = hash_hmac('sha1', $rawBody, $secret);
-
-        return hash_equals(strtolower($expected), strtolower($sig));
+        return hash_equals($expectedHex, $signature);
     }
 
     /**
-     * 入站 Webhook：按 config 读取 raw body 与 X-Signature 做校验；未开启校验时直接通过。
-     * 返回 null 表示可继续处理；否则为须原样返回的 HTTP 响应（503 未配 secret、401 签名校验失败）。
+     * 按 config 校验 HTTP 头；通过返回 null，否则返回须直接输出的 Response（503 / 401）。
      */
     public static function ensureInboundWebhookSignature(Request $request): ?Response
     {
@@ -45,12 +49,13 @@ class CustomerIOService
 
         $raw = $request->getContent();
         $secret = (string) (config('services.customer_io.webhook.signing_secret') ?? '');
-        $signature = $request->header('X-Signature');
-        $signatureTrimmed = $signature !== null ? trim((string) $signature) : '';
+        $cioSig = self::firstHeader($request, ['X-CIO-Signature', 'X-Cio-Signature']);
+        $cioTs = self::firstHeader($request, ['X-CIO-Timestamp', 'X-Cio-Timestamp']);
 
         Log::debug('Customer.io webhook signature verify: start', [
             'body_bytes' => strlen($raw),
-            'x_signature_present' => $signatureTrimmed !== '',
+            'x_cio_signature_present' => ! self::isBlank($cioSig),
+            'x_cio_timestamp_present' => ! self::isBlank($cioTs),
             'signing_secret_configured' => $secret !== '',
         ]);
 
@@ -60,21 +65,60 @@ class CustomerIOService
             return response('Webhook signing not configured', 503);
         }
 
-        $ok = self::verifyWebhookSignature($raw, $signature, $secret);
+        $ok = self::verifyWebhookSignature($raw, $cioSig, $cioTs, $secret);
 
         Log::debug('Customer.io webhook signature verify: result', ['valid' => $ok]);
 
         if (! $ok) {
-            Log::warning('Customer.io webhook signature invalid', [
-                'body_bytes' => strlen($raw),
-                'x_signature_present' => $signatureTrimmed !== '',
-            ]);
+            Log::warning('Customer.io webhook signature invalid', ['body_bytes' => strlen($raw)]);
 
             return response('Invalid signature', 401);
         }
 
         return null;
     }
+
+    /**
+     * 去掉 `sha256=` 等前缀，得到十六进制签名字符串。
+     */
+    private static function extractSignatureHex(string $signatureHeader): string
+    {
+        $sig = trim($signatureHeader);
+        if (str_contains($sig, '=')) {
+            $parts = explode('=', $sig, 2);
+            $sig = trim(end($parts));
+        }
+
+        return $sig;
+    }
+
+    /**
+     * @param  list<string>  $names
+     */
+    private static function firstHeader(Request $request, array $names): ?string
+    {
+        foreach ($names as $name) {
+            $v = $request->header($name);
+            if ($v !== null && $v !== '') {
+                return is_array($v) ? (string) ($v[0] ?? '') : (string) $v;
+            }
+        }
+
+        return null;
+    }
+
+    private static function isBlank(mixed $value): bool
+    {
+        if ($value === null) {
+            return true;
+        }
+
+        return trim((string) $value) === '';
+    }
+
+    // -------------------------------------------------------------------------
+    // Track API
+    // -------------------------------------------------------------------------
 
     private $siteId;
 
@@ -86,20 +130,9 @@ class CustomerIOService
         $this->apiKey = config('services.customer_io.api_key');
     }
 
-    private function credentialsConfigured(): bool
-    {
-        return $this->siteId !== null && $this->siteId !== ''
-            && $this->apiKey !== null && $this->apiKey !== '';
-    }
-
-    private function customerPathId(User $user): string
-    {
-        return rawurlencode((string) $user->uid);
-    }
-
     public function createCustomer(User $user): void
     {
-        if (! config('services.customer_io.enabled') || ! $this->credentialsConfigured()) {
+        if (! $this->shouldUseTrackApi()) {
             return;
         }
 
@@ -109,7 +142,7 @@ class CustomerIOService
 
         dispatch(function () use ($userId, $siteId, $apiKey) {
             $fresh = User::query()->with('vip')->find($userId);
-            if (! $fresh || $fresh->uid === null || $fresh->uid === '') {
+            if (! $fresh || self::isBlank($fresh->uid)) {
                 return;
             }
 
@@ -118,14 +151,11 @@ class CustomerIOService
             $vipLevel = VipLevel::calculateLevelFromExp($exp);
 
             Http::withBasicAuth($siteId, $apiKey)
-                ->put(
-                    'https://track.customer.io/api/v1/customers/'.$pathId,
-                    [
-                        'email' => $fresh->email,
-                        'created_at' => $fresh->created_at?->unix(),
-                        'vip' => $vipLevel,
-                    ]
-                );
+                ->put(self::TRACK_API_CUSTOMERS.'/'.$pathId, [
+                    'email' => $fresh->email,
+                    'created_at' => $fresh->created_at?->unix(),
+                    'vip' => $vipLevel,
+                ]);
 
             app(CustomerIOService::class)->sendEvent($fresh, 'sign_up', $fresh->created_at?->unix());
         });
@@ -136,7 +166,7 @@ class CustomerIOService
      */
     public function syncEmailOnLogin(User $user): void
     {
-        if (! config('services.customer_io.enabled') || ! $this->credentialsConfigured()) {
+        if (! $this->shouldUseTrackApi()) {
             return;
         }
 
@@ -146,7 +176,7 @@ class CustomerIOService
 
         dispatch(function () use ($userId, $siteId, $apiKey) {
             $fresh = User::query()->find($userId);
-            if (! $fresh || $fresh->uid === null || $fresh->uid === '') {
+            if (! $fresh || self::isBlank($fresh->uid)) {
                 return;
             }
 
@@ -158,16 +188,13 @@ class CustomerIOService
             $pathId = rawurlencode((string) $fresh->uid);
 
             Http::withBasicAuth($siteId, $apiKey)
-                ->put(
-                    'https://track.customer.io/api/v1/customers/'.$pathId,
-                    ['email' => $email]
-                );
+                ->put(self::TRACK_API_CUSTOMERS.'/'.$pathId, ['email' => $email]);
         });
     }
 
     public function update(User $user, array $data): void
     {
-        if (! config('services.customer_io.enabled') || ! $this->credentialsConfigured()) {
+        if (! $this->shouldUseTrackApi()) {
             return;
         }
 
@@ -177,30 +204,26 @@ class CustomerIOService
 
         dispatch(function () use ($userId, $data, $siteId, $apiKey) {
             $fresh = User::query()->find($userId);
-            if (! $fresh || $fresh->uid === null || $fresh->uid === '') {
+            if (! $fresh || self::isBlank($fresh->uid)) {
                 return;
             }
 
             $pathId = rawurlencode((string) $fresh->uid);
 
             Http::withBasicAuth($siteId, $apiKey)
-                ->put(
-                    'https://track.customer.io/api/v1/customers/'.$pathId,
-                    $data
-                );
+                ->put(self::TRACK_API_CUSTOMERS.'/'.$pathId, $data);
         });
     }
 
     public function deleteCustomer(User $user): void
     {
-        if (! config('services.customer_io.enabled') || ! $this->credentialsConfigured()) {
+        if (! $this->shouldUseTrackApi()) {
             return;
         }
 
         try {
-            $pathId = $this->customerPathId($user);
-            Http::withBasicAuth($this->siteId, $this->apiKey)
-                ->delete('https://track.customer.io/api/v1/customers/'.$pathId);
+            Http::withBasicAuth((string) $this->siteId, (string) $this->apiKey)
+                ->delete(self::TRACK_API_CUSTOMERS.'/'.$this->customerPathId($user));
         } catch (\Exception $e) {
             Log::error($e->getMessage());
         }
@@ -211,13 +234,11 @@ class CustomerIOService
      */
     public function sendEvent(User $user, string $event, ?int $timestamp = null, ?array $data = null): void
     {
-        if (! config('services.customer_io.enabled') || ! $this->credentialsConfigured()) {
+        if (! $this->shouldUseTrackApi()) {
             return;
         }
 
-        if ($timestamp === null) {
-            $timestamp = time();
-        }
+        $timestamp ??= time();
 
         $userId = $user->getKey();
         $siteId = $this->siteId;
@@ -225,7 +246,7 @@ class CustomerIOService
 
         dispatch(function () use ($userId, $event, $timestamp, $siteId, $apiKey, $data) {
             $fresh = User::query()->find($userId);
-            if (! $fresh || $fresh->uid === null || $fresh->uid === '') {
+            if (! $fresh || self::isBlank($fresh->uid)) {
                 return;
             }
 
@@ -247,10 +268,7 @@ class CustomerIOService
             ]);
 
             Http::withBasicAuth($siteId, $apiKey)
-                ->post(
-                    'https://track.customer.io/api/v1/customers/'.$pathId.'/events',
-                    $payload
-                );
+                ->post(self::TRACK_API_CUSTOMERS.'/'.$pathId.'/events', $payload);
         })->onQueue('low');
     }
 
@@ -261,19 +279,31 @@ class CustomerIOService
 
     public function updateCustomer(User $user, array $data): void
     {
-        if (! config('services.customer_io.enabled') || ! $this->credentialsConfigured()) {
+        if (! $this->shouldUseTrackApi()) {
             return;
         }
 
         try {
-            $pathId = $this->customerPathId($user);
-            Http::withBasicAuth($this->siteId, $this->apiKey)
-                ->put(
-                    'https://track.customer.io/api/v1/customers/'.$pathId,
-                    $data
-                );
+            Http::withBasicAuth((string) $this->siteId, (string) $this->apiKey)
+                ->put(self::TRACK_API_CUSTOMERS.'/'.$this->customerPathId($user), $data);
         } catch (\Exception $e) {
             Log::error($e->getMessage());
         }
+    }
+
+    private function shouldUseTrackApi(): bool
+    {
+        return config('services.customer_io.enabled') && $this->credentialsConfigured();
+    }
+
+    private function credentialsConfigured(): bool
+    {
+        return $this->siteId !== null && $this->siteId !== ''
+            && $this->apiKey !== null && $this->apiKey !== '';
+    }
+
+    private function customerPathId(User $user): string
+    {
+        return rawurlencode((string) $user->uid);
     }
 }
