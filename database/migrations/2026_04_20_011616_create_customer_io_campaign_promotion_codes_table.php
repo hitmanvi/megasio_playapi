@@ -18,7 +18,7 @@ return new class extends Migration
             $table->text('remark')->nullable()->comment('备注');
             $table->timestamps();
 
-            $table->unique(['campaign_id', 'promotion_code_id']);
+            $table->unique(['campaign_id', 'promotion_code_id'], 'cio_camp_promo_campaign_pc_uniq');
             $table->index('promotion_code_id');
         });
     }
