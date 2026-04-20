@@ -99,13 +99,14 @@ return [
         'site_id' => env('CUSTOMER_IO_SITE_ID'),
         'api_key' => env('CUSTOMER_IO_API_KEY'),
         /*
-         * 入站 Webhook：仅处理 metric=unsubscribed（Reporting），关闭 receive_promotion_email；可选 X-Signature
+         * 入站 Webhook：仅处理 metric=unsubscribed（Reporting），关闭 receive_promotion_email
+         * 默认必须校验 X-Signature；仅本地/联调可设 CUSTOMER_IO_WEBHOOK_VERIFY_SIGNATURE=false
          * @see https://customer.io/docs/journeys/webhooks/
          */
         'webhook' => [
             'enabled' => env('CUSTOMER_IO_WEBHOOK_ENABLED', false),
             'signing_secret' => env('CUSTOMER_IO_WEBHOOK_SIGNING_SECRET'),
-            'verify_signature' => env('CUSTOMER_IO_WEBHOOK_VERIFY_SIGNATURE', false),
+            'verify_signature' => env('CUSTOMER_IO_WEBHOOK_VERIFY_SIGNATURE', true),
         ],
     ],
 
