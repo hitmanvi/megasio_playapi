@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Enums\ErrorCode;
 use App\Exceptions\Exception;
 use App\Models\BonusTask;
+use App\Models\CustomerIoCampaignPromotionCode;
 use App\Models\PromotionCode;
 use App\Models\PromotionCodeClaim;
 use Carbon\Carbon;
@@ -25,7 +26,7 @@ class PromotionCodeService
      * 兑换 promotion code，当前仅支持 bonus_type=bonus_task（由 bonus_config 生成 BonusTask）。
      *
      * bonus_config 必填：cap_bonus、need_wager；可选：currency（缺省用 config app.currency）、base_bonus、last_bonus、bonus_name、expired_at。
-     * target_type=users 时需在 bonus_config 中提供 eligible_user_ids（用户 id 数组）。
+     * target_type=users：仅当该用户对应该兑换码已有 pending 的 promotion_code_claims（如 Customer.io sent 写入）才可领取；不再校验 bonus_config.eligible_user_ids。
      * 已存在 pending 的 promotion_code_claims 时，若 claim.expired_at 已过期则拒绝（PROMOTION_CODE_CLAIM_EXPIRED）。
      *
      * @return array{claim: PromotionCodeClaim, bonus_task: BonusTask}
@@ -126,15 +127,89 @@ class PromotionCodeService
         }
 
         if ($promo->target_type === PromotionCode::TARGET_TYPE_USERS) {
-            $ids = $promo->bonus_config['eligible_user_ids'] ?? null;
-            if (! is_array($ids) || $ids === []) {
-                return false;
-            }
-
-            return in_array($userId, array_map('intval', $ids), true);
+            return PromotionCodeClaim::query()
+                ->where('promotion_code_id', $promo->id)
+                ->where('user_id', $userId)
+                ->exists();
         }
 
         return false;
+    }
+
+    /**
+     * Customer.io metric=sent：若 campaign 在 customer_io_campaign_promotion_codes 中有绑定且兑换码仍可领，
+     * 则无记录时创建 pending（expired_at=+14 天）；已有 pending 则将 expired_at 刷新为当前起 14 天后；已完成则跳过。
+     */
+    public function ensurePendingClaimForCustomerIoCampaign(int $userId, mixed $campaignId): void
+    {
+        if ($campaignId === null) {
+            return;
+        }
+        $campaignKey = trim((string) $campaignId);
+        if ($campaignKey === '') {
+            return;
+        }
+
+        $expiresAt = $this->customerIoPendingClaimExpiresAt();
+
+        $links = CustomerIoCampaignPromotionCode::query()
+            ->where('campaign_id', $campaignKey)
+            ->with('promotionCode')
+            ->get();
+
+        foreach ($links as $link) {
+            $promo = $link->promotionCode;
+            if (! $promo) {
+                continue;
+            }
+
+            if ($promo->isInactiveStatus() || $promo->isGloballyExpired()) {
+                continue;
+            }
+
+            if ($promo->isExhaustedStatus() || $promo->claimed_count >= $promo->times) {
+                continue;
+            }
+
+            $claim = PromotionCodeClaim::query()
+                ->where('user_id', $userId)
+                ->where('promotion_code_id', $promo->id)
+                ->first();
+
+            if ($claim !== null) {
+                if ($claim->status === PromotionCodeClaim::STATUS_COMPLETED) {
+                    continue;
+                }
+                if ($claim->status === PromotionCodeClaim::STATUS_PENDING) {
+                    $claim->expired_at = $expiresAt;
+                    $claim->save();
+                }
+
+                continue;
+            }
+
+            try {
+                PromotionCodeClaim::create([
+                    'user_id' => $userId,
+                    'promotion_code_id' => $promo->id,
+                    'status' => PromotionCodeClaim::STATUS_PENDING,
+                    'claimed_at' => null,
+                    'expired_at' => $expiresAt,
+                ]);
+            } catch (QueryException $e) {
+                $msg = $e->getMessage();
+                if (str_contains($msg, 'Duplicate') || str_contains($msg, 'UNIQUE constraint failed')) {
+                    continue;
+                }
+
+                throw $e;
+            }
+        }
+    }
+
+    private function customerIoPendingClaimExpiresAt(): Carbon
+    {
+        return now()->addDays(14);
     }
 
     /**
