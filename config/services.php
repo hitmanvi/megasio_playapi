@@ -100,6 +100,7 @@ return [
         'api_key' => env('CUSTOMER_IO_API_KEY'),
         /*
          * 入站 Webhook：X-CIO-Signature + X-CIO-Timestamp（v0/SHA256）
+         * 可选 IP 白名单：CUSTOMER_IO_WEBHOOK_IP_WHITELIST（逗号分隔，支持 CIDR）
          * 仅本地/联调可设 CUSTOMER_IO_WEBHOOK_VERIFY_SIGNATURE=false
          * @see https://customer.io/docs/journeys/webhooks-action/#securely-verify-requests
          */
@@ -107,6 +108,7 @@ return [
             'enabled' => env('CUSTOMER_IO_WEBHOOK_ENABLED', false),
             'signing_secret' => env('CUSTOMER_IO_WEBHOOK_SIGNING_SECRET'),
             'verify_signature' => env('CUSTOMER_IO_WEBHOOK_VERIFY_SIGNATURE', true),
+            'ip_whitelist' => env('CUSTOMER_IO_WEBHOOK_IP_WHITELIST', '35.188.196.183,34.76.143.229,104.198.177.219,34.78.91.47,104.154.232.87,34.77.94.252,130.211.229.195,35.187.188.242,104.198.221.24,34.78.122.90,104.197.27.15,35.195.137.235,35.194.9.154,130.211.108.156,104.154.144.51,104.199.50.18,104.197.210.12,34.78.44.80,35.225.6.73,35.205.31.154,35.192.215.166,34.170.204.100'),
         ],
     ],
 
