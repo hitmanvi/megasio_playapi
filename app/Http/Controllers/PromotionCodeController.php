@@ -36,7 +36,7 @@ class PromotionCodeController extends Controller
                 'claim' => [
                     'id' => $result['claim']->id,
                     'status' => $result['claim']->status,
-                    'claimed_at' => $result['claim']->claimed_at->format('Y-m-d H:i:s'),
+                    'claimed_at' => $result['claim']->claimed_at?->format('Y-m-d H:i:s'),
                 ],
                 'bonus_task' => $this->bonusTaskService->formatBonusTask($result['bonus_task']),
             ]);

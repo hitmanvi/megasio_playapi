@@ -4614,7 +4614,8 @@
                 },
                 "claimed_at": {
                     "type": "string",
-                    "description": "领取时间"
+                    "nullable": true,
+                    "description": "领取时间，null 表示尚未记录"
                 },
                 "expired_at": {
                     "type": "string",
