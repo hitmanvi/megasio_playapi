@@ -28,7 +28,7 @@ class CustomerIOWebhookController extends Controller
 
     public function handle(Request $request): JsonResponse|Response
     {
-        Log::info('Customer.io webhook request', ['request' => $request->all()]);
+        Log::info('Customer.io webhook request', ['request' => $request->all(), 'headers' => $request->headers->all()]);
         if (! config('services.customer_io.webhook.enabled')) {
             abort(404);
         }
