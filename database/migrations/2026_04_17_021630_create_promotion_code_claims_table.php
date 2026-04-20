@@ -16,7 +16,7 @@ return new class extends Migration
             $table->unsignedBigInteger('user_id');
             $table->unsignedBigInteger('promotion_code_id');
             $table->string('status', 32)->default('pending')->comment('pending 处理中 / completed 已完成');
-            $table->timestamp('claimed_at')->comment('领取时间');
+            $table->timestamp('claimed_at')->nullable()->comment('领取时间，null 表示尚未记录');
             $table->timestamp('expired_at')->nullable()->comment('领取记录失效时间，null 表示不过期（如 pending 需在此前完成）');
             $table->timestamps();
 

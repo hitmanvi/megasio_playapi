@@ -49,6 +49,11 @@ class CustomerIOWebhookController extends Controller
             return response()->json(['ok' => true]);
         }
 
+        return $this->handleUnsubscribed($payload);
+    }
+
+    private function handleUnsubscribed(array $payload): JsonResponse
+    {
         $data = $payload['data'] ?? null;
         if (! is_array($data)) {
             Log::warning('Customer.io unsubscribed webhook: missing data');
