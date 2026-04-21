@@ -9,18 +9,31 @@ class Notification extends Model
 {
     // 消息类型常量
     const TYPE_SYSTEM = 'system';  // 系统消息
+
     const TYPE_USER = 'user';      // 用户消息
 
     // 消息分类常量
     const CATEGORY_REGISTER = 'register';                    // 注册欢迎
+
     const CATEGORY_DEPOSIT_SUCCESS = 'deposit_success';      // 充值成功
+
     const CATEGORY_WITHDRAW_SUCCESS = 'withdraw_success';    // 提现成功
+
     const CATEGORY_VIP_LEVEL_UP = 'vip_level_up';            // VIP等级提升
+
     const CATEGORY_BONUS_TASK = 'bonus_task';                // 得到奖励任务
+
+    /** Promotion code 兑换成功入账 bonus */
+    const CATEGORY_BONUS_TASK_CLAIMED = 'bonus_task_claimed';
+
     const CATEGORY_BONUS_TASK_COMPLETED = 'bonus_task_completed'; // 奖励任务完成
+
     const CATEGORY_INVITATION_REWARD = 'invitation_reward';  // 邀请奖励
+
     const CATEGORY_SYSTEM_ANNOUNCEMENT = 'system_announcement'; // 系统公告
+
     const CATEGORY_WEEKLY_CASHBACK = 'weekly_cashback';      // 周返现
+
     const CATEGORY_WEEKLY_CASHBACK_REMINDER = 'weekly_cashback_reminder';  // 周返现过期提醒
 
     /**
@@ -70,7 +83,7 @@ class Notification extends Model
     public function scopeSystem($query)
     {
         return $query->where('type', self::TYPE_SYSTEM)
-                     ->whereNull('user_id');
+            ->whereNull('user_id');
     }
 
     /**
@@ -82,6 +95,7 @@ class Notification extends Model
         if ($userId !== null) {
             $query->where('user_id', $userId);
         }
+
         return $query;
     }
 
@@ -135,6 +149,7 @@ class Notification extends Model
         }
 
         $this->read_at = now();
+
         return $this->save();
     }
 
@@ -143,11 +158,12 @@ class Notification extends Model
      */
     public function markAsUnread(): bool
     {
-        if (!$this->isRead()) {
+        if (! $this->isRead()) {
             return false;
         }
 
         $this->read_at = null;
+
         return $this->save();
     }
 }
