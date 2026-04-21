@@ -97,6 +97,7 @@ class PromotionCodeService
                 };
 
                 $claim->status = PromotionCodeClaim::STATUS_COMPLETED;
+                $claim->claimed_at = now();
                 $claim->save();
 
                 $newCount = (int) $promo->claimed_count + 1;
