@@ -4,7 +4,6 @@ namespace App\Services;
 
 use App\Jobs\SendWebSocketMessage;
 use App\Models\Notification;
-use App\Models\User;
 use Illuminate\Support\Facades\Log;
 
 class NotificationService
@@ -12,12 +11,11 @@ class NotificationService
     /**
      * 创建用户通知
      *
-     * @param int $userId 用户ID
-     * @param string $category 分类
-     * @param string $title 标题
-     * @param string $content 内容
-     * @param array|null $data 额外数据
-     * @return Notification
+     * @param  int  $userId  用户ID
+     * @param  string  $category  分类
+     * @param  string  $title  标题
+     * @param  string  $content  内容
+     * @param  array|null  $data  额外数据
      */
     public function createUserNotification(
         int $userId,
@@ -43,24 +41,21 @@ class NotificationService
 
     /**
      * 发送通知的 WebSocket 推送
-     *
-     * @param Notification $notification
-     * @return void
      */
     protected function sendNotificationWebSocket(Notification $notification): void
     {
         try {
             // 只推送用户通知（不推送系统通知）
-            if ($notification->type !== Notification::TYPE_USER || !$notification->user_id) {
+            if ($notification->type !== Notification::TYPE_USER || ! $notification->user_id) {
                 return;
             }
 
             // 加载用户关联以获取 uid
-            if (!$notification->relationLoaded('user')) {
+            if (! $notification->relationLoaded('user')) {
                 $notification->load('user');
             }
 
-            if (!$notification->user || !$notification->user->uid) {
+            if (! $notification->user || ! $notification->user->uid) {
                 return;
             }
 
@@ -95,8 +90,7 @@ class NotificationService
     /**
      * 创建欢迎通知
      *
-     * @param int $userId 用户ID
-     * @return Notification
+     * @param  int  $userId  用户ID
      */
     public function createWelcomeNotification(int $userId): Notification
     {
@@ -111,11 +105,10 @@ class NotificationService
     /**
      * 创建充值成功通知
      *
-     * @param int $userId 用户ID
-     * @param float $amount 充值金额
-     * @param string $currency 货币类型
-     * @param string $orderNo 订单号
-     * @return Notification
+     * @param  int  $userId  用户ID
+     * @param  float  $amount  充值金额
+     * @param  string  $currency  货币类型
+     * @param  string  $orderNo  订单号
      */
     public function createDepositSuccessNotification(int $userId, float $amount, string $currency, string $orderNo): Notification
     {
@@ -139,11 +132,10 @@ class NotificationService
     /**
      * 创建提现成功通知
      *
-     * @param int $userId 用户ID
-     * @param float $amount 提现金额
-     * @param string $currency 货币类型
-     * @param string $orderNo 订单号
-     * @return Notification
+     * @param  int  $userId  用户ID
+     * @param  float  $amount  提现金额
+     * @param  string  $currency  货币类型
+     * @param  string  $orderNo  订单号
      */
     public function createWithdrawSuccessNotification(int $userId, float $amount, string $currency, string $orderNo): Notification
     {
@@ -167,18 +159,17 @@ class NotificationService
     /**
      * 创建 Bonus Task 通知
      *
-     * @param int $userId 用户ID
-     * @param float $amount 奖励金额
-     * @param string $currency 货币类型
-     * @param string $taskNo 任务编号
-     * @param string|null $bonusName 奖励名称（可选，用于判断类型）
-     * @return Notification
+     * @param  int  $userId  用户ID
+     * @param  float  $amount  奖励金额
+     * @param  string  $currency  货币类型
+     * @param  string  $taskNo  任务编号
+     * @param  string|null  $bonusName  奖励名称（可选，用于判断类型）
      */
     public function createBonusTaskNotification(int $userId, float $amount, string $currency, string $taskNo, ?string $bonusName = null): Notification
     {
         // 格式化金额显示
         $formattedAmount = number_format($amount, 2, '.', '');
-        
+
         // 根据 task_no 或 bonus_name 判断类型，生成 "Via ..." 文本
         $viaText = 'Via Deposit';
         $viaValue = 'Deposit';
@@ -195,7 +186,7 @@ class NotificationService
             $viaText = 'Via Daily Deposit';
             $viaValue = 'Daily Deposit';
         }
-        
+
         $content = "\${$formattedAmount} credited to your bonus balance. {$viaText}.";
 
         return $this->createUserNotification(
@@ -213,19 +204,40 @@ class NotificationService
     }
 
     /**
+     * Promotion Code 兑换成功（BonusTask 已创建）
+     *
+     * @param  float  $amount  展示用金额（通常为 cap_bonus）
+     */
+    public function createPromotionCodeClaimNotification(int $userId, float $amount, string $currency): Notification
+    {
+        $formattedAmount = number_format($amount, 2, '.', '');
+        $content = "\${$formattedAmount} credited to your bonus balance. From Promotion Code.";
+
+        return $this->createUserNotification(
+            $userId,
+            Notification::CATEGORY_BONUS_TASK_CLAIMED,
+            'promotion_code',
+            $content,
+            [
+                'amount' => $amount,
+                'currency' => $currency,
+            ]
+        );
+    }
+
+    /**
      * 创建 VIP 等级提升通知
      *
-     * @param int $userId 用户ID
-     * @param int $newLevel 新等级（如 4）
-     * @param float $rewardAmount 奖励金额（可选，默认为 0）
-     * @param string $currency 货币类型（可选，默认为配置的默认币种）
-     * @return Notification
+     * @param  int  $userId  用户ID
+     * @param  int  $newLevel  新等级（如 4）
+     * @param  float  $rewardAmount  奖励金额（可选，默认为 0）
+     * @param  string  $currency  货币类型（可选，默认为配置的默认币种）
      */
-    public function createVipLevelUpNotification(int $userId, int $newLevel, float $rewardAmount = 0, string $currency = null): Notification
+    public function createVipLevelUpNotification(int $userId, int $newLevel, float $rewardAmount = 0, ?string $currency = null): Notification
     {
         $levelNumber = (string) $newLevel;
         $currency = $currency ?? config('app.currency', 'USD');
-        
+
         $title = "vip level up to {$levelNumber}";
         $content = "Congratulations! You've been upgraded to VIP Level {$levelNumber}!";
 
@@ -252,12 +264,11 @@ class NotificationService
     /**
      * 创建周返现可领取通知
      *
-     * @param int $userId 用户ID
-     * @param float $amount 返现金额
-     * @param string $currency 货币类型
-     * @param string $no Cashback 标识
-     * @param int $period 周期
-     * @return Notification
+     * @param  int  $userId  用户ID
+     * @param  float  $amount  返现金额
+     * @param  string  $currency  货币类型
+     * @param  string  $no  Cashback 标识
+     * @param  int  $period  周期
      */
     public function createWeeklyCashbackNotification(int $userId, float $amount, string $currency, string $no, int $period): Notification
     {
@@ -281,12 +292,11 @@ class NotificationService
     /**
      * 创建周返现未领取提醒通知
      *
-     * @param int $userId 用户ID
-     * @param float $amount 返现金额
-     * @param string $currency 货币类型
-     * @param string $no Cashback 标识
-     * @param int $period 周期
-     * @return Notification
+     * @param  int  $userId  用户ID
+     * @param  float  $amount  返现金额
+     * @param  string  $currency  货币类型
+     * @param  string  $no  Cashback 标识
+     * @param  int  $period  周期
      */
     public function createWeeklyCashbackReminderNotification(int $userId, float $amount, string $currency, string $no, int $period): Notification
     {
@@ -310,18 +320,17 @@ class NotificationService
     /**
      * 创建 Bonus Task 完成通知
      *
-     * @param int $userId 用户ID
-     * @param float $amount 奖励金额
-     * @param string $currency 货币类型
-     * @param string $taskNo 任务编号
-     * @param string|null $bonusName 奖励名称（可选，用于判断类型）
-     * @return Notification
+     * @param  int  $userId  用户ID
+     * @param  float  $amount  奖励金额
+     * @param  string  $currency  货币类型
+     * @param  string  $taskNo  任务编号
+     * @param  string|null  $bonusName  奖励名称（可选，用于判断类型）
      */
     public function createBonusTaskCompletedNotification(int $userId, float $amount, string $currency, string $taskNo, ?string $bonusName = null): Notification
     {
         // 格式化金额显示
         $formattedAmount = number_format($amount, 2, '.', '');
-        
+
         // 根据 task_no 或 bonus_name 判断类型，生成 "via the ... Bonus you claimed!" 文本
         $viaText = 'the Deposit Bonus';
         if ($taskNo === 'FIRST_DEPOSIT_BONUS' || ($bonusName && stripos($bonusName, 'First Deposit') !== false)) {
@@ -333,7 +342,7 @@ class NotificationService
         } elseif (strpos($taskNo, 'DAILY_DEPOSIT_BONUS') === 0 || ($bonusName && stripos($bonusName, 'Daily Deposit') !== false)) {
             $viaText = 'the Daily Deposit Bonus';
         }
-        
+
         $content = "Congratulations! \${$formattedAmount} has been credited to your game balance via {$viaText} you claimed!";
 
         return $this->createUserNotification(
