@@ -11,7 +11,6 @@ use App\Models\PromotionCodeClaim;
 use Carbon\Carbon;
 use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 
 class PromotionCodeService
@@ -106,24 +105,6 @@ class PromotionCodeService
                     $promo->status = PromotionCode::STATUS_EXHAUSTED;
                 }
                 $promo->save();
-
-                DB::afterCommit(function () use ($userId, $task) {
-                    try {
-                        app(NotificationService::class)->createPromotionCodeClaimNotification(
-                            $userId,
-                            (float) $task->cap_bonus,
-                            (string) ($task->currency !== null && $task->currency !== ''
-                                ? $task->currency
-                                : config('app.currency', 'USD'))
-                        );
-                    } catch (\Throwable $e) {
-                        Log::warning('Promotion code claim notification failed', [
-                            'user_id' => $userId,
-                            'bonus_task_id' => $task->id,
-                            'error' => $e->getMessage(),
-                        ]);
-                    }
-                });
 
                 return [
                     'claim' => $claim,
