@@ -23,9 +23,6 @@ class Notification extends Model
 
     const CATEGORY_BONUS_TASK = 'bonus_task';                // 得到奖励任务
 
-    /** Promotion code 兑换成功入账 bonus */
-    const CATEGORY_BONUS_TASK_CLAIMED = 'bonus_task_claimed';
-
     const CATEGORY_BONUS_TASK_COMPLETED = 'bonus_task_completed'; // 奖励任务完成
 
     const CATEGORY_INVITATION_REWARD = 'invitation_reward';  // 邀请奖励

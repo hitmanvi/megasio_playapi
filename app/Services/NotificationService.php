@@ -167,26 +167,8 @@ class NotificationService
      */
     public function createBonusTaskNotification(int $userId, float $amount, string $currency, string $taskNo, ?string $bonusName = null): Notification
     {
-        // 格式化金额显示
         $formattedAmount = number_format($amount, 2, '.', '');
-
-        // 根据 task_no 或 bonus_name 判断类型，生成 "Via ..." 文本
-        $viaText = 'Via Deposit';
-        $viaValue = 'Deposit';
-        if ($taskNo === 'FIRST_DEPOSIT_BONUS' || ($bonusName && stripos($bonusName, 'First Deposit') !== false)) {
-            $viaText = 'Via First Deposit';
-            $viaValue = 'First Deposit';
-        } elseif ($taskNo === 'SECOND_DEPOSIT_BONUS' || ($bonusName && stripos($bonusName, 'Second Deposit') !== false)) {
-            $viaText = 'Via Second Deposit';
-            $viaValue = 'Second Deposit';
-        } elseif ($taskNo === 'THIRD_DEPOSIT_BONUS' || ($bonusName && stripos($bonusName, 'Third Deposit') !== false)) {
-            $viaText = 'Via Third Deposit';
-            $viaValue = 'Third Deposit';
-        } elseif (strpos($taskNo, 'DAILY_DEPOSIT_BONUS') === 0 || ($bonusName && stripos($bonusName, 'Daily Deposit') !== false)) {
-            $viaText = 'Via Daily Deposit';
-            $viaValue = 'Daily Deposit';
-        }
-
+        [$viaText, $viaValue] = $this->resolveBonusTaskViaText($taskNo, $bonusName);
         $content = "\${$formattedAmount} credited to your bonus balance. {$viaText}.";
 
         return $this->createUserNotification(
@@ -204,25 +186,31 @@ class NotificationService
     }
 
     /**
-     * Promotion Code 兑换成功（BonusTask 已创建）
-     *
-     * @param  float  $amount  展示用金额（通常为 cap_bonus）
+     * @return array{0: string, 1: string} [文案后缀, data.via]
      */
-    public function createPromotionCodeClaimNotification(int $userId, float $amount, string $currency): Notification
+    protected function resolveBonusTaskViaText(string $taskNo, ?string $bonusName): array
     {
-        $formattedAmount = number_format($amount, 2, '.', '');
-        $content = "\${$formattedAmount} credited to your bonus balance. From Promotion Code.";
+        if (str_starts_with($taskNo, 'PROMO_')) {
+            return ['From Promotion Code', 'Promotion Code'];
+        }
 
-        return $this->createUserNotification(
-            $userId,
-            Notification::CATEGORY_BONUS_TASK_CLAIMED,
-            'promotion_code',
-            $content,
-            [
-                'amount' => $amount,
-                'currency' => $currency,
-            ]
-        );
+        if ($taskNo === 'FIRST_DEPOSIT_BONUS' || ($bonusName && stripos($bonusName, 'First Deposit') !== false)) {
+            return ['Via First Deposit', 'First Deposit'];
+        }
+
+        if ($taskNo === 'SECOND_DEPOSIT_BONUS' || ($bonusName && stripos($bonusName, 'Second Deposit') !== false)) {
+            return ['Via Second Deposit', 'Second Deposit'];
+        }
+
+        if ($taskNo === 'THIRD_DEPOSIT_BONUS' || ($bonusName && stripos($bonusName, 'Third Deposit') !== false)) {
+            return ['Via Third Deposit', 'Third Deposit'];
+        }
+
+        if (str_starts_with($taskNo, 'DAILY_DEPOSIT_BONUS') || ($bonusName && stripos($bonusName, 'Daily Deposit') !== false)) {
+            return ['Via Daily Deposit', 'Daily Deposit'];
+        }
+
+        return ['Via Deposit', 'Deposit'];
     }
 
     /**
