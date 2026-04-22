@@ -134,8 +134,7 @@ class CustomerIOWebhookController extends Controller
      */
     private function resolveCustomerIdentifierFromData(array $data): ?string
     {
-        return $this->stringOrNull($data['customer_id'] ?? null)
-            ?? $this->stringOrNull(is_array($data['identifiers'] ?? null) ? ($data['identifiers']['id'] ?? null) : null);
+        return $this->stringOrNull($data['event_id'] ?? null);
     }
 
     private function stringOrNull(mixed $v): ?string
