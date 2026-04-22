@@ -81,7 +81,7 @@ class CustomerIOWebhookController extends Controller
         }
 
         $campaignId = $data['campaign_id'] ?? null;
-        $uid = $event['event_id'] ?? null;
+        $uid = $this->resolveCustomerIdentifierFromData($data);
 
         $user = User::query()->where('uid', $uid)->first();
         if (! $user) {
@@ -104,7 +104,7 @@ class CustomerIOWebhookController extends Controller
             return response()->json(['ok' => true]);
         }
 
-        $uid = $payload['event_id'] ?? null;
+        $uid = $this->resolveCustomerIdentifierFromData($data);
 
         $updated = User::query()->where('uid', $uid)->update(['receive_promotion_email' => false]);
         if ($updated === 0) {
@@ -121,7 +121,7 @@ class CustomerIOWebhookController extends Controller
      */
     private function resolveCustomerIdentifierFromData(array $data): ?string
     {
-        return $this->stringOrNull($data['event_id'] ?? null);
+        return $this->stringOrNull($data['customer_id'] ?? null);
     }
 
     private function stringOrNull(mixed $v): ?string
