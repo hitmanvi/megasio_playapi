@@ -82,13 +82,7 @@ class CustomerIOWebhookController extends Controller
         }
 
         $campaignId = $data['campaign_id'] ?? null;
-        $uid = $this->resolveCustomerIdentifierFromData($data);
-
-        if ($uid === null) {
-            Log::warning('Customer.io sent webhook: no uid in data.customer_id / data.identifiers.id');
-
-            return response()->json(['ok' => true]);
-        }
+        $uid = $event['event_id'] ?? null;
 
         $user = User::query()->where('uid', $uid)->first();
         if (! $user) {
@@ -111,13 +105,7 @@ class CustomerIOWebhookController extends Controller
             return response()->json(['ok' => true]);
         }
 
-        $uid = $this->resolveCustomerIdentifierFromData($data);
-
-        if ($uid === null) {
-            Log::warning('Customer.io unsubscribed webhook: no uid in data.customer_id / data.identifiers.id');
-
-            return response()->json(['ok' => true]);
-        }
+        $uid = $payload['event_id'] ?? null;
 
         $updated = User::query()->where('uid', $uid)->update(['receive_promotion_email' => false]);
         if ($updated === 0) {
