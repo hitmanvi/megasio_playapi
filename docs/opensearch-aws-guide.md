@@ -111,7 +111,7 @@
 
 ### 4.1 环境变量
 
-在 `.env` 中配置：
+在 `.env` 中配置（**始终使用 IAM SigV4**；区域与其它 AWS 服务相同，使用 `AWS_DEFAULT_REGION`，未设置时默认 `us-east-1`）：
 
 ```env
 # 启用 OpenSearch
@@ -120,9 +120,8 @@ OPENSEARCH_ENABLED=true
 # AWS OpenSearch 端点（HTTPS，无需端口）
 OPENSEARCH_HOSTS=https://xxxxx-xxxxx.us-east-1.es.amazonaws.com
 
-# Master 用户名和密码（创建域时设置）
-OPENSEARCH_USERNAME=admin
-OPENSEARCH_PASSWORD=your_master_password
+AWS_DEFAULT_REGION=us-east-1
+OPENSEARCH_SIGV4_SERVICE=es
 
 # Index 前缀（用于区分环境）
 OPENSEARCH_INDEX_PREFIX=playapi
@@ -164,7 +163,7 @@ php artisan test:opensearch-event
 |------|----------|----------|
 | Connection refused / timeout | 网络不通或安全组限制 | 检查安全组、VPC、访问策略 |
 | Connection timed out (port 9200) | opensearch-php 对 https 无端口 URL 错误使用 9200 | 已在 OpenSearchService 中自动补 `:443`，确保使用最新代码 |
-| 401 Unauthorized | 用户名或密码错误 | 核对 OPENSEARCH_USERNAME / OPENSEARCH_PASSWORD |
+| 401 Unauthorized / SigV4 失败 | IAM 无权限或凭证无效 | 核对调用身份是否有域访问策略与 IAM 策略允许 `es:HTTP*`；凭证是否为当前环境可用 |
 | 403 Forbidden | 访问策略不允许当前 IP | 在访问策略中加入当前 IP |
 | SSL certificate problem | 证书校验失败 | 确认使用 `https://` 且端点正确 |
 
@@ -196,19 +195,7 @@ Source: 应用实例的安全组 ID 或 CIDR
 
 ---
 
-## 七、IAM 认证（可选）
-
-除 Master 用户外，AWS OpenSearch 支持 IAM 身份认证。当前 PlayAPI 使用 Basic Auth（Master 用户），若需 IAM：
-
-1. 安装 `aws/aws-sdk-php`
-2. 在 `OpenSearchService` 的 `buildClient()` 中配置 SigV4 签名
-3. 使用 IAM 角色或 Access Key 替代用户名密码
-
-具体实现可参考 [opensearch-php AWS 文档](https://github.com/opensearch-project/opensearch-php#aws-opensearch-service)。
-
----
-
-## 八、成本参考（us-east-1）
+## 七、成本参考（us-east-1）
 
 | 配置 | 月费用（约） |
 |------|--------------|
@@ -220,9 +207,9 @@ Source: 应用实例的安全组 ID 或 CIDR
 
 ---
 
-## 九、Index 模版与文档 ID
+## 八、Index 模版与文档 ID
 
-### 9.1 创建模版
+### 8.1 创建模版
 
 首次使用或修改模版后，建议先创建 index 模版：
 
@@ -238,7 +225,7 @@ php artisan init:opensearch --name=events
 
 模版定义在 `config/opensearch.php` 的 `index_templates`，包含 `@timestamp`、`event_type`、`user_id` 等字段的 mapping。
 
-### 9.2 指定文档 ID（幂等）
+### 8.2 指定文档 ID（幂等）
 
 上传时指定 `--id` 可实现幂等：相同 ID 会覆盖，避免重复事件：
 
@@ -256,9 +243,9 @@ $openSearch->indexEvent('user_registered', $payload, $eventId);
 
 ---
 
-## 十、回填与统计
+## 九、回填与统计
 
-### 10.1 数据回填
+### 9.1 数据回填
 
 将已有 users、deposits、withdraws 数据上传到 OpenSearch：
 
@@ -279,11 +266,11 @@ php artisan test:opensearch-backfill --chunk=200 --create-templates
 
 ---
 
-## 十一、快速检查清单
+## 十、快速检查清单
 
 - [ ] 已创建 OpenSearch 域并处于 Active 状态
 - [ ] 已执行 `php artisan init:opensearch` 创建模版
-- [ ] 已启用 Fine-grained access control 并创建 Master 用户
+- [ ] AWS 域访问策略与 IAM 允许当前调用身份访问（或使用本地无认证集群开发）
 - [ ] 已获取正确的 Domain endpoint（HTTPS）
 - [ ] 访问策略允许当前 IP（公网访问时）
 - [ ] 安全组允许 443 入站（VPC 访问时）

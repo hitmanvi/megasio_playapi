@@ -16,9 +16,14 @@ return [
 
     'hosts' => array_filter(explode(',', env('OPENSEARCH_HOSTS', 'http://localhost:9200'))),
 
-    'username' => env('OPENSEARCH_USERNAME'),
+    /*
+     * AWS OpenSearch：始终使用 IAM SigV4（凭证走 AWS 默认链）。
+     * 区域与全局 AWS 一致：AWS_DEFAULT_REGION，缺省 us-east-1。
+     * SigV4 service：托管域一般为 es；OpenSearch Serverless 常为 aoss（见 AWS 文档）。
+     */
+    'aws_region' => env('AWS_DEFAULT_REGION') ?: 'us-east-1',
 
-    'password' => env('OPENSEARCH_PASSWORD'),
+    'sigv4_service' => env('OPENSEARCH_SIGV4_SERVICE', 'es'),
 
     /*
     |--------------------------------------------------------------------------

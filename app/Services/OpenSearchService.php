@@ -92,26 +92,25 @@ class OpenSearchService
             'hosts' => $hosts,
         ];
 
-        if (($username = config('opensearch.username')) && ($password = config('opensearch.password'))) {
-            $params['basicAuthentication'] = [$username, $password];
-        }
+        $region = (string) config('opensearch.aws_region', 'us-east-1');
+        $sigv4Service = (string) config('opensearch.sigv4_service', 'es');
 
         $builder = ClientBuilder::create();
         $builder->setHosts($params['hosts']);
-
-        if (isset($params['basicAuthentication'])) {
-            $builder->setBasicAuthentication(
-                $params['basicAuthentication'][0],
-                $params['basicAuthentication'][1]
-            );
-        }
+        $builder->setSigV4CredentialProvider(true);
+        $builder->setSigV4Region($region);
+        $builder->setSigV4Service($sigv4Service !== '' ? $sigv4Service : 'es');
 
         if ($logger = Log::getLogger()) {
             $builder->setLogger($logger);
         }
 
         $client = $builder->build();
-        $this->debug('Client built', ['hosts' => $params['hosts'], 'auth' => isset($params['basicAuthentication'])]);
+        $this->debug('Client built', [
+            'hosts' => $params['hosts'],
+            'region' => $region,
+            'sigv4_service' => $sigv4Service !== '' ? $sigv4Service : 'es',
+        ]);
 
         return $client;
     }
