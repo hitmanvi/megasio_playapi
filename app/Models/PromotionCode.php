@@ -35,6 +35,7 @@ class PromotionCode extends Model
         'expired_at',
         'target_type',
         'status',
+        'remark',
     ];
 
     protected $casts = [
