@@ -91,6 +91,19 @@ return [
     ],
 
     /*
+    | TikTok Events API
+    | Docs: https://business-api.tiktok.com/portal/docs/report-app-web-offline-or-crm-events/v1.3
+    */
+    'tiktok_events' => [
+        'enabled' => env('TIKTOK_EVENTS_ENABLED', false),
+        'pixel_code' => env('TIKTOK_PIXEL_CODE'),
+        'access_token' => env('TIKTOK_ACCESS_TOKEN'),
+        'test_event_code' => env('TIKTOK_TEST_EVENT_CODE'),
+        'event_source' => env('TIKTOK_EVENT_SOURCE', 'web'),
+        'endpoint' => env('TIKTOK_EVENTS_ENDPOINT', 'https://business-api.tiktok.com/open_api/v1.3/event/track/'),
+    ],
+
+    /*
     | Customer.io Track API (https://customer.io/docs/api/track/)
     | Basic auth: Site ID + API Key from workspace Settings → API Credentials
     */
