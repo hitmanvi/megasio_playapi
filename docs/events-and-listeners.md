@@ -35,7 +35,7 @@
 
 | 监听器 | 作用 |
 |--------|------|
-| `SendRegistrationEvent` | Facebook CAPI `CompleteRegistration`；`CustomerIOService::createCustomer` 建用户并写营销侧信息。Kochava 等部分逻辑在代码中注释。 |
+| `SendRegistrationEvent` | Facebook CAPI `CompleteRegistration`；TikTok Events `CompleteRegistration`；`CustomerIOService::createCustomer` 建用户并写营销侧信息。Kochava 等部分逻辑在代码中注释。 |
 | `IndexUserRegisteredToOpenSearch` | 若 OpenSearch 开启，上报 `user_registered` 事件用于统计/检索。 |
 
 ### `UserLoggedIn`（一次登录会同时触发下列监听器，执行顺序以队列入队顺序为准，不应用以强依赖先后）
@@ -56,13 +56,13 @@
 
 | 监听器 | 作用 |
 |--------|------|
-| `SendDepositCreateEvent` | Facebook `InitiateCheckout`；Customer.io `initiate_purchase`。Kochava 片段注释中。 |
+| `SendDepositCreateEvent` | Facebook `InitiateCheckout`；TikTok `InitiateCheckout`；Customer.io `initiate_purchase`。Kochava 片段注释中。 |
 
 ### `DepositCompleted`
 
 | 监听器 | 作用 |
 |--------|------|
-| `SendDepositCompleteEvent` | Kochava `purchase`；Facebook `Purchase`；Customer.io `purchase`。 |
+| `SendDepositCompleteEvent` | Kochava `purchase`；Facebook `Purchase`；TikTok `Purchase`；Customer.io `purchase`。 |
 | `CreateDepositBonusTask` | `PromotionService::processDepositBonus`，按促销规则生成存款类 bonus task。 |
 | `CreateRollover` | 为该笔充值创建一条 rollover（默认 1 倍流水需求；无其他 active 时激活）。 |
 | `CreateInvitationDepositReward` | 若用户有被邀请关系，按累计充值与配置检查并创建邀请人侧「存款进阶」类奖励（实现见类内）。 |
@@ -74,7 +74,7 @@
 
 | 监听器 | 作用 |
 |--------|------|
-| `SendFirstDepositCompleteEvent` | Kochava `first_purchase`；Facebook `FirstDeposit`。 |
+| `SendFirstDepositCompleteEvent` | Kochava `first_purchase`；Facebook `FirstDeposit`；TikTok `FirstDeposit`。 |
 | `AddPaidTagOnFirstDeposit` | 为用户打上标签 `Paid`（首次充值标记）。 |
 | `IndexFirstDepositCompletedToOpenSearch` | OpenSearch：`first_deposit_completed`。 |
 
@@ -115,9 +115,9 @@
 
 | 域 | 事件 | 监听器要点 |
 |----|------|------------|
-| **认证 / 登录审计** | `UserRegistered`、`UserLoggedIn` | 营销像素、Customer.io、`last_login_at`、UserActivity、OpenSearch |
+| **认证 / 登录审计** | `UserRegistered`、`UserLoggedIn` | Facebook/TikTok、Customer.io、`last_login_at`、UserActivity、OpenSearch |
 | **页面行为** | `UserMineVisited` | Customer.io `visit` |
-| **充值漏斗** | `DepositCreated`、`DepositCompleted`、`FirstDepositCompleted` | 像素、Kochava、Customer.io、促销 rollover、邀请存款奖励、Paid 标签、OpenSearch |
+| **充值漏斗** | `DepositCreated`、`DepositCompleted`、`FirstDepositCompleted` | Facebook/TikTok、Kochava、Customer.io、促销 rollover、邀请存款奖励、Paid 标签、OpenSearch |
 | **提现** | `WithdrawCompleted` | OpenSearch |
 | **游戏下注** | `OrderCompleted` | wager、VIP 经验、rollover、周返缓冲、bonus task 耗尽、最近游玩 |
 | **余额推送** | `BalanceChanged` | WebSocket 余额变更 |
