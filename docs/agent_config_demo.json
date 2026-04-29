@@ -6,5 +6,12 @@
   },
   "kochava_config": {
     "app_id": "kochava-xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+  },
+  "tiktok_config": {
+    "pixel_code": "CXXXXXXXXXXXXXX",
+    "access_token": "tt_XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX",
+    "test_event_code": "TEST12345",
+    "event_source": "web",
+    "enabled": true
   }
 }

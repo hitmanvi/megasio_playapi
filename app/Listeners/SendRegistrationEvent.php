@@ -6,6 +6,7 @@ use App\Events\UserRegistered;
 use App\Services\AgentService;
 use App\Services\CustomerIOService;
 use App\Services\FacebookConversionsService;
+use App\Services\TikTokEventsService;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Queue\InteractsWithQueue;
 
@@ -36,6 +37,27 @@ class SendRegistrationEvent implements ShouldQueue
             $userData = FacebookConversionsService::userDataFromUser($user, $deviceInfo);
             $userData['event_time'] = $deviceInfo['usertime'] ?? time();
             $facebook->sendEvent('CompleteRegistration', $userData, ['status' => 'registered'], 'register_' . $user->uid);
+        }
+
+        $tiktok = new TikTokEventsService($link);
+        if ($tiktok->isEnabled()) {
+            $ttUser = TikTokEventsService::userDataFromUser($user, $deviceInfo);
+            $context = [];
+            if (! empty($deviceInfo['event_source_url'])) {
+                $context['event_source_url'] = $deviceInfo['event_source_url'];
+            }
+            $eventName = 'CompleteRegistration';
+            $tiktok->sendEvent(
+                $eventName,
+                $ttUser,
+                [
+                    'content_type' => 'product',
+                    'content_id' => $eventName,
+                ],
+                'register_'.$user->uid,
+                isset($deviceInfo['usertime']) ? (int) $deviceInfo['usertime'] : null,
+                $context
+            );
         }
 
         // Customer.io：创建/更新 profile 并发送 sign_up（见 CustomerIOService::createCustomer）

@@ -28,15 +28,18 @@ class AgentLink extends Model
         'status',
         'facebook_config',
         'kochava_config',
+        'tiktok_config',
     ];
 
     protected $casts = [
         'facebook_config' => 'array',
         'kochava_config' => 'array',
+        'tiktok_config' => 'array',
     ];
 
     protected $hidden = [
         'facebook_config',
+        'tiktok_config',
     ];
 
     /**
@@ -79,6 +82,19 @@ class AgentLink extends Model
     }
 
     /**
+     * 是否已配置 TikTok Events（需 enabled 为 true）
+     */
+    public function hasTikTokEvents(): bool
+    {
+        $cfg = $this->tiktok_config ?? [];
+        if (isset($cfg['enabled']) && !$cfg['enabled']) {
+            return false;
+        }
+
+        return !empty($cfg['pixel_code'] ?? '') && !empty($cfg['access_token'] ?? '');
+    }
+
+    /**
      * 获取 Facebook Conversions 配置（pixel_id, access_token, enabled）
      */
     public function getFacebookConfig(): array
@@ -92,5 +108,13 @@ class AgentLink extends Model
     public function getKochavaConfig(): array
     {
         return $this->kochava_config ?? [];
+    }
+
+    /**
+     * 获取 TikTok Events 配置（pixel_code, access_token, test_event_code, event_source, enabled）
+     */
+    public function getTikTokConfig(): array
+    {
+        return $this->tiktok_config ?? [];
     }
 }

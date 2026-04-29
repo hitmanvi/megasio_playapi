@@ -7,6 +7,7 @@ use App\Services\AgentService;
 use App\Services\CustomerIOService;
 use App\Services\FacebookConversionsService;
 use App\Services\KochavaService;
+use App\Services\TikTokEventsService;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Queue\InteractsWithQueue;
 
@@ -50,5 +51,33 @@ class SendDepositCompleteEvent implements ShouldQueue
             $deposit->user,
             'purchase',
         );
+
+        $tiktok = new TikTokEventsService($link);
+        if ($tiktok->isEnabled()) {
+            $ttUser = TikTokEventsService::userDataFromDeposit($deposit, $deviceInfo);
+            $amount = (float) $deposit->amount;
+            $currency = strtoupper((string) $deposit->currency);
+            $amtStr = rtrim(rtrim(sprintf('%.10F', $amount), '0'), '.');
+            $purchaseContentId = 'deposit_'.$amtStr.'_'.$currency;
+            $properties = [
+                'value' => $amount,
+                'currency' => $currency,
+                'content_type' => 'product',
+                'content_id' => $purchaseContentId,
+                'quantity' => 1,
+            ];
+            $context = [];
+            if (! empty($deviceInfo['event_source_url'])) {
+                $context['event_source_url'] = $deviceInfo['event_source_url'];
+            }
+            $tiktok->sendEvent(
+                'Purchase',
+                $ttUser,
+                $properties,
+                'purchase_'.$deposit->order_no,
+                $deposit->completed_at?->timestamp,
+                $context
+            );
+        }
     }
 }
